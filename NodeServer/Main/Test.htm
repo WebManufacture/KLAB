@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title> Router test </title>
+		<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+		<link type='text/css' rel='stylesheet' href="http://Services.web-manufacture.net/Styles/System.default.css"/>
+		
+		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Utils.js"></script>
+		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/DOM.js"></script>
+		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Url.js"></script>
+		<style>
+		</style>
+		<script type='text/javascript'>
+			function Router(server){
+				this.Gates = { "/" : [], "*" : [] };
+				this.Handlers = { "/" : [], "*" : []};
+				//server.on('request', this._process);
+			};
+			
+			function MapNode(){
+				
+			};
+			
+			MapNode.prototype = {
+				checkMethod : function(method){
+					return typeof this[method] == 'function'
+				},
+				
+				call : function(url, req, res){
+					return this[req.method](url, req, res);	
+				}
+			};
+			
+			Router.prototype = {
+				on : function(path, handler){
+					return this._addHandler(this.Handlers, path, handler);
+				},
+				
+				gate : function(path, handler){
+					return this._addHandler(this.Gates, path, handler);
+				},
+				
+				_addHandler : function (root, path, handler){
+					if (!path || path == '') path = '/';
+					//if (path.ends("/")) path += "*";
+					if (!path.start("/")) path = '/' + path;		
+					var parts = path.split('/');
+					parts.shift();
+					var cg = root;
+					var ch = root['/'];
+					for (var i = 0; i < parts.length; i++){
+						var p = parts[i];
+						if (p == ""){
+							continue;
+						}
+						if (p == "*"){
+							ch = cg["*"];
+							break;
+						}
+						if (!cg[p]){
+							cg[p] = {
+								"/" : [],
+								"*" : []
+							};	
+						}
+						cg = cg[p];
+						ch = cg["/"];
+					}
+					ch.push(handler);
+				},
+				
+				_checkGates : function(url, req, res){
+					var currentGate = this.Gates;
+					for (var i = 0; i < url.paths.length; i++){
+						var p = url.paths[i];
+						if (p == '') break;				
+						var all = currentGate["*"];
+						if (all && all.length > 0){
+							if (this._checkGateHandlers(all, url, req, res, currentGate, "*") == false) return false;
+						}
+						if (currentGate[p])
+						{
+							currentGate = currentGate[p];
+						}
+						else{
+							return true;
+						}
+					}
+					var handlers = currentGate["/"];
+					if (handlers && handlers.length > 0){
+						if (this._checkGateHandlers(handlers, url, req, res, currentGate, p) == false) return false;
+					}
+					return true;
+				},
+				
+				_checkGateHandlers : function(harr, mapNode, part,url, req, res){
+					for (var g = 0; g < harr.length; g++){
+						if (typeof harr[g] == 'function' && harr[g](url, req, res, mapNode, part) == false) return false;
+						if (typeof harr[g] == 'MapNode' &&  harr[g].checkMethod(req.method) && harr[g].call(url, req, res, mapNode, part) == false) return false;
+					}
+					return true;
+				},
+				
+				_callHandlers : function(url, req, res){
+					return _callHandler(this.Handlers, 0, url, req, res);
+				},
+				
+				_callHandler : function(mapNode, pathNum, url, req, res){
+					if (mapNode) {
+						if (pathNum < url.paths.length){
+							var path = url.paths[pathNum];
+							if (path != ""){
+								var result = this._callHandler(mapNode[path], pathNum + 1, url, req, res);
+								if (!req.finishCalled){
+									var handlers = mapNode["*"];
+									if (handlers && handlers.length > 0){
+										for (var g = 0; g < handlers.length; g++){
+											if (typeof handlers[g] == 'function'){
+												handlers[g](url, req, res);
+												result = true;
+											}
+											if (typeof handlers[g] == 'MapNode' && handlers[g].checkMethod(req.method)){
+												handlers[g].call(url, req, res);
+												result = true;
+											}
+										}
+									}
+								}
+								return result;
+							}
+						}
+						
+						var endHandler = mapNode["/"];
+						var result = false;
+						if (endHandler && endHandler.length > 0){
+							for (var g = 0; g < endHandler.length; g++){
+								if (typeof endHandler[g] == 'function'){
+									endHandler[g](url, req, res);
+									result = true;
+								}
+								if (typeof endHandler[g] == 'MapNode' && endHandler[g].checkMethod(req.method)){
+									endHandler[g].call(url, req, res);
+									result = true;
+								}
+							}
+						}
+						return result;
+					};
+					return false;
+				},
+				
+				_process: function(req, res){
+					res.setHeader("Access-Control-Allow-Origin", "*");
+					res.setHeader("Access-Control-Request-Header", "X-Prototype-Version, x-requested-with");
+					res.setHeader("Content-Type", "text/html; charset=utf-8");
+					req.setEncoding("utf8");
+					if (req.method == 'HEAD' || req.method == "OPTIONS"){
+						res.finish = this._finishHead;
+					}
+					else{
+						res.finish = this._finishBody;
+					}
+					
+					var url = require('url').parse(req.url, true);
+					
+					url.paths = url.pathname.split('/');
+					url.paths.shift();
+					
+					if (!this._checkGates(url, req, res)){
+						res.finish(403, "Gate layer deny path " + url.pathname);
+					}		
+					try{
+						if (!this._callHandlers(url, req, res)){
+							if (!res.finishCalled){
+								res.finish(404, "No handlers found for path " + url.pathname);
+							}
+						}
+					}
+					catch (e){
+						if (!res.finishCalled){
+							res.finish(500, "Error: " + e.message);
+						}
+						throw e;
+					}
+				},
+				
+				_finishHead : function(status, result){			
+					if (this.finishCalled) return;
+					this.finishCalled = true;
+					this.writeHead(status, result + "");
+					this.end();
+				},
+				
+				_finishBody : function(status, result){
+					if (this.finishCalled) {
+						return;
+					}
+					this.finishCalled = true;
+					if (status == 200){
+						this.statusCode = 200;				
+						this.end(result + "");
+						return;
+					}
+					this.writeHead(status);
+					this.end(result + "");
+				}
+			};
+			
+			var router = new Router(null);
+			
+			router.on("/spec", function(url, req, res){
+				console.log(url.pathname)	
+			});
+			
+			router.on("/logs/*", function(url, req, res){
+				console.log(url.pathname)	
+			});
+			
+			router.on("/", function(url, req, res){
+				console.log(url.pathname)	
+			});
+			
+			router.on("/*", function(url, req, res){
+				console.log(url.pathname)	
+			});
+			
+			router.on("*", function(url, req, res){
+				console.log(url.pathname)	
+			});			
+			
+			router.on("", function(url, req, res){
+				console.log(url.pathname)	
+			});
+			
+			router.on("/spec/", function(url, req, res){
+				console.log(url.pathname)	
+			});
+			
+		</script>
+	</head>
+	
+	<body>
+		
+	</body>
+</html>
