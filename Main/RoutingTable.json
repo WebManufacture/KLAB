@@ -1,0 +1,29 @@
+[
+	{
+		"NodeName" : "FClient",
+		"Host" : "web-manufacture.net",
+		"Location" : "localhost",
+		"File" : "./Main/Test.js",
+		"Args" : {
+			"value" : 1
+		}
+	},
+	{
+		"NodeName" : "FClient",
+		"Host" : "modules.web-manufacture.net",
+		"Location" : "localhost",
+		"File" : "./Main/Test.js",
+		"Args" : {
+			"value" : 2
+		}
+	},
+	{
+		"NodeName" : "FClient",
+		"Host" : "modules.web-manufacture.net",
+		"Location" : "localhost",
+		"File" : "./Main/Test.js",
+		"Args" : {
+			"value" : 3
+		}
+	}
+]
