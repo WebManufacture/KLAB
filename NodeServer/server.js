@@ -50,7 +50,7 @@ NodeProto = {
 }
 
 Server.Init = function(){
-	var cfg = { port: 80, ver:"0.1.2", host:"web-manufacture.net", adminHost: "config.web-manufacture.net", routingFile: "./NodeServer/RoutingTable.json", adminAppFile : "./NodeServer/Config.htm", portStart: 1000 };
+	var cfg = { ver:"0.1.4", routingFile: "./NodeServer/RoutingTable.json", adminAppFile : "./NodeServer/Config.htm" };
 	
 	for (var i = 2; i < process.argv.length; i++){
 		var arg = process.argv[i];
@@ -72,9 +72,18 @@ Server.Init = function(){
 	Server.ConfigTable = JSON.parse(rtable);
 	if (rtable && rtable.length > 0){
 		rtable = JSON.parse(rtable);
+		if (rtable[0].Location = "server"){
+			for (var item in rtable[0]){
+				var val = rtable[0][item];
+				if (cfg[item] == undefined){
+					cfg[item] = val;
+				}
+			}
+		}
 		var port = cfg.portStart;
 		for (var i = 0; i < rtable.length; i++){
 			var item = Server.ConfigTable[i];
+			if (item.Location == "server") continue;
 			var rr = rtable[i];
 			if (Server.InitFork(item, rr, i, port)){
 				Server.RoutingTable[rr.Host] = rr;	
@@ -240,11 +249,11 @@ Server.Start = function(config){
 			   });
 	Files(config, Server);
 	//console.log(router.Handlers.processMap)
-	if (!config.adminPort) config.adminPort = 80;
+	if (!config.adminPort) config.adminPort = config.Port;
 	console.log("ILAB server v "  + Server.Config.ver);
-	console.log("Listening " +  config.host + ":" + config.port + "");
-	http.createServer(Server.RouteProxy).listen(config.port);
-	if (config.adminPort != config.port){
+	console.log("Listening " +  config.Host + ":" + config.Port + "");
+	http.createServer(Server.RouteProxy).listen(config.Port);
+	if (config.adminPort &&  config.adminPort != config.Port){
 		console.log("Admin " +  (config.adminHost + ":" + config.adminPort + "").verbose);
 		var server = http.createServer(Server.Process);
 		if (config.adminHost){
@@ -255,7 +264,7 @@ Server.Start = function(config){
 		}
 	}
 	else{
-		console.log("Admin " +  config.adminHost.verbose);
+		console.log("Admin: " +  ((config.adminHost ? config.adminHost : config.Host) + ":" + config.Port).verbose);
 	}
 	if (config.adminPort == 80){
 		Server.AdminUrl = config.adminHost;
