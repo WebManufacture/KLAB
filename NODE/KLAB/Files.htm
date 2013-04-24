@@ -180,9 +180,9 @@
 		
 		FS.LoadFile = function(file) {
 			var url = "/" + file.fileName;
-			if (file.is(".css") || file.is(".htm") || file.is(".html") || file.is(".js") || file.is(".cs")) {
+			//if (file.is(".css") || file.is(".htm") || file.is(".html") || file.is(".js") || file.is(".cs")) {
 				url = Url.Resolve("TextEditor.htm", {url : url});
-			}
+			//}
 			window.open(url);
 		};
 		

@@ -15,19 +15,21 @@
 		
 		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/NodeTunnel.js"></script> 
 		
-		<script type="text/javascript" src="http://system.web-manufacture.net/CodeMirror-2.32/lib/CodeMirror.js"></script>
-		<link rel="stylesheet" href="http://system.web-manufacture.net/CodeMirror-2.32/lib/codemirror.css" />
-		<script src="http://system.web-manufacture.net/CodeMirror-2.32/mode/javascript/javascript.js"></script>
-		<script src="http://system.web-manufacture.net/CodeMirror-2.32/mode/htmlmixed/htmlmixed.js"></script>
-		<script src="http://system.web-manufacture.net/CodeMirror-2.32/mode/css/css.js"></script>
-		<script src="http://system.web-manufacture.net/CodeMirror-2.32/mode/xml/xml.js"></script>
-		<script src="http://codemirror.net/lib/util/dialog.js"></script>
-		<script src="http://codemirror.net/lib/util/search.js"></script>
-		<script src="http://codemirror.net/lib/util/searchcursor.js"></script>
-		<script src="http://codemirror.net/lib/util/match-highlighter.js"></script>
-		<script src="http://codemirror.net/lib/util/javascript-hint.js"></script>
-		<script src="http://codemirror.net/lib/util/closetag.js"></script>
-		<script src="http://codemirror.net/lib/util/foldcode.js"></script>
+		<script type="text/javascript" src="http://services.web-manufacture.net/External/CodeMirror-3.0/lib/CodeMirror.js"></script>
+		<link rel="stylesheet" href="http://services.web-manufacture.net/External/CodeMirror-3.0/lib/codemirror.css" />
+		<script src="http://services.web-manufacture.net/External/CodeMirror-3.0/addon/search/search.js"></script>
+		<script src="http://services.web-manufacture.net/External/CodeMirror-3.0/addon/search/searchcursor.js"></script>
+		<script src="http://services.web-manufacture.net/External/CodeMirror-3.0/addon/search/match-highlighter.js"></script>
+		<script src="http://services.web-manufacture.net/External/CodeMirror-3.0/addon/hint/show-hint.js"></script>		
+		<script src="http://services.web-manufacture.net/External/CodeMirror-3.0/addon/hint/javascript-hint.js"></script>
+		<link rel="stylesheet" href="http://services.web-manufacture.net/External/CodeMirror-3.0/addon/hint/show-hint.css" />
+		<script src="http://services.web-manufacture.net/External/CodeMirror-3.0/addon/edit/closetag.js"></script>
+		<script src="http://services.web-manufacture.net/External/CodeMirror-3.0/addon/edit/matchbrackets.js"></script>
+		<script src="http://services.web-manufacture.net/External/CodeMirror-3.0/addon/fold/foldcode.js"></script>
+		<script src="http://services.web-manufacture.net/External/CodeMirror-3.0/mode/javascript/javascript.js"></script>
+		<script src="http://services.web-manufacture.net/External/CodeMirror-3.0/mode/htmlmixed/htmlmixed.js"></script>
+		<script src="http://services.web-manufacture.net/External/CodeMirror-3.0/mode/css/css.js"></script>
+		<script src="http://services.web-manufacture.net/External/CodeMirror-3.0/mode/xml/xml.js"></script>
 		<script type="text/javascript" key="TextEditor">
 			
 			Notify = {};
@@ -75,7 +77,7 @@
 					Editor.fileName = Request.Params.url;
 					url = Request.GetUrl(Editor.fileName);
 					Server = new NodeServer(Request.Params.url);
-					DOM("#urlBar").set(null, url);
+					DOM("#urlBar").value = url;
 				}
 				if (Request.Params.file) {
 					url = Editor.fileName = Request.Params.file;
@@ -90,7 +92,7 @@
 							url = Request.Params.SystemPath + "/" + url;
 						}	
 					}					
-					DOM("#urlBar").set(null, url);
+					DOM("#urlBar").value = url;
 					if (url.contains("?")){
 						url += "&rnd=" + Math.random();
 					}
@@ -105,7 +107,11 @@
 				req.onload = Editor.LoadFileComplete;
 				req.send(null);
 				Editor.HistoryKey = 'dateArray_' + Request.Params.UserDomain + "/" + Request.Params.SystemPath + "/" + Editor.fileName
-					window.onkeypress = Editor.KeyHandler;
+				window.onkeypress = Editor.KeyHandler;
+				
+				CodeMirror.commands.autocomplete = function(cm) {
+					CodeMirror.simpleHint(cm, CodeMirror.javascriptHint);
+				}
 			};
 			
 			Editor.GoUrl = function(url, key){
@@ -149,6 +155,7 @@
 					}
 				}
 				
+				
 				Editor.TextEditor = CodeMirror(WS.Body, {
 					mode: parsers,
 					indentUnit: 4,
@@ -157,13 +164,17 @@
 					smartIndent: true,
 					lineNumbers: true,
 					matchBrackets: true,
+					highlightSelectionMatches: true,
+					autoCloseTags: true,
 					electricChars: true,
 					extraKeys: {
-						"'>'": function (cm) { cm.closeTag(cm, '>'); },
-						"'/'": function (cm) { cm.closeTag(cm, '/'); }
-					},
-					onCursorActivity: function () { Editor.TextEditor.matchHighlight("CodeMirror-matchhighlight"); } 
+						"Ctrl-Space": "autocomplete"
+					} 
 				});
+				
+				/*Editor.TextEditor.on("cursorActivity", function() {
+					Editor.TextEditor.matchHighlight("CodeMirror-matchhighlight");
+				});*/
 				
 				Editor.TextEditor.setValue(this.responseText);
 				var title = WS.Header.add("<title>" + Editor.fileName + "</title>");
@@ -478,21 +489,6 @@
 				background-color: #fff;  				
 			} 
 			
-			#urlBar{
-				text-align: left;
-				background-color: #FFFFCC;
-				border: 1px solid black;
-				border-radius: 4px;
-				float: left;
-				height: 26px;
-				margin-right: 20px;
-				margin-top: 13px;
-				min-width: 200px;
-				padding-left: 10px;
-				padding-right: 10px;
-				padding-top: 4px;
-			}
-			
 			#VersionHistory
 			{
 				z-index: 11111;
@@ -501,7 +497,7 @@
 				top: 40%;
 				background-color: white;
 				border: solid 1px red;
-				widht: 200px;
+				width: 200px;
 				height: 200px;
 				opacity: 1;
 			}
@@ -517,12 +513,14 @@
 			}
 			
 			.CodeMirror {
-				padding-top: 70px;
-				line-height: 1em;
-				font-family: monospace;				
+				line-height: 1.2em;
+				font-size: 14px;
+				font-family: monospace;	
+				height: 100%;
 			}
+			
 			.CodeMirror-scroll{
-				height: auto;
+
 			}
 			
 			.CodeMirror-lines {
@@ -539,15 +537,18 @@
 				padding 10px 10px;
 			}
 			
+			
 			.CodeMirror-selected {
-				background: #afe!important; 
+				background-color: #afe!important; 
 			} 
 			
 			span.CodeMirror-matchingbracket {
 				background: #ff5;
 			}  
 			
-			.CodeMirror-focused span.CodeMirror-matchhighlight { background: #FAFAD2; !important }    
+			.cm-matchhighlight { 
+				background-color: #af5;
+			}   
 			
 			#hkHint {
 				position: absolute;
@@ -610,62 +611,6 @@
 				color: red;
 			}
 			
-			
-			#Toolbar.toolbar {
-				background-color: white;
-				border: 1px solid darkorange;
-				border-radius: 10px 10px 10px 10px;
-				cursor: default;
-				font-size: 16px;
-				height: 55px;
-				margin: 1%;
-				text-align: center;
-				width: 78%;
-			}
-			#Toolbar.header.toolbar {
-				opacity: 0.2;
-				position: fixed;
-				top: 0;
-				z-index: 20;
-			}
-			#Toolbar.toolbar .subbar {
-				float: left;
-				height: 55px;
-				margin-left: 1%;
-				margin-right: 1%;
-				text-align: center;
-			}
-			#Toolbar.toolbar .menuitem {
-				background-position: center center;
-				background-repeat: no-repeat;
-				border: 1px solid silver;
-				border-radius: 10px 10px 10px 10px;
-				cursor: pointer;
-				display: block;
-				float: left;
-				font-size: 10px;
-				height: 50px;
-				margin: 2px;
-				text-align: center;
-				vertical-align: middle;
-				width: 50px;
-			}
-			#Toolbar.toolbar .separator {
-				float: left;
-				height: 100%;
-				width: 30px;
-			}
-			#Toolbar.toolbar:hover {
-				background-color: #FFFFDD;
-				border: 1px solid red;
-				box-shadow: 2px 2px 1px silver;
-				opacity: 1;
-			}
-			
-			#Toolbar.toolbar .menuitem:hover {
-				background-color: yellow;
-				border: 1px solid black;
-			}
 			
 			
 			#ServerToolBtn:active{
@@ -760,8 +705,7 @@ background-repeat: no-repeat no-repeat;" tooltip="Палитра" icon="http://s
 			<div class="menuitem" tooltip="RUN" icon="http://system.web-manufacture.net/Images/exec.png" onclick="window.open('system.index.htm?url=' + encodeURIComponent(Editor.GetFileUrl()));">
 			</div>
 			<div class="menuitem" tooltip="Запустить" icon="http://system.web-manufacture.net/Images/emblem-system.png" onclick="Editor.RunFile();" style="background-image: url(http://system.web-manufacture.net/Images/emblem-system.png);
-background-position: 50% 50%; background-repeat: no-repeat no-repeat;">
-	Запустить</div>
+background-position: 50% 50%; background-repeat: no-repeat no-repeat;"></div>
 			<div class="separator">
 			</div>	
 			
@@ -776,18 +720,15 @@ background-position: 50% 50%; background-repeat: no-repeat no-repeat;">
 			<div class="menuitem" tooltip="Open log Window" icon="http://cdn1.iconfinder.com/data/icons/CrystalClear/32x32/apps/xconsole.png" onclick="Editor.OpenLogWindow();">
 			</div>
 			
-			<div class="menuitem" id='ServerToolBtn' class='server-tool' tooltip="ServerTool">
-				Server
-			</div>
+			<div class="menuitem" id='ServerToolBtn' class='server-tool' tooltip="ServerTool" icon='http://cdn2.iconfinder.com/data/icons/stilllife/48x48/apps/gnome-server-config.png'></div>
 			
 			<div class="separator">
 			</div>
-			<div id='urlBar' contenteditable='true'>
-				
-				
-			</div>
-			<div class='menuitem fixedsize' tooltip='Go URL' icon='' onclick='Editor.GoUrl(DOM("#urlBar").innerHTML, event.ctrlKey);'>GO</div>
-			<div class='menuitem fixedsize' tooltip='Go URL ALL' icon='' onclick='Editor.GoUrlAll(DOM("#urlBar").innerHTML, event.ctrlKey);'>ALL</div>
+			<input id='urlBar' type='text'/>
+			<div class='menuitem' tooltip='Go URL' icon='http://cdn1.iconfinder.com/data/icons/snowish/48x48/actions/forward.png' onclick='Editor.GoUrl(DOM("#urlBar").value, event.ctrlKey);'></div>
+			<div class='menuitem' tooltip='Go URL ALL' icon='http://cdn1.iconfinder.com/data/icons/snowish/48x48/actions/finish.png' onclick='Editor.GoUrlAll(DOM("#urlBar").value, event.ctrlKey);'></div>
+			<div class='menuitem' tooltip='Go URL in new window' icon='http://cdn3.iconfinder.com/data/icons/snowish/48x48/actions/document-new.png' onclick='Editor.GoUrl(DOM("#urlBar").value, true);'></div>
+			
 			<div class="status">
 			</div>
 		</div>
