@@ -1,6 +1,7 @@
 var fs = require('fs');
 var paths = require('path');
 var ChildProcess = require('child_process');
+var emitter = require('events').EventEmitter;
 
 function Fork(path, args){
 	this.path = path;
@@ -44,9 +45,11 @@ Fork.prototype = {
 		if (typeof (args) == 'string'){
 			args = JSON.parse(args);	
 		}
-		var cp = this.process = ChildProcess.fork(this.path, args, { silent: false });
+		if (args) this.args = args;
+		var cp = this.process = ChildProcess.fork(this.path, args, { silent: false, cwd: paths.dirname(this.path) });
 		logger.debug("fork started " + this.path);
 		this.code = Fork.STATUS_WORKING;		
+		this.emit("status", Fork.Statuses[this.code]);
 		var fork = this;
 		cp.on("exit", function(){
 			fork._exitEvent.apply(fork, arguments);
@@ -76,11 +79,13 @@ Fork.prototype = {
 	
 	_exitEvent : function(signal){
 		this.code = Fork.STATUS_EXITED;
+		this.emit("status", Fork.Statuses[this.code]);
+		this.emit("exit", signal);
 		logger.debug("fork exited " + this.path);
 	},
-	
-	
+		
 	_messageEvent : function(obj){
+		this.emit("message", obj);
 		if (typeof obj == "string"){
 			logger.log(obj);
 		}
@@ -99,11 +104,8 @@ Fork.prototype = {
 	},
 	
 	_errEvent : function(message){
+		this.emit("error", message);
 		logger.error(message);
-	},
-	
-	_outEvent : function(signal){
-		logger.debug(signal);
 	},
 		
 	close : function(){
@@ -113,6 +115,8 @@ Fork.prototype = {
 		}
 	}
 };
+
+Fork.prototype.__proto__ = emitter.prototype;
 
 var logger = null;
 

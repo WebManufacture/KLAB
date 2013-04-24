@@ -3,66 +3,57 @@ var Url = require('url');
 var fs = require('fs');
 var paths = require('path');
 var ChildProcess = require('child_process');
-require('./Mongo.js');
-ObjectID = require('mongodb').ObjectID;
-require('./Utils.js');
-require('./Router.js');
 
-try{
-	
-	var server = require("./DBServer.js");
-	
-	var log = {};
-	
-	log.info = function(text){
-		if (typeof text != 'string'){
-			text = JSON.stringify(text)
-		}
-		this._log("info", text);
-		console.log(text);
-	};
-	
-	log.error = function(error){
-		if (error && error.stack){
-			this._log("error", error.stack);
-		}
-		else{
-			this._log("error", error + "");
-		}
-		console.error(error);
-	};
-	
-	log._log = function(path, type, message){
-		if (db){
-			if (path) path = "/";
-			var date = new Date();
-			date = date.getTime();
-			var data = { path : path, date : date, type : type, text : message };	
-			db.collection("logs", ;
-		}
-	};
+var log = {};
 
+log.info = function(text){
+	if (typeof text != 'string'){
+		text = JSON.stringify(text)
+	}
+	this._log("info", text);
+	console.log(text);
+};
 
-
-KLab = {};
-
-KLab.Init = function(){
-	var Path = process.cwd();
-	KLab.Config = {  port: 808, DbPath : [{host: "127.0.0.1", port : 20000}],  DbName : "klab", hostName : "localhost" };
-	var cPath = Path + "\\config.json";	
-	
-	if (fs.existsSync(cPath)){
-		var cFile = fs.readFileSync(cPath);
-		KLab.Config = JSON.parse(cFile);
+log.error = function(error){
+	if (error && error.stack){
+		this._log("error", error.stack);
 	}
 	else{
-		console.log(cPath + " not found. Use default settings");
+		this._log("error", error + "");
 	}
-	replicaSet(KLab.Config.DbPath, KLab.Config.DBName, function(error, database){
-		db = database;
-		KLab.Start();
-	});
+	console.error(error);
+};
+
+log._log = function(type, message){
+	var date = new Date();
+	date = date.getTime();
+	var data = [date, type, message + ""];	
+    fs.appendFile(lPath + "\\_main.log", JSON.stringify(data) + ",", 'utf8');
+};
+
+var Path = process.cwd();
+var config = {  port: 8000, mainPath : "\\main", hostName : "localhost" };
+var cPath = Path + "\\config.json";
+
+
+
+if (fs.existsSync(cPath)){
+	var cFile = fs.readFileSync(cPath);
+	config = JSON.parse(cFile);
 }
+else{
+	console.log(cPath + " not found. Use default settings");
+}
+
+var mPath = Path + config.mainPath;
+
+if(!fs.existsSync(mPath + "\\logs")){
+	fs.mkdir(mPath + "\\logs");
+}
+
+var lPath = mPath + "\\logs";
+
+log.info(config);
 
 http.createServer(
 	function(req, res) {
@@ -89,9 +80,7 @@ http.createServer(
 	}
 ).listen(8000);
 
-server = new server(db, "specialists");
-			//server.SEARCH = Tabs.SearchSort; //Подменяем метод SEARSH
-			server.ProcessPath = Tabs.ProcessPath;
+
 
 Server = server = {};
 

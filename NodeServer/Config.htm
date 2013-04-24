@@ -73,7 +73,7 @@
 				font-size: 120%;
 			}
 			
-			#NodesBlock .object-template{
+			#NodesBlock .object-item{
 				width: 180px;
 				height: 180px;
 				display: inline-block;
@@ -90,21 +90,28 @@
 			}
 			
 			
-			#NodesBlock .object-template:hover{
+			#NodesBlock .object-item:hover{
 				opacity: 1;
 				width: 250px;
 			}
 			
+			#NodesBlock .object-item[data-state='exited']{
+				background-color: rgba(62, 112, 203, 0.5);
+			}
 			
-			#NodesBlock .object-template[data-state='Error']{
+			#NodesBlock .object-item[data-state='error']{
 				background-color: rgba(255,0,0,0.5);
 			}
 			
-			#NodesBlock .object-template[data-state='Idle']{
+			#NodesBlock .object-item[data-state='idle']{
 				background-color: rgba(100,100,100,0.5);
 			}
+						
+			#NodesBlock .object-item[data-state='broken']{
+				background-color: rgba(166,155,0,0.5);
+			}
 			
-			#NodesBlock .object-template .node-host{
+			#NodesBlock .object-item .node-host{
 				white-space: nowrap;
 				overflow: hidden;
 				width: 100%;
@@ -114,43 +121,52 @@
 				font-weight: bold;
 			}
 			
-			#NodesBlock .object-template .node-icon{
+			#NodesBlock .object-item .node-icon{
 				width: 100%;
 				height: 100px;
 				float: left;
 			}
 			
-			#NodesBlock .object-template[data-location='localhost'] .node-icon{
+			#NodesBlock .object-item.localhost .node-icon{
 				background: url("http://www.iconsearch.ru/uploads/icons/crystalclear/128x128/network_local.png") no-repeat center;
 				background-size: 90px;
 			}
 			
-			#NodesBlock .object-template[data-location='remote'] .node-icon{
+			#NodesBlock .object-item.remote .node-icon{
 				background: url("http://www.iconsearch.ru/uploads/icons/glaze/128x128/network.png") no-repeat center;
 				
 				background-size: 90px;
 			}
 			
-			#NodesBlock .object-template .node-controls .mini-btn{
+			#NodesBlock .object-item .node-controls .mini-btn{
 				width: 34px;
 				height: 34px;
 				display: inline-block;
 			}
 			
-			#NodesBlock .object-template .node-controls .mini-btn:hover{
+			#NodesBlock .object-item .node-controls .mini-btn:hover{
 				border-radius: 3px;
 				background-color: yellow!important;
 			}
 			
-			#NodesBlock .object-template .node-controls .mini-btn.start{
+			#NodesBlock .object-item .node-controls .mini-btn.start{
 				background: url('http://www.iconsearch.ru/uploads/icons/nuove/32x32/player_play.png') no-repeat center;
 			}
 			
-			#NodesBlock .object-template .node-controls .mini-btn.stop{
+			#NodesBlock .object-item[data-state='working'] .node-controls .mini-btn.start
+			{
+				display: none;
+			}
+			
+			#NodesBlock .object-item .node-controls .mini-btn.stop{
 				background: url('http://www.iconsearch.ru/uploads/icons/humano2/32x32/gtk-media-stop.png') no-repeat center;
 			}
 			
-			#NodesBlock .object-template .node-controls .mini-btn.remove{
+			#NodesBlock .object-item:not([data-state='working']) .node-controls .mini-btn.stop{
+				display: none;
+			}
+			
+			#NodesBlock .object-item .node-controls .mini-btn.remove{
 				background: url('http://www.iconsearch.ru/uploads/icons/softwaredemo/32x32/deletered.png') no-repeat center;
 			}
 			
@@ -164,17 +180,17 @@
 		<div id="Notify">
 		</div>
 		<div id='serverVer'></div>
-		<div class="simple-grid block" url='/nodes' id="NodesBlock">
+		<div class="simple-grid block" url='/nodes' id="NodesBlock" oninit="ConfManager.InitTable();">
 			<div class='object-template prototype'>
 				<div class='node-icon'></div>
-				<div class='node-host' field='Host'>
+				<div class='node-host' field='host'>
 				</div>
-				<div class='node-file' field='File'>
+				<div class='node-file' field='file'>
 				</div>
 				<div class='node-controls'>
-					<div class='mini-btn start'></div>
-					<div class='mini-btn stop'></div>
-					<div class='mini-btn remove'></div>
+					<div class='mini-btn start' onclick='Server.Start(this.get("^.object-item").get("@key"))'></div>
+					<div class='mini-btn stop' onclick='Server.Stop(this.get("^.object-item").get("@key"))'></div>
+					<div class='mini-btn remove' onclick='Server.Del(this.get("^.object-item").get("@key"))'></div>
 				</div>
 			</div>
 		</div>
@@ -226,7 +242,43 @@
 			ConfManager = {};
 			
 			ConfManager.Init = function(){
-				Server = new Net.GetTunnel();
+				Server = new KLabTunnel(null, true);			
+				Tunnel = Server.serverTunnel;
+				Tunnel.OnMessage.subscribe(ConfManager.OnServerMessage);
+				Server.Start = function(key){
+					Server.add("/forks/?key=" + key, null, ConfManager.stateChanged)
+				}
+				Server.Stop = function(key){
+					Server.del("/forks/?key=" + key, ConfManager.stateChanged)
+				}
+				Server.Reset = function(key){
+					Server.set("/forks/?key=" + key, null, ConfManager.stateChanged)
+				}				
+				Server.Remove = function(key){
+					Server.del("/nodes/?key=" + key, ConfManager.stateChanged)
+				}
+			};
+			
+			ConfManager.stateChanged = function(result){
+				//var data = JSON.parse(result);
+				//ConfManager.UpdateItem(DOM("#obj" + data.key), data);
+			}
+			
+			ConfManager.OnServerMessage = function(message){
+				if (message.key){
+					ConfManager.UpdateItem(DOM("#obj" + message.key), message);				
+				}
+				if (message.forkId){
+					Notify.Show(DOM("#obj" + message.forkId).get("@data-host") + "\n" + message.text);
+				}
+			}
+			
+			ConfManager.UpdateItem = function(item, data){
+				item.set("@data-state", data.state);
+			}
+			
+			ConfManager.InitTable = function(){
+				NodesBlock.onLoaded.subscribe(ConfManager.TableLoaded);				
 			};
 			
 			ConfManager.ShowLogs = function(){
@@ -236,8 +288,8 @@
 				Server.get(url + "", ConfManager.LogsLoaded);
 			};
 			
-			ConfManager.FormatNodeItem = function(item, data){
-				item.add("." + data.Location + "." + data.State);
+			ConfManager.FormatNodeItem = function(item){
+				item.add("." + item.get("@data-location").toLowerCase());
 			};
 			
 			ConfManager.LogsLoaded = function(result, status){
@@ -253,6 +305,13 @@
 					Notify.Error("Logs not loaded: " + status);	
 				}				
 			};
+			
+			ConfManager.TableLoaded = function(){
+				var items = NodesBlock.all(".object-item");
+				for (var i=0; i < items.length; i++){
+					ConfManager.FormatNodeItem(items[i]);
+				};
+			}
 			
 			ConfManager.ConfigsLoaded = function(result, status){
 				if (status == 200){
@@ -272,11 +331,12 @@
 					var configID = configsSorted[i]._id;
 					delete configsSorted[i].path;
 					delete configsSorted[i]._id;
-					var pathObj = DOM.formatJSON(JSON.stringify(configsSorted[i]));
+					var data = JSON.stringify(configsSorted[i]);
+					var pathObj = DOM.formatJSON(data);
 					pathObj.AttrProperty('key');							 
 					pathObj.id = 'id' + configID;
 					pathObj.key = configID;
-					
+					ConfManager.FormatNodeItem(pathObj, data);
 					//var pathDiv = DOM.div('.path', configPath);
 					pathObj.ins(DOM.div('.path', configPath));
 					DOM("#Config").add(DOM.div(pathObj));

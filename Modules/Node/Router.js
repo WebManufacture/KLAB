@@ -108,6 +108,7 @@ function Context(req, res, rootPath){
 	this.urlString = "http://" + req.headers.host + req.url;
 	this.req = req;
 	this.res = res;
+	this.query = this.url.query;
 	this.debugMode = req.headers["debug-mode"];
 	this.logs = [];
 	if (!this.url.pathname.end("/")) this.url.pathname += "/";

@@ -2,6 +2,10 @@ var fs = require('fs');
 var paths = require('path');
 var ChildProcess = require('child_process');
 var crypto = require('crypto');
+log = require(paths.resolve('./Modules/Node/Logger.js')).log;
+error = require(paths.resolve('./Modules/Node/Logger.js')).error;
+info = require(paths.resolve('./Modules/Node/Logger.js')).info;
+debug = require(paths.resolve('./Modules/Node/Logger.js')).debug;
 
 module.exports = function(config, server){
 	log = server.Logger;
@@ -124,7 +128,7 @@ FilesRouter.POST = FilesRouter.PUT = function(context){
 		fullData += data;		
 	});
 	context.req.on("end", function(){
-		log.info("Writing " + fpath);
+		info("Writing " + fpath);
 		fs.writeFile(fpath, fullData, 'utf8', function(err, result){
 			if (err){
 				context.finish(500, "File " + fpath + " write error " + err);
