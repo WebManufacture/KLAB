@@ -1,0 +1,380 @@
+<style type="text/css">
+  
+  .parent-layer
+  {
+    width:90%;
+    height:90%;
+    margin-top: 5%;
+    margin-left: 5%;
+    background-color: rgba(255,255,255,0.4);
+  }
+  
+  .tree-table
+  {
+    width:100%;
+    border-left: solid 1px gray; 
+    border-top: solid 1px gray; 
+    background-image: url(data:image/gif;base64,R0lGODlhAwADAIAAANve4f/7/yH5BAAAAAAALAAAAAADAAMAAAIETHAZBQA7);
+  }
+  
+  .tree-table .meta
+  {
+    font-weight: bold;
+  }
+  
+  .tree-table td
+  {
+    border-right: solid 1px gray; 
+    border-bottom: solid 1px gray; 
+    height: 25px; 
+    padding-left: 10px;
+    padding-right: 10px;
+    
+  }
+  
+  .tree-table .item.selected 
+  {
+    background-color: #6699FF;
+    color: white;
+  }
+  
+  .tree-table .item.selected:hover
+  {
+    background-color: #33CCCC;
+  }
+  
+  .tree-table .item.selected .data:hover
+  {
+    color:black;
+  }
+  
+  .tree-table .item:hover
+  {
+    background-color: #CCFFCC;
+  }
+  
+  .tree-table .item:hover .indicator
+  {
+    
+  }
+  
+  .tree-table .item.edited
+  {
+    background-color: #FFFFCC;
+  }
+  
+  .tree-table .item .data:hover
+  {
+    background-color: #99FFCC;
+  }
+  
+  .tree-table .meta td
+  {
+    background-image: url("Gradient-vertical-HT-WW-HT.png");
+    background-repeat: repeat-x;
+    background-size: 10px 25px;
+    -moz-background-size: 10px 25px;
+    background-color: #3366FF;
+  }
+  
+  .tree-table .item.edited td>input
+  {
+    width: 100%;
+    height: 100%;
+    border: none;
+    background-color: transparent;
+    padding: 0px;
+    margin: 0px;
+  }
+  
+  .tree-table td.indicator
+  {
+    background-image: url("Gradient-vertical-B-T-B.png");
+    background-repeat: repeat-x;
+    background-size: 10px 25px;
+    -moz-background-size: 10px 25px;
+    background-color: transparent;
+    width: 10px;
+    cursor: pointer;
+    position: relative;
+    padding: 0px;
+  }
+  
+  .table-menu{
+    height: 25px;
+    position: absolute;
+    z-index: 12;
+    display: none;
+  }
+  
+  .table-menu .button{
+    height: 25px;
+    width: 25px;
+    margin-left: 3px;
+    background-color: white;
+    border : solid 1px silver;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    float: left;
+    background-position: center;
+    background-repeat: no-repeat;
+  }
+  
+  
+  .table-menu .button.edited{
+    display: none;
+  }
+  
+  .table-menu .button:hover{
+    background-color: #FFFFCC;
+  }
+  
+  .table-menu .button[action='edit']{
+    background-image: url("edit.png");
+  }
+  
+  .table-menu .button[action='save']{
+    background-image: url("check.png");
+  }
+  
+  .table-menu .button[action='cancel']{
+    background-image: url("undored.png");
+  }
+  
+  .table-menu .button[action='remove']{
+    background-image: url("button_cancel.png");
+  }
+  
+  .table-menu .button[action='insert']{
+    background-image: url("edit_add.png");
+  }
+</style>  
+
+<script type="text/javascript">
+  TreeTable = {
+    table: null,
+    Init : function(table){
+       this.table = $(table);
+       this.table.find("tr").click(this.ActivateRow);
+       $("tr,thead", this.table).prepend("<td class='indicator'></td>");
+       $("td.indicator", this.table).draggable({helper: 'clone'});
+       $(".meta .indicator", this.table).mouseenter(this.ShowMenu);
+       $(".item", this.table).mouseenter(this.ShowMenu);
+       $(".item", this.table).mouseleave(this.HideMenu);
+       $(".table-menu .button[action='edit']").click(this.EditRow);
+       $(".table-menu .button[action='save']").click(this.SaveRow);
+       $(".table-menu .button[action='cancel']").click(this.CancelRow);
+       $(".table-menu .button[action='remove']").click(this.RemoveRow);
+       $(".table-menu .button[action='insert']").click(this.InsertRow);
+    },
+    
+    InitRow: function(row)
+    {
+       row.click(this.ActivateRow);
+       row.prepend("<td class='indicator'></td>");
+       $("td.indicator", row).draggable({helper: 'clone'});
+       row.mouseenter(this.ShowMenu);
+       row.mouseleave(this.HideMenu);
+    },
+    
+    ActivateRow: function()
+    {
+      if ($(this).hasClass("edited")) return;
+      TreeTable.table.find(".selected").removeClass("selected");
+      $(this).addClass("selected");
+    },
+    
+    ShowMenu: function()
+    {
+      var menu = $(".table-menu");
+      var row = $(this);
+      row.find("td.indicator").prepend(menu);
+      if (row.hasClass("edited"))
+      {
+        menu.find(".edited").show();
+      }
+      else
+      {
+        menu.find(".edited").hide();        
+      }
+      menu.show();
+    },
+    
+    HideMenu: function()
+    {
+      $(".table-menu").hide();
+    },
+    
+    EditRow: function()
+    {
+      var row = $(this).parents(".item");
+      row.addClass("edited");
+      var id = row.attr("identifier");
+      var cells = row.find(".data");
+      for(var i = 0; i<cells.length; i++)
+      {
+         var cell = cells[i];
+         var value = cell.getAttribute("value");
+         if (value == undefined || value == null)
+         {
+            value = cell.innerHTML;
+            cell.setAttribute("value", value);
+         }
+         cell.setAttribute("oldvalue", cell.innerHTML);
+         cell.innerHTML = "<input type='text' value='" + value + "'/>";
+      }
+      $(".table-menu .edited").show();
+      return false;
+    },
+    
+    SaveRow: function()
+    {
+      var row = $(this).parents(".item");
+      if (!row.hasClass("edited")) return false;
+      var id = row.attr("identifier");
+      var cells = row.find(".data");
+      for(var i = 0; i<cells.length; i++)
+      {
+         var cell = cells[i];
+         var value = $(cell).find("input").val();
+         cell.setAttribute("value", value);
+         var format = cell.getAttribute("format");
+         if (format != undefined && format != null)
+         {
+           value = format.replace(/x/,value);
+         }
+         else
+         {
+           var meta = TreeTable.table.find(".meta .data[field-name='" + cell.getAttribute("name") + "']");
+           format = meta.attr("format");
+           if (format != undefined && format != null)
+           {
+             value = format.replace(/x/,value);
+           }
+         }
+         cell.innerHTML = value;         
+      }
+      $(".table-menu .edited").hide();
+      row.removeClass("edited");
+      return false;
+    },
+    
+    CancelRow: function()
+    {
+      var row = $(this).parents(".item");
+      if (!row.hasClass("edited")) return false;
+      var id = row.attr("identifier");
+      var cells = row.find(".data");
+      for(var i = 0; i<cells.length; i++)
+      {
+         var cell = cells[i];
+         var value = cell.getAttribute("oldvalue");
+         cell.innerHTML = value;
+      }
+      $(".table-menu .edited").hide();
+      row.removeClass("edited");
+      return false;
+    },
+    
+    RemoveRow: function()
+    {
+      var row = $(this).parents(".item");
+      var menu = $(".table-menu");
+      menu.hide();
+      $(".meta", TreeTable.table).prepend(menu);
+      row.remove();
+      return false;
+    },
+    
+    InsertRow: function()
+    {
+      var row = $(this).parents(".item");
+      var newrow = $(document.createElement("tr"));
+      row.after(newrow);
+      newrow.attr("identifier", "new");
+      newrow.attr("class", "item");
+      newrow.attr("name", row.attr("name"));
+      var cells = TreeTable.table.find(".meta .data");
+      for(var i = 0; i<cells.length; i++)
+      {
+         var cell = cells[i];
+         var value = cell.getAttribute("field-name");
+         newrow.append("<td class='data' name='" + value + "'></td>");
+      }
+      TreeTable.InitRow(newrow);
+      return false;
+    }
+  }  
+
+  TreeTable.Init(".tree-table");
+</script>
+
+<div class="parent-layer">
+  <div class="table-menu">
+    <div class="button" action="edit"></div>
+    <div class="button edited" action="save"></div>
+    <div class="button edited" action="cancel"></div>
+    <div class="button" action="remove"></div>
+    <div class="button" action="insert"></div>
+  </div>
+  <table class="source tree-table" cellspacing="0">
+    <thead class="meta">
+      <td class="data virtual read-only" field-name="specialist-link">
+        Специалист
+      </td>
+      <td class="data calculable read-only" field-name="specialist-count" format="(x)">
+        Специалистов
+      </td>
+      <td class="data" field-name="type">
+        Тип
+      </td>
+      <td class="data" field-name="address">
+        Адрес
+      </td>
+      <td class="data" field-name="name">
+        Наименование
+      </td>
+      <td class="data" field-name="checked" >
+        Утверждено
+      </td>
+    </thead>
+    <tr class="item" name="Organization" identifier="11">
+      <td class="data" name="specialist-link">
+        Специалисты
+      </td>
+      <td class="data" name="specialist-count" value="1">
+        (1)
+      </td>
+      <td class="data" name="type">Аптека</td>
+      <td class="data" name="address">ул. Народного Ополчения; 45</td>
+      <td class="data" name="name">Аптеки 36,6</td>
+      <td class="data" name="checked" >Утвердить</td>
+    </tr>
+    <tr class="item" name="Organization" identifier="12">
+      <td class="data" name="specialist-link">
+        Специалисты
+      </td>
+      <td class="data" name="specialist-count" value="1">
+        (1)
+      </td>
+      <td class="data" name="type">Аптека</td>
+      <td class="data" name="address">ул. Народного Ополчения; 45</td>
+      <td class="data" name="name">Аптеки 36,6</td>
+      <td class="data" name="checked" >Утвердить</td>
+    </tr>
+    <tr class="item" name="Organization" identifier="14">
+      <td class="data" name="specialist-link">
+        Специалисты
+      </td>
+      <td class="data" name="specialist-count" format="[x]" value="1">
+        (1)
+      </td>
+      <td class="data" name="type">Аптека</td>
+      <td class="data" name="address">ул. Народного Ополчения; 45</td>
+      <td class="data" name="name">Аптеки 36,6</td>
+      <td class="data" name="checked" >Утвердить</td>
+    </tr>
+  </table>
+</div>
+
+

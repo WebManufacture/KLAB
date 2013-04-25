@@ -1,0 +1,1231 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title> DIY </title>
+		<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+		<link type='text/css' rel='stylesheet' href="http://Services.web-manufacture.net/Styles/System.default.css"/>
+		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Utils.js"></script>
+		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/DOM.js"></script>
+		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Events.js"></script>
+		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Log.js"></script>
+		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Url.js"></script>
+		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Ajax.js"></script>
+		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Jasp.js"></script>
+		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Modules.js"></script>	
+		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/ui.js"></script>
+		<script type="text/javascript" src="http://services.web-manufacture.net/Base/v1.3/Net.js"></script>
+		<script type="text/javascript" src="http://services.web-manufacture.net/Base/v1.3/Storage.js"></script>
+		<script type="text/javascript" src="http://system.web-manufacture.net/UMGrids.js"></script>
+		
+		<style>
+			.planning-header {
+				background: #F8F8FF;
+				border-bottom: solid 1px #999;
+			}
+			
+			
+			.planning-content {
+				position: relative; /* Относительное позиционирование */
+				height: 85%; /* Высота блока */
+			}
+			
+			.panel.left-panel{
+				top: 0;
+				left: 0;
+				width: 15%;
+				height: 100%;
+				-moz-box-sizing: border-box;
+				-webkit-box-sizing: border-box;
+				box-sizing: border-box;
+				
+				
+			} 
+			
+			.week-container
+			{	
+				float:right; /*нехорошо конечно, но пока не придумала, как выровнять этот сонтейнер с левым дивом. Они балуются*/
+				height: 100%;
+				width:100%;
+				
+			}
+			
+			.week-container .day-place{
+				/* Считать 20% вместе с бордюром */
+				-moz-box-sizing: border-box;
+				-webkit-box-sizing: border-box;
+				box-sizing: border-box;
+				
+				border: solid 1px #ccc;
+				/*	background: #F0FFF0;*/
+				height: 100%;
+				
+				float:left;
+			}
+			
+			
+			.week-container .day-place.specs{
+				float:left;
+				padding-left: 20px;
+			}
+			.left-panel{
+				position: absolute;				
+				background-color: #FFA;
+				border: solid 1px #ccc;
+			}	    
+			
+			
+			#specialists{
+				float: left;
+				background-color: #FF893B;
+				width: auto;
+				<!- min-width: 500px;-->
+				position:relative;
+				
+			}
+			
+			
+			
+			#visits .visit,
+			#specialists .specialist,
+			.edit-object-proto,
+			.day-place.visits .specialist{	
+				background-color: white;
+				border-radius: 5px 5px 5px 5px;
+				border: 1px solid black;
+				margin: 2px;
+			}
+			#specialists .specialist.spec2bkilled{
+				background-color: #FFA07A;
+			}
+			#specialists .specialist.spec2bkilled:hover{
+				background-color: Gainsboro;
+			}
+			
+			#specialists .specialist.new-sync-spec,
+			.edit-object-proto.new-sync-spec{	
+				background-color: green;
+			}
+			
+			#specialists .specialist:hover{
+				background-color: #FFE886;
+			}			
+			
+			.addSpecBut{
+				background-image:url('http://cdn2.iconfinder.com/data/icons/onebit/PNG/onebit_31.png');
+				height:22px;
+				width:22px;
+				background-size:cover;
+				cursor: pointer;
+			}
+			
+			
+			.specialist.small-plate .additional-info{
+				display: none;
+			}
+			.field,
+			.spec-field
+			{
+				display: inline-block;
+				margin: 2px;
+				padding: 1px;
+			}
+			.visit .spec-field{
+				margin:0;
+			}
+			.spec-pattern
+			{
+				display: inline-block;
+				width: 80px;
+				margin-right: 2px;
+				margin-left: 5px;
+			}
+			
+			.spec-pattern .spec-field
+			{
+				margin: -15px 0;
+				max-width: 70px;
+				overflow: hidden;
+				position: absolute;
+				white-space: nowrap;
+				/*margin-top: 0;				
+				max-width: 70px;
+				overflow: hidden;
+				margin: 0 0 -5px 0;/*убрала нижний отступ*/
+				/*white-space: nowrap;
+				height: 15px;*/
+			}
+			
+			.org-pattern{
+				background-color:#42786B;
+				-moz-box-shadow: 1px 1px 1px #838B8B;
+				-webkit-box-shadow: 1px 1px 1px #838B8B;
+				box-shadow: 1px 1px 1px #838B8B;
+				font-weight: bold;
+				color: white;
+			}
+			.visit .org-pattern{
+				background-color:#CAE1FF;
+				color:black;
+			}
+			
+			.visit .org-name,
+			.specialist .org-name{
+				color: #6B121A;
+				font-weight: bold;
+				
+			}
+			
+			#specialists .specialist-info .speciality{
+				margin: -15px 0;
+				
+			}
+			.speciality{
+				background-color: #FF653E;
+				-moz-box-shadow: 1px 1px 1px #838B8B;
+				-webkit-box-shadow: 1px 1px 1px #838B8B;
+				box-shadow: 1px 1px 1px #838B8B;
+				color: white;
+				max-width: 70px;
+				overflow: hidden;
+				/*position: absolute;*/
+				white-space: nowrap;
+				margin: -5px 0;
+			}
+			.visit .speciality{
+				background-color: #FFFACD;
+				color:black;
+			}
+			
+			
+			.visit .spec-pattern .speciality:hover,
+			.specialist .spec-pattern .speciality:hover{
+				overflow: visible;
+				max-width: 500px;
+				position: absolute;
+			}
+			.visit .index,
+			.specialist .index{
+				background-color:#71CCB6;
+				-moz-box-shadow: 1px 1px 1px #838B8B;
+				-webkit-box-shadow: 1px 1px 1px #838B8B;
+				box-shadow: 1px 1px 1px #838B8B;
+				font-weight: bold;
+				color: white;
+			}
+			
+			.specialist .full-name{
+				font-size: 20px;
+				font-weight: bold;
+			}
+			
+			.specialist .org-town,
+			.specialist .org-address{	
+				color:white;
+				background-color: #71CCB6;
+			}
+			
+			.visit .telephone,
+			.visit .e-mail,
+			.specialist .telephone,
+			.specialist .e-mail{
+				color: #70A188;					
+			}
+			.visit .telephone .field,
+			.visit .e-mail .field,
+			.specialist .telephone .field,
+			.specialist .e-mail .field{
+				display: inline-block;	
+			}
+			
+			.specialist .field-pic{
+				height:20px;
+				width:20px;
+				background-size:cover; 
+				margin: 0 0 -5px 0;/*убрала нижний отступ*/
+				display: inline-block;
+			}
+			
+			
+			.specialist .ShowHideSmallPlate.hide{
+				background-image:url('http://cdn1.iconfinder.com/data/icons/CrystalClear/128x128/apps/package.png');
+			}
+			
+			.specialist .ShowHideSmallPlate{
+				float: right;
+				margin: 3px 3px 0 0;
+				background-image:url('http://cdn1.iconfinder.com/data/icons/nuvola2/128x128/apps/package.png');
+			}
+			
+			.specialist .delete-button{
+				float: right;
+				margin: 3px 3px 0 0;
+				background-image:url('http://cdn3.iconfinder.com/data/icons/softwaredemo/PNG/128x128/DeleteRed.png');
+			}
+			
+			.specialist .edit-button{
+				display: none;
+				float: right;
+				margin: 3px 3px 0 0;
+				background-image:url('http://cdn3.iconfinder.com/data/icons/prettyoffice/128/edit.png');
+			}
+			
+			.specialist:hover .edit-button{
+				display: inline-block;
+			}
+			.visit .telPic,
+			.specialist .telPic{
+				background-image:url('http://cdn3.iconfinder.com/data/icons/token/Token,%20128x128,%20PNG/Telephone.png');
+				
+			}
+			.visit .mailPic,
+			.specialist .mailPic{
+				background-image:url('http://cdn3.iconfinder.com/data/icons/token/Token,%20128x128,%20PNG/Envelope.png');
+			}
+			
+			.edit-object-proto.hideDiv,
+			.specialist.hideDiv{
+				display:none;
+			}
+			
+			.edit-object-proto{
+				background-color: #FFE886;
+				
+				width: auto;
+				height: 200px;
+			}
+			/*#ActionsPanel{ display: none;}*/
+			
+			
+			
+			.panel.bottom-panel{
+				bottom:0;
+				right:0;
+				width: 100%;
+				height:10px;
+			}
+			
+			.panel.right-panel{
+				top: 0;
+				right: 0;
+				width: 150px;
+				height: 100%;
+			}
+			
+			.hidden-panel.left-panel,
+			.hidden-panel.right-panel{
+				width: 10px;
+				
+			}
+			
+			
+			.hidden-panel:hover{
+				width: 100px;
+				overflow: display;
+				
+			}
+			.hidden-panel.bottom-panel:hover{
+				width:100%;
+				height: 100px;
+				
+			}
+			
+			/*		div.visit {
+			
+			border-radius: 3px 3px 3px 3px;
+			width:95%;
+			height:40px;
+			vertical-align:middle;
+			margin: 0 auto;
+			
+			border-width: 1px;
+			background-color: #EEF;
+			color: #4D4B4B;
+			border: 1px solid #999999; 
+			box-shadow: 2px 2px 3px #999;
+			-webkit-box-shadow: 2px 2px 3px #999;
+			-moz-box-shadow: 2px 2px 3px #999;
+			z-index:1;
+		}
+			
+			*/
+			
+			#specialists .newSpec{
+				background-color: #FFE886;
+				
+				width: auto;
+				height: 200px;
+			}
+			
+			
+			.newSpec .addInfo{
+				display: inline-block;
+				vertical-align: top;
+				/*margin-left: 5px;
+				margin-right: 2px;*/
+				margin: 5px;
+				
+				
+			}
+			
+			.newSpec .buttons{
+				text-align:center;
+			}
+			
+			.newSpec .input{
+				text-align:center;
+				height:20px;
+				margin: 5px;
+			}
+			.newSpec .input.full-name{
+				background-color:#D0F18F;
+				width: 100%;
+			}
+			.newSpec .input.telephone,
+			.newSpec .input.e-mail,
+			.newSpec .org-info{
+				width: 100%;
+			}
+			/*http://kuler.adobe.com/#themeID/2046286*/
+			
+			
+			.newSpec .input.empty{
+				color: #8B8989;	
+			}
+			
+			.newSpec .selectOffice{
+				display: inline-block;
+			}
+			.newSpec .scroll_child{
+				width:200px;
+				height:70%;
+				overflow-x:hidden;
+				overflow-y:scroll;
+				background-color: white;
+				cursor: pointer;
+				font-size: 12px;
+				white-space: nowrap;
+				
+			}
+			
+			
+			.newSpec .speciality{
+				background-color: white;
+				
+			}
+			
+			.newSpec .speciality-item{
+				border-bottom: 1px solid lime;
+				border-left: 1px solid lime;
+				font-family: verdana;
+				font-size: 10px;
+				padding-top: 3px;
+				white-space: normal;
+				text-shadow: 1px 1px 1px lightgray;
+				padding-left: 2px;
+			}
+			
+			.newSpec .speciality-item:hover{
+				background-color: #D0F18F;
+				text-shadow: none;
+				font-weight: bold;
+				padding-left: 4px;
+			}
+			
+			
+			.actBut {
+				cursor:pointer;
+				float:left;
+				/*align: center;*/
+				display: none;
+				height:90px;
+				margin-bottom: 20px;
+				width:90px;
+				background-size:cover;
+				border: solid 1px gray;
+				border-radius: 5px;
+			}
+			.actBut.bSend{
+				background-image:url('http://cdn3.iconfinder.com/data/icons/id-delacro/e-mail2%20.png');
+			}
+			.actBut.bClear{
+				background-image:url('http://cdn2.iconfinder.com/data/icons/humano2/128x128/actions/edit-clear.png');
+			}
+			.actBut.bPlan{
+				background-image:url('http://cdn2.iconfinder.com/data/icons/humano2/128x128/apps/gnome-planner.png');
+			}
+			.actBut.bSubmit{
+				background-image:url('http://cdn1.iconfinder.com/data/icons/DarkGlass_Reworked/128x128/actions/camera_test.png');
+			}
+			.actBut.bCancel{
+				background-image:url('http://cdn1.iconfinder.com/data/icons/CrystalClear/128x128/actions/button_cancel.png');
+			}
+			.actBut.bDelete{
+				background-image:url('http://cdn5.iconfinder.com/data/icons/icons-unleashed-vol1/128/-trash.png');
+			}
+			
+			.panel:hover .actBut,
+			.panel:hover .bTip{
+				display: block;
+			}
+			
+			.bTip{
+				border-radius: 10px 10px 10px 10px;
+				border: solid 2px gold;
+				cursor:move;
+				align: center;
+				display: none;
+				height:20px;
+				margin-bottom: 20px;
+				width:50px;
+				background-size:cover;
+			}
+			
+			.lol{
+				background-color: red;
+			}
+			
+			
+			
+			
+			
+			.search-item{
+				font-family:arial, sans-serif;
+				display: inline-block;
+				font-size:11px;
+				z-index:100;
+				border-radius: 4px;
+				background:#710069;
+				text-decoration: none;
+				color: white;
+				text-align: center;
+				padding: 3px 5px;
+			}
+			
+			
+			.checkits{
+				float:right;
+				display:inline-block;
+				margin-top:3px;
+			}
+			
+			.ssort{
+				display:block;
+			}
+			.ssort,.ca,.cb{
+				
+				text-decoration:none;
+				color:#fff;
+				width:104px;
+				height:20px;
+				text-align:center;
+				border:1px solid #fff;
+				cursor:pointer;
+				line-height:20px;
+				font-size:11px;
+				overflow:hidden;
+				padding:1px;
+				margin:0;
+				
+			}
+			
+			.checkits:hover .ssort{
+				color:#fff;
+				background:#36f;
+			}
+			
+			.ca:hover,
+			.cb:hover{
+				background-color: #6fc;;
+					
+			}
+			.ca, .cb{
+				background:#ddd;
+				color:#000;
+				
+			}
+			.cab{
+				display:none;
+			}
+			
+			.checkits:hover .cab{
+				display:block;
+				list-style:none;
+				width:104px;
+				height:20px;
+				position:absolute;
+			}
+			
+			
+			.office{
+				display:none;
+				border-radius: 10px 10px 10px 10px;
+				
+				background-color:#42786B;
+				box-shadow: 1px 1px 1px #838B8B;
+				font-weight: bold;
+				color: white;
+				text-align: center;
+				cursor:pointer;
+				height:20px;
+				margin-bottom: 20px;
+				background-size:cover;
+				
+			}
+			
+			.check-button{
+				background-size:cover;
+				background-image:url('http://cdn4.iconfinder.com/data/icons/cc_mono_icon_set/blacks/48x48/checkbox_unchecked.png');
+				float: right;
+				height: 17px;
+				width: 17px;
+				margin: 3px 3px 0 0;
+			}
+			.check-button.checked{
+				background-image:url('http://cdn4.iconfinder.com/data/icons/cc_mono_icon_set/blacks/48x48/checkbox_checked.png');
+			}
+			
+			.day-place .visitsInfo{
+				background-size:cover;
+				height: 10%;
+				width:80%;
+				background-image:url('http://cs421119.userapi.com/v421119562/2e0/wGm3MlIXndM.jpg');
+				margin: 2px;
+				padding: 2px;
+			}
+			.day-place.visits .specialist{
+				background-color:#FFE886;
+			}
+			.specialist.hidden,
+			.fac.hidden{
+				display:none;
+			}
+			
+			
+			.left-container, .block-container{
+				display:inline-block;
+			}
+			.panel{
+				float:left;
+			}
+			
+			.panel .meeting{
+				border-radius: 5px 5px 5px 5px;
+				border: 1px solid grey;
+				margin: 2px;
+				padding: 2px;
+				background-color: #F0FFFF;
+				text-align:center;
+				font-weight: bold;
+				font-size: 13px;
+			}
+			
+			.visit .diagram{
+				background-size: 15%; 
+				width:90%;
+				height:20px;
+				margin: 5px;
+				display: inline-block;
+				background-image:url('http://2.bp.blogspot.com/_EGnLXrBTNiI/SO9Z2zERHgI/AAAAAAAAAK4/pPdhDyil9dE/s400/selling-links.jpg');
+			}
+			
+			.panel.for-visit-indicators .delete-button,
+			.panel.for-visit-indicators .edit-button,
+			.panel.for-visit-indicators .checked{
+				background-size:cover;
+				height: 17px;
+				width: 17px;
+				margin: 2px;
+			}
+			
+			.panel.for-visit-indicators .checked{
+				background-image:url('http://cdn4.iconfinder.com/data/icons/cc_mono_icon_set/blacks/48x48/checkbox_checked.png');
+			}
+			.visit .delete-button{
+				background-image:url('http://cdn3.iconfinder.com/data/icons/softwaredemo/PNG/128x128/DeleteRed.png');
+			}
+			.visit .edit-button{
+				background-image:url('http://cdn3.iconfinder.com/data/icons/prettyoffice/128/edit.png');
+			}
+			
+			.panel.for-visit-indicators .visit-indicators{
+				height: 16px;
+				width: 16px;
+				border-radius: 10px 10px 10px 10px;
+				border: 1px solid grey;
+				margin: 2px;
+				padding: 2px;
+				background-color: #F0FFFF;
+				text-align:center;
+				
+				font-weight: bold;
+				font-size: 15px;
+			}
+			
+			#visits{
+				float: left;
+				background-color: #F0FFFF;
+				width: auto;
+				<!- min-width: 500px;-->
+				position:relative;
+				
+			}
+			.content-line{
+				margin:0;
+				padding:0;
+			}
+		</style>
+		
+		<script type="text/javascript">
+			
+			
+			
+			
+			
+			
+			/*WebDb = {
+
+
+DB : [],
+
+init : function(){
+var names = ["abrams", "John", "Vasya", "Petya", "Ira", "Kolya", "Sema", "Suxx", "James", "Alex"];
+for (var i = 0; i < 100; i++){
+var rec = { name : names[Math.round(Math.random(10))]};
+rec.title = rec.name + " " + i;
+rec._id = "spec" + i;
+rec.class = "specialist";
+rec.orgId = "org" + Math.round(Math.random(10));
+WebDb.DB[i] = rec;
+}
+},
+
+get: function (selector, callback){  
+window.setTimeout(1000, function(){
+callback(WebDb.DB);
+});
+},
+
+add: function (value, callback){
+return '2';
+},
+set: function (selector, value, callback){
+return '3';
+},
+del: function (selector, callback){
+return '4';
+},
+};
+
+WebDb.init();*/
+			
+			function createTip(){
+				var newDiv = DOM.div();
+				newDiv.className = 'evTip';
+				DOM.get("body").add(newDiv);
+				
+			}
+			
+			Plan = {};
+			Plan.ExampleSpesialists = ['Иванов Иван Иванович', 'Иващенко Сергей Михайлович', 'Ивченко Панас Петрович', 'Игнатенко Сергей Иванович', 'Игнатюк Владимир Николаевич'];
+			Plan.CheckcCount = 0;
+			Plan.Init = function(){
+				var specsObj = DOM.get('.day-place');
+				TableFiller.Init(specsObj);
+				var specsTable = specsObj.get('#specialists');
+    			specsTable.oncheck.subscribe(Plan.ShowFullInfo);
+    			specsTable.onuncheck.subscribe(Plan.HideFullInfo);
+				//var spcDiv = DOM.get("#specialists");
+				//var proto = DOM(".specialist.prototype");
+				//var sorted = Plan.ExampleSpesialists.sort(Plan.Sort);
+				//for (var i = 0; i <(Plan.ExampleSpesialists.length); i++){ //специаличты
+				//	var spec_proto = proto.clone();
+				//	spec_proto.get(".full-name").set(null, sorted[i]);
+				//	spec_proto.set('@fullname', sorted[i].toLowerCase());
+				//	spec_proto.set('@key', (i+1));
+				//	spcDiv.add(spec_proto);	}
+				
+				spcDiv = DOM.get("#visits"); //специалист для просмотра визитов (левая колонка)
+				//spec_proto = proto.clone();
+				//spcDiv.add(spec_proto);
+				
+				proto = DOM(" .visit.prototype"); //визиты специалиста
+				for (var i = 0; i < 5; i++){
+					spec_proto = proto.clone();
+					spcDiv.add(spec_proto);
+				}
+				
+				spcDiv = DOM.get(".day-place.off");
+				proto = DOM(".office.prototype");
+				for (var i = 0; i < 15; i++){	//список контор
+					spec_proto = proto.clone();
+					spec_proto.set(null,'Company No.' + i);
+					spcDiv.add(spec_proto);	}
+				
+				DOM.all(".day-place" ).each(function(elem){
+					this.objectReceived = Plan.RouteObject;
+			
+
+    			
+				});
+			};
+			
+			Plan.Sort = function(a, b){
+				return a > b ? 1 : -1;
+			};
+			
+			Plan.SortByRatingAndAlfabet = function(a, b){
+				if (a.rating == b.rating){
+					return a.query > b.query ? 1: -1;
+				};
+				return a.rating < b.rating ? 1 : -1;
+			};
+			
+			Plan.SearchBegining = function(){
+				//localStorage.removeItem('SearchTrot');
+				DOM("#searchBox").show();
+				if (localStorage.getItem('SearchTrot')){
+					Plan.SearchTrot = JSON.parse(localStorage.getItem('SearchTrot'));
+				}else{
+					Plan.SearchTrot = [];
+				};
+				
+			};
+			
+			Plan.SearchEnding = function(inputObj){
+				DOM("#searchBox").hide();
+				setTimeout('DOM.all(".fac.d[hint]").del()', 200);
+				//inputObj=inputObj.get('input');
+				if (!inputObj.value) return;
+				inputObj.value;
+				if (Plan.SearchTrot[0]){
+					for (var i = 0; i < Plan.SearchTrot.length; i++){
+						if (inputObj.value == Plan.SearchTrot[i].query){
+							Plan.SearchTrot[i].rating = parseInt(Plan.SearchTrot[i].rating) + 1;
+							localStorage.setItem('SearchTrot', JSON.stringify(Plan.SearchTrot));
+							return;
+						};
+					};
+				};
+				Plan.SearchTrot.push({query: inputObj.value, rating: 1});
+				localStorage.setItem('SearchTrot', JSON.stringify(Plan.SearchTrot));
+				//DOM.all('.fac.d').add('.hidden');
+				//alert('Www!');
+				//setTimeout(('DOM.all('.fac.d').add('.hidden');'), 1000)
+				
+			};
+			
+			Plan.allChecked = function(){
+				if(DOM.get('.checkits .cab').is('.invisible')){
+					if(DOM.get('.day-place.specs').all('.check-button').is('.checked')){
+						return;
+					}
+					
+					var checks = DOM.all('.day-place.specs .check-button');
+					var c = checks.length;
+					for (var i=1 ; i < checks.length; i++){
+						
+						Plan.ShowFullInfo(checks[i]);
+					}
+					DOM.get('.checkits .cab').del('.invisible');
+				}
+			};
+			
+			Plan.allUnChecked = function(){
+				
+				var checks = DOM.get('.day-place.specs').all('.check-button');
+				var c = checks.length;
+				for (var i=1 ; i<checks.length; i++){
+					Plan.HideFullInfo(checks[i]);
+				}
+				Plan.CheckcCount=0;
+				DOM.get('.checkits .ssort').set(null, 'Выбрать всех');
+				DOM.get('.checkits .cab').add('.invisible');
+				
+			};
+			
+			Plan.pickCheckboxes = function(){
+				
+			};
+			
+			Plan.ShowHide = function(a){
+				if(!a.is('.checked'))Plan.ShowFullInfo(a);
+				else Plan.HideFullInfo(a);
+				
+			};
+					
+			Plan.ShowFullInfo = function(obj){
+				
+				if(!obj.get('.check-button').is('.checked')){
+					//var spec = obj.get('^.specialist');
+					var container = DOM.get('.day-place.off');
+					obj.get('.check-button').add('.checked');
+					var full_spec = obj.clone();
+					full_spec.get('.check-button').add('.checked');
+					full_spec.get('.check-button').onclick = Plan.HideFullInfo;
+					full_spec.del('.small-plate');
+					container.add(full_spec);
+					Plan.CheckcCount++;
+					DOM.get('.ssort').set(null, 'Выбраных: ' + Plan.CheckcCount + ' ');
+				}
+				else return;
+			};
+			
+			Plan.HideFullInfo = function(obj){
+				if(obj.get('.check-button').is('.checked')){
+					//var spec = obj.get('^.specialist');
+					var key = obj.get('@key');
+					var container = obj.get('^.day-place');
+					if (container.is('.off')){
+						obj.del();
+						var container = DOM.get('.day-place.specs');
+						var spec2kill = container.get('.specialist[key="' + key + '"]');
+						spec2kill.get('.check-button').del('.checked');
+					}
+					else{
+						obj.get('.check-button').del('.checked');
+						var container = DOM.get('.day-place.off');
+						var spec2kill = container.get('.specialist[key="' + key + '"]');
+						spec2kill.del();
+					}
+					Plan.CheckcCount--;
+					if(Plan.CheckcCount==0){
+						DOM.get('.ssort').set(null, 'Выбрать всех');
+						DOM.get('.checkits .cab').add('.invisible');
+					}
+					else{
+						DOM.get('.ssort').set(null, 'Выбраных: ' + Plan.CheckcCount + ' ');
+					}
+				}
+				
+			};
+			
+
+			Plan.SetSearchValue = function(a){
+				var attr = a.get('@hint');
+				var inp = DOM.get('.search input');
+				inp.value = attr;
+				DOM.all('.fac.d').del();
+				Plan.ShowSelectedByHint(attr);
+				Plan.SearchEnding(inp);
+			};
+			
+			
+			
+			Plan.SearchSpecRes = function(a){
+				var search = a.value;
+				if (!search) return;
+				
+				var proto=DOM.get('.fac.prototype');
+				
+				DOM.all('.fac.d').del();
+				
+				var SortedByRatingAndAlfabet = Plan.SearchTrot.sort(Plan.SortByRatingAndAlfabet);
+				for(var i=0; i<SortedByRatingAndAlfabet.length; i++){
+					var c=Plan.SearchTrot[i];//зачем объявлена переменная?
+					var hint_proto=proto.clone();
+					hint_proto.add('.hidden');
+					hint_proto.add('.d');
+					hint_proto.add('@hint',SortedByRatingAndAlfabet[i].query );
+					DOM.get('.fac.container').add(hint_proto).set(null, SortedByRatingAndAlfabet[i].query);
+				}
+				
+				DOM.all('.d[hint*="' + search.toLowerCase() + '"]').del('.hidden');
+				
+				
+				Plan.ShowSelectedByHint(search);
+				
+			};
+			
+			
+			
+			Plan.ShowSelectedByHint = function(search){
+				DOM.all('.specialist').del('.found');
+				DOM.all('#specialists .specialist').add('.hidden');
+				DOM.all('.specialist[fullname*="' + search.toLowerCase() + '"]').add('.found');
+				DOM.all('.specialist.found').del('.hidden');
+				
+			};
+			
+			Plan.RouteObject = function(elem){
+				if (elem.is(".hcal-day")){
+					var mothAndYear = getMonthAndYear();
+					var newDiv = this.add(Plan.CreateVisit());
+					newDiv.DateElem.set(null, elem.innerHTML + ' ' + mothAndYear);
+				};
+				/*
+if (elem.is(".    ")){
+var newDiv = this.add(Plan.CreateVisit());
+newDiv.SpecElem.set(null, elem.innerHTML);
+};
+*/
+				if (elem.is(".bTip")){
+					var newDiv = this.add(Plan.CreateVisit());
+					newDiv.ParamsElem.set(null, elem.innerHTML);
+				};
+			};
+			
+			Plan.AddParam = function(elem){
+				
+				if (elem.is(".hcal-day")){
+					var mothAndYear = getMonthAndYear();
+					var oldDiv = this.get(".date");
+					oldDiv.set(null, elem.innerHTML + ' ' + mothAndYear);
+				};
+				/*
+if (elem.is(".    ")){
+var newDiv = this.add(Plan.CreateVisit());
+newDiv.SpecElem.set(null, elem.innerHTML);
+};
+*/
+				if (elem.is(".bTip")){
+					var oldDiv = this.get(".params");
+					oldDiv.set(null, elem.innerHTML);
+				};
+			};
+			
+			Plan.CreateVisit = function(elem){
+				var newDiv = DOM.div(".visit");
+				newDiv.DateElem = newDiv.div(".date");
+				newDiv.SpecElem = newDiv.div(".spec");
+				newDiv.ParamsElem = newDiv.div(".params");
+				//newDiv.add('@droppable','true');
+				//newDiv.add('.drop-receiver');
+				Drag.MakeReceiver(newDiv);
+				Drag.MakeDraggable(newDiv);
+				newDiv.objectReceived = Plan.AddParam;
+				return newDiv;
+				
+			};
+			
+			function getMonthAndYear(){
+				a = DOM.get('#PlanningCalendar');
+				b = a.get('.header');
+				return b.innerHTML;
+			};
+			
+			
+			
+			
+			
+			
+			WS.DOMload(Plan.Init);
+		</script>
+	</head>
+	<body>
+		<include url='http://services.web-manufacture.net/UI/Dragging.htm'></include>
+		<include url='http://services.web-manufacture.net/UI/HtmlElements.htm'></include>
+		<!--include url='http://services.web-manufacture.net/Authentication/Authentication.htm'></include-->
+		<div class="calendar-place invisible planning-header" align="center">
+			<div id='PlanningCalendar' class='hcal component drag-days' style='height: 89px;' component-url="http://services.web-manufacture.net/UI/hcal.htm">
+			</div> 
+		</div>
+		<div class="planning-content">
+			
+			<!--<div id='SpecialistPanel' class="panel left-panel hidden-panel">
+<div class="tabs"></div>
+<div class= "speclist"></div>
+</div> -->
+			<div class='week-container'>
+				
+				<div class="day-place specs drop-receiver" >
+					
+					<div id='EditSpecForm' class='edit-object-proto newSpec prototype'>
+						<!--<input type="submit" value="Submit" />-->
+						<div class="speciality addInfo scroll_child" size="1" >
+							<div class='speciality-item prototype' field="speciality"> Выбрать профессию </div>
+						</div>
+						<div class='addInfo'>
+							<select class="org-info " size="1" >
+								<option class='selectOffice' field='org-name'> Выбрать контору и тип конторы </option>
+							</select>
+							<br/>
+							<input class="input full-name" field="name" default-text="ФИО">
+							<br/>
+							<input class="input telephone" field="telephone" default-text="telephone">
+							<br/>
+							<input class="input e-mail" field="e-mail" default-text="e-mail">
+						</div>
+						<div class='buttons'>
+							<div class='btn-ira ok ' title='OK' onclick = 'TableFiller.SaveObject(this)'> OK </div>
+							<div class='btn-ira clear ' title='Clear'> Clear </div>
+							<div class='btn-ira cancel ' title='Cancel' onclick ='TableFiller.CancelChanges(this)' > Cancel </div>
+						</div>
+						
+					</div>	
+		
+										
+					
+					
+					<div id="specialists" class='object-container'>
+						<div class='search spec-field' >							
+							<input class='hintable' id='SpecSrchBox' style='width:400px;align:center;'>
+							<div class='fac container' style='position: absolute; z-index:100;'>
+								<div class='fac prototype' style='opacity: 0.9; cursor: pointer; position: relative; width:407px; background-color:white;' onclick='Plan.SetSearchValue(this)'> шо-то там</div>
+							</div>
+							<div id='searchBox' class='invisible'>
+								
+								<a class="search-item find" href="#">Искать все что содержит</a>
+								
+								<a class="search-item find" href="#">Искать в поле</a>
+								
+								
+								<a class="search-item find" href="#">Искать </a>
+								
+							</div><br>
+							<div class='checkits' >
+								
+								<div class="ssort spec-field" onclick='Plan.allChecked()' style='z-index:100;'> Выбрать всех</div>
+								<div class='cab invisible'>
+									<div onclick='Plan.allChecked()' class='ca'>Выбрать всех</div>
+									<!--<li><a href="#" onclick='Plan.pickCheckboxes()'>Выборка по одному</a></li>-->
+									<div onclick='Plan.allUnChecked()' class='cb'>Снять выделение</div>
+								</div>		
+								
+							</div>
+							
+						</div>
+						
+						<div class="specialist small-plate prototype object-prototype">
+							<div class="spec-field spec-pattern">
+								<div class="org-pattern spec-field field" field="org-pattern"> ОП </div>
+							</div>
+							<div class="org-name spec-field field" field="org-name"> "Засада", особое отделение №666 </div>
+							
+							<div class='org-address spec-field field additional-info' field='org-address'>
+								ул.Светлая, 27
+							</div>
+							<div class='org-town spec-field field additional-info' field='org-town'>
+								пгт Бобруйск
+							</div>
+							
+							<div class="delete-button hide field-pic field" onclick="Tabs.DeleteSpecialist(this)" title="Delete"></div>
+							<div class="edit-button field-pic field" title="Edit Specialist&aposs info"></div>
+							
+							<br>
+							<div class="spec-pattern spec-field">
+								<div class="speciality spec-field field" field="speciality"> Техник по племенному делу </div>
+							</div>
+							<div class='index field spec-field additional-info' field='index'>
+								A95
+							</div>
+							<div class="full-name spec-field field" field="name">Иванов Иван Иваныч</div>
+							<div class="check-button" style="float:right;"></div>
+							
+							<div class="additional-info">
+								<div class="telephone spec-field">
+									<div class="telPic field-pic"></div>
+									<div field="telephone" class="telephone field">063-777-77-77</div>
+								</div>
+								<div class="e-mail spec-field">
+									<div class="mailPic field-pic"></div>
+									<div field="e-mail" class="e-mail field">ivanov@mail.ru</div>
+								</div>
+								<div field="diagram" class="diagram  spec-field field">
+									bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla
+								</div>
+								
+								
+								
+								
+							</div>
+							
+							
+							
+							
+						</div>						
+					</div>
+				</div>
+				<div class="day-place off drop-receiver" style='width:40%;'> <!-- invisible -->
+					<div class='office prototype'> ООО"Рога и Копыта"</div>
+				</div>	
+				<div class="day-place visits drop-receiver" style='width:25%;'>
+					<div id='visits'></div>
+				</div>
+				
+				
+				
+				
+				
+				
+				<div id='ActionsPanel' class="panel bottom-panel hidden-panel" style="cursor:pointer">
+					<div title="Send to Manager" class="actBut bSend"></div>
+					<div title="Clear" class="actBut bClear"></div>
+					<div title="Plan" class="actBut bPlan"></div>
+					<div title="Submit" class="actBut bSubmit"></div>
+					<div title="Cancel" class="actBut bCancel"></div>
+					<div title="Delete" class="actBut bDelete"></div>
+				</div>
+				
+				
+				<div id='TagsPanel' class="panel right-panel hidden-panel">
+					<div title="Meeting" class="meeting bTip" draggable="true">meeting</div>
+					<div title="Leasure" class="leasure bTip" draggable="true">leasure</div>
+					<div title="WTF" class="wtf bTip" draggable="true">wtf</div>
+				</div>
+			</div>
+		</div>
+		
+		
+		
+		
+		<div class="visit prototype object-prototype">
+			<div class='left-container'>
+				<div class='panel for-visit-indicators'>
+					<div class='checked'></div>
+					<div class='visit-indicators'>19</div>
+					<div class='visit-indicators'>19</div>
+					<div class="edit-button " onclick="Tabs.EditSpecsProto(this)" title="Edit Specialist&aposs info"></div>
+					<div class="delete-button hide" title="Delete"></div>
+				</div>
+				<div class='panel meeting-date-Time'>
+					<div class='meeting day_date'>Mon 23</div>
+					<div class='meeting month'>April</div>
+					<div class='meeting year'>1989</div>
+					<div class='meeting time'>23:47</div>
+					
+				</div>
+			</div>
+			
+			<div class='content-panel block-container'>
+				<div class="content-line organisation-info">
+					<div class="org-pattern plate field" field="org-pattern"> ОП </div>
+					<div class="org-name field" field="org-name"> "Засада", особое отделение №666 </div>
+					<!--<div class='org-town spec-field field additional-info' field='org-town'>
+пгт Бобруйск
+</div>
+
+<div class='org-address spec-field field additional-info' field='org-address'>
+улица 1-я За Линией Октябрьской Железной Дороги
+</div>-->
+					
+				</div>
+				
+				<div class="content-line specialist-info">
+					<div class="speciality plate field" field="speciality"> Техник по племенному делу </div>
+					<div class='index field additional-info' field='index'>A95</div>
+					<div class="full-name spec-field field" field="name">Иванов Иван Иваныч</div>
+				</div>
+				
+				<div class="content-line additional-info">
+					<div class="telephone spec-field">
+						<div class="telPic field-pic"></div>
+						<div field="telephone" class="telephone field">063-777-77-77</div>
+					</div>
+					<div class="e-mail spec-field">
+						<div class="mailPic field-pic"></div>
+						<div field="e-mail" class="e-mail field">ivanov@mail.ru</div>
+					</div>
+					<div field="diagram" class="diagram  spec-field field">
+						
+					</div>
+				</div>
+				
+			</div>
+			
+			
+		</div>
+		
+		
+		
+	</body>
+</html>

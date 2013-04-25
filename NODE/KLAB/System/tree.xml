@@ -1,0 +1,15 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Files>
+  <file Name="Main.css">
+    <tag Name="File">File</tag>
+    <tag Name="css">css</tag>
+  </file>
+  <file Name="Main.js">
+    <tag Name="File">File</tag>
+    <tag Name="js">js</tag>
+  </file>
+  <file Name="Skeleton.js">
+    <tag Name="File">File</tag>
+    <tag Name="js">js</tag>
+  </file>
+</Files>

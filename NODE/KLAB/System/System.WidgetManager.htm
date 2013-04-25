@@ -1,0 +1,10 @@
+ function WidgetReady(event)
+    {  
+      designer_frame.loadingObject.div.append(this.responseText);
+      var initializer = $("initializer", designer_frame.loadingObject.div).html();
+      designer_frame.loadingObject.div[0].Initializer = window[initializer];
+      designer_frame.loadingObject.div[0].Initializer();
+      designer_frame.loadingObject.div.show();
+    }
+    
+   

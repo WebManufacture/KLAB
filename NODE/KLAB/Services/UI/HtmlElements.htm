@@ -1,0 +1,395 @@
+<script type='text/javascript' src='http://services.web-manufacture.net/Base/v1.3/ui.js'></script>
+
+<script type='text/javascript'>
+	SearchBox = {};
+	
+	SearchBox.InitElement = function(element){
+		var storageKey = element.get("@StorageKey");
+		if (!storageKey){
+			if (element.id){
+				storageKey = window.location.host + window.location.pathname + "/@Hint_" + element.id;
+			}
+			else{
+				return;
+			}
+		}
+		element.storageKey = storageKey;
+		element.addEventListener("focus", SearchBox.ElementFocused);		
+		//element.addEventListener("keypress", SearchBox.KeyPressed);
+		element.addEventListener("keyup", SearchBox.KeyDown);
+		element.addEventListener("blur", SearchBox.ElementBlur);
+		var sb =  element.searchBox = DOM.div(".search-box.invisible");
+		if (element.nextElementSibling){
+			element.parentNode.insertBefore(sb, element.nextElementSibling);
+		}
+		else{			
+			element.parentNode.add(sb);
+		}
+		SearchBox.FillBox(sb, element.storageKey);
+	};
+	
+	SearchBox.FillBox = function(elem, skey){
+		var searchItems = localStorage.getItem(skey);
+		if (searchItems){
+			searchItems = JSON.parse(searchItems);
+		}else{
+			searchItems = [];
+		};
+		searchItems = searchItems.sort(SearchBox.SortByRatingAndAlfabet);
+		for (var i = 0; i < searchItems.length; i++){
+			SearchBox.AddSearchText(elem, searchItems[i].rating, searchItems[i].query);
+		};
+	};
+	
+	SearchBox.SortByRatingAndAlfabet = function(a, b){
+		if (a.rating == b.rating){
+			return a.query > b.query ? 1: -1;
+		};
+		return a.rating < b.rating ? 1 : -1;
+	};
+	
+	SearchBox.AddSearchText = function(elem, rating, text){
+		var div = elem.div(".search-item");
+		div.textContent = text;
+		div.AttrProperty("Rating");
+		rating = parseInt(rating);
+		if (isNaN(rating)) rating = 0;
+		div.Rating = rating + "";
+		div.set("@search-value", text);
+		div.onclick = function(){
+			elem.value = this.textContent;	
+		}
+			return div;
+	};
+	
+	SearchBox.ElementFocused = function(){
+		this.searchBox.show();
+		SearchBox.FilterByText(this.searchBox, this.value);
+	};
+	
+	SearchBox.KeyPressed = function(){
+		SearchBox.FilterByText(this.searchBox, this.value);
+	};
+	
+	SearchBox.KeyDown = function(event){
+		if (event.keyCode == 40){//down
+			var selected = this.searchBox.get(".search-item.selected");
+			var next = null;
+			if (selected){
+				var next = selected.nextElementSibling;
+				while(next && next.is(".invisible")){
+					next = next.nextElementSibling;
+				}
+				selected.del(".selected");
+			}			
+			if (!next){
+				next = this.searchBox.get(".search-item:not(.invisible)");
+			}
+			if (next){
+				next.add(".selected");
+				this.value = next.textContent;
+			}
+			return true;
+		}
+		if (event.keyCode == 38){ //up
+			var selected = this.searchBox.get(".search-item.selected");
+			var next = null;
+			if (selected){
+				var next = selected.previousElementSibling;
+				while(next && next.is(".invisible")){
+					next = next.previousElementSibling;
+				}
+				selected.del(".selected");
+			}			
+			if (!next){
+				next = this.searchBox.all(".search-item:not(.invisible)");
+				if (next.length > 0){
+					next = next[next.length - 1];	
+				}
+				else{
+					next = null;	
+				}
+			}
+			if (next){
+				next.add(".selected");
+				this.value = next.textContent;
+			}
+			return true;
+		}
+		if (event.keyCode == 13){ //up
+			var selected = this.searchBox.get(".search-item.selected");
+			if (selected){
+				this.value = selected.textContent;				
+			}
+			SearchBox.ElementBlur.call(this);
+			return true;
+		}
+		SearchBox.FilterByText(this.searchBox, this.value);
+	};
+	
+	SearchBox.ElementBlur = function(){
+		this.searchBox.hide();
+		if (this.value == "" || this.is("empty")) return;
+		var elem = SearchBox.GetElemByText(this.searchBox, this.value);
+		if (elem){
+			elem.Rating = (parseInt(elem.Rating) + 1) + "";
+		}
+		else{
+			SearchBox.AddSearchText(this.searchBox, 0, this.value);
+		}
+		SearchBox.Save(this);
+	};
+	
+	SearchBox.GetElemByText = function(elem, text){
+		return elem.get(".search-item[search-value='" + text + "']");
+	};
+	
+	SearchBox.FilterByText = function(elem, text){
+		elem.all(".search-item.selected").del('.selected');
+		if (text == ""){
+			elem.all(".search-item").show();
+			return;
+		}
+		elem.all(".search-item").hide();
+		elem.all(".search-item[search-value^='" + text + "']").show();
+	};
+	
+	SearchBox.Save = function(inputObj){
+		var sitems = [];
+		var sbox = inputObj.searchBox;
+		sbox.all(".search-item").each(function(item){
+			sitems.push({rating: item.Rating, query : item.innerHTML});
+		});
+		localStorage.setItem(inputObj.storageKey, JSON.stringify(sitems));
+	};
+	
+	/*
+
+SearchBox.SetSearchValue = function(a){
+var attr = a.get('@hint');
+var inp = DOM.get('.search input');
+inp.value = attr;
+DOM.all('.fac.d').del();
+Plan.ShowSelectedByHint(attr);
+Plan.SearchEnding(inp);
+};
+
+
+
+SearchBox.SearchSpecRes = function(a){
+var search = a.value;
+if (!search) return;
+
+var proto=DOM.get('.fac.prototype');
+
+DOM.all('.fac.d').del();
+
+var SortedByRatingAndAlfabet = Plan.SearchTrot.sort(Plan.SortByRatingAndAlfabet);
+for(var i=0; i<SortedByRatingAndAlfabet.length; i++){
+var c=Plan.SearchTrot[i];//зачем объявлена переменная?
+var hint_proto=proto.clone();
+hint_proto.add('.hidden');
+hint_proto.add('.d');
+hint_proto.add('@hint',SortedByRatingAndAlfabet[i].query );
+DOM.get('.fac.container').add(hint_proto).set(null, SortedByRatingAndAlfabet[i].query);
+}
+
+DOM.all('.d[hint*="' + search.toLowerCase() + '"]').del('.hidden');
+SearchBox.ShowSelectedByHint(search);		
+};
+
+*/
+	
+	SearchBox.Context = { Condition: "ui-processing" };
+	SearchBox.Context.id = "UiSearchBoxContext";
+	SearchBox.Context.Selector = "input.hintable:not(.jasp-processed-UiSearchBoxContext)";
+	SearchBox.Context.Process = SearchBox.InitElement;
+	
+	C.Add(SearchBox.Context);
+	
+	InputWDT = {
+		
+		InitElement : function(elem){
+			elem.onfocus = InputWDT.InputFocused;
+			elem.onblur = InputWDT.InputBlur;
+			//elem.oninput = InputWDT.CheckChanges;
+			elem.update = InputWDT.CheckChanges;
+			if(!elem.value || elem.value == elem.get('@default-text')){
+				elem.add('.empty');
+				elem.value = elem.get('@default-text');
+			}
+		},
+		
+		CheckChanges : function(){
+			if (this.selfChanged) {
+				this.selfChanged = false;
+				return;
+			}
+			if(this.value && this.value != ""){
+				this.del('.empty');
+			}
+			else{
+				this.add('.empty');
+				this.selfChanged = true;
+				this.value = this.get('@default-text');
+			}
+		},
+		
+		InputFocused : function(){
+			if(this.is('.empty')){
+				this.del('.empty');
+				this.selfChanged = true;
+				this.value='';
+			}
+		},
+		
+		InputBlur : function(){
+			if(!this.value || this.value == ""){
+				this.add('.empty');
+				this.selfChanged = true;
+				this.value = this.get('@default-text');
+			}
+		}	
+	};
+	
+	
+	InputWDT.Context = { Condition: "ui-processing.ui-clone" };
+	InputWDT.Context.id = "inputWDT";
+	InputWDT.Context.Selector = "input[default-text]";
+	InputWDT.Context.Process = InputWDT.InitElement;
+	
+	C.Add(InputWDT.Context);
+</script>
+
+<style type='text/css'>
+	
+	.search-box{
+		position: absolute;
+		border: solid 1px gray;
+		padding: 3px 10px;
+		box-sizing: border-box;		
+		-moz-box-sizing: border-box;
+		overflow: hidden;
+		background-color: white;
+		color: #444;
+	}
+	
+	.search-box .search-item{
+		cursor: pointer;
+		border-bottom: dotted 1px #aaa;
+	}
+	
+	.search-box .search-item.selected{
+		background: yellow;
+	}
+	
+	.js-entity div{
+		display: inline-block;
+		vertical-align: top;
+	}
+	
+	
+	.js-entity{
+		
+	}
+	
+	.js-entity.object{
+		color : #A4F;	
+		background-color: rgba(150, 200, 170, 0.07)
+	}
+	
+	.js-entity.number{
+		color : navy;
+	}
+	
+	.js-entity.object.array{
+		color : red;
+		/*background-color: rgba(150, 150, 200, 0.1)*/
+	}
+	
+	
+	.js-entity.object.array>.js-entity.object{
+		margin-left: 10px;
+	}
+	
+	.js-entity.string{
+		color : #f85;
+	}
+	
+	.js-entity .js-syntax{
+		font-weight: bold;	
+	}
+	
+	.js-entity>.object-line{
+		padding-left: 20px;
+		/*border-left: solid 1px #ccc;*/
+	}
+	
+	.js-entity>.object-line>.object-key{
+		color: green;
+		min-width: 30px;
+	}
+	
+	.btn-ira {
+		background: none repeat scroll 0 0 transparent;
+		border-radius: 3px 3px 3px 3px;
+		box-shadow: 0 1px 1px #FFFFFF;
+		color: #666666;
+		cursor: pointer;
+		display: inline-block;
+		font: bold 13px Sans-Serif;
+		height: 16px;
+		margin: 5px;
+		padding: 3px;
+		text-align: center;
+		text-shadow: 0 1px 1px white;
+		vertical-align: middle;
+		white-space: nowrap;
+		width: 60px;
+	}
+	.btn-ira.ok {
+		border: 2px solid #467F71;
+	}
+	.btn-ira.clear {
+		border: 2px solid #E0E0E0;
+	}
+	.btn-ira.cancel {
+		border: 2px solid #FFCA3B;
+	}
+	.btn-ira.delete {
+		border: 2px solid #E52738;
+	}
+	.btn-ira.ok:hover, .btn-ira.ok:focus {
+		background: -moz-linear-gradient(center top , white, #467F71) repeat scroll 0 0 transparent;
+		border-color: #999999;
+		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25), 0 0 3px #FFFFFF inset;
+	}
+	.btn-ira.clear:hover, .btn-ira.clear:focus {
+		background: -moz-linear-gradient(center top , white, #E0E0E0) repeat scroll 0 0 transparent;
+		border-color: #999999;
+		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25), 0 0 3px #FFFFFF inset;
+	}
+	.btn-ira.cancel:hover, .btn-ira.cancel:focus {
+		background: -moz-linear-gradient(center top , white, #FFCA3B) repeat scroll 0 0 transparent;
+		border-color: #999999;
+		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25), 0 0 3px #FFFFFF inset;
+	}
+	.btn-ira.delete:hover, .btn-ira.delete:focus {
+		background: -moz-linear-gradient(center top , white, #E52738) repeat scroll 0 0 transparent;
+		border-color: #999999;
+		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25), 0 0 3px #FFFFFF inset;
+	}
+	.btn-ira.ok:active {
+		background: -moz-linear-gradient(center top , #467F71, gainsboro) repeat scroll 0 0 transparent;
+	}
+	.btn-ira.clear:active {
+		background: -moz-linear-gradient(center top , #E0E0E0, gainsboro) repeat scroll 0 0 transparent;
+	}
+	.btn-ira.cancel:active {
+		background: -moz-linear-gradient(center top , #FFCA3B, gainsboro) repeat scroll 0 0 transparent;
+	}
+	.btn-ira.delete:active {
+		background: -moz-linear-gradient(center top , #E52738, gainsboro) repeat scroll 0 0 transparent;
+	}
+	
+</style>

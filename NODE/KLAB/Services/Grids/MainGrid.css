@@ -1,0 +1,456 @@
+  .table-system
+  {
+    display: none;
+ }
+   
+ .table-holder
+{
+	min-height: 495px;
+} 
+
+.grid-holder.loading .table-holder
+{
+	/*background: url("http://services.web-manufacture.net/Grids/loadGrid.gif") center center no-repeat;
+	background-color: #F2F2F2;*/
+} 
+   
+  .tree-table
+  {
+    width:100%;
+    border-left: solid 1px gray; 
+    border-top: solid 1px gray; 
+	font-family: verdana;
+  }
+  
+  .tree-table .meta
+  {
+    
+  }
+  
+   .tree-table .meta .meta-info
+  {
+    display: none;
+  }
+  
+  .tree-table .pages-count
+  {
+	display: none;
+  }
+  
+ .tree-table .meta .data
+  {
+	
+    background-color: #F2F2F2;
+	
+	padding-top: 5px;
+	padding-bottom: 5px;
+  }
+  
+  .tree-table .meta .data .title
+  {
+	font-weight: bold;
+	color:#656565;
+	cursor: pointer;
+  }
+  
+  .tree-table .meta .data .title:hover
+  {
+	color: #7CB862;
+  }
+  
+  .tree-table .meta .prototype
+  {
+	display: none;
+  }
+  
+  .tree-table .meta .data.rolled
+  {
+	background-color: #00FFAA;
+  }
+  
+  .tree-table .meta .data.sort-field .title
+  {
+	color: green;
+  }
+  
+  .tree-table .meta .data.sort-field.sort-descending .title
+  {
+	color: red;
+  }
+  
+  .tree-table td
+  {
+    border-right: solid 1px silver; 
+    border-bottom: solid 1px silver; 
+  }
+  
+  .tree-table td.data
+  {
+	padding-left: 10px;
+    padding-right: 10px;
+
+  }
+    
+  .tree-table .item .cell-value
+   {
+	overflow: hidden;
+	height: 20px;
+  }
+   
+   .tree-table .item .cell-structure
+   {
+	position: relative;
+	padding: 7px 10px 3px 10px;
+   }
+   
+   
+  
+  .tree-table .item .data
+   {
+	/*background-image: url(data:image/gif;base64,R0lGODlhAwADAIAAANve4f/7/yH5BAAAAAAALAAAAAADAAMAAAIETHAZBQA7);*/
+	background-color: white;
+	color: #444444;
+	overflow: hidden;
+	height: 29px;
+	padding: 0px;
+  }
+
+  .tree-table .item:hover .data
+  {
+    background-color: #F2F2F2;
+ }
+ 
+ .tree-table .item .data.editing .cell-structure
+   {
+	padding: 0;
+	height: 30px;
+   }
+   
+    .tree-table .item .data.editing .cell-value
+   {
+	padding: 0;
+	height: 30px;
+   }
+ 
+ 
+ .tree-table .item .data.editing input
+   {
+	width: 100%;
+	height: 100%;
+	padding: 0px 20px;
+	border: none;
+	margin: 0;
+	height: 30px;
+	vertical-align: middle;
+	background-color: transparent;
+   }
+   
+  .tree-table #filter_row .data
+{
+	background-color: #DDEEFF;
+}  
+   
+  .tree-table #filter_row .data input
+   {
+	width: 100%;
+	height: 100%;
+	padding: 0px 20px;
+	border: none;
+	margin: 0;
+	height: 30px;
+	vertical-align: middle;
+	background-color: transparent;
+   }
+ 
+ .tree-table .indicator
+   {
+    width: 30px;
+    padding: 0px;
+	background-color: #F2F2F2;
+	cursor: pointer;
+	height: 30px;
+  }
+ 
+ .tree-table tr:even
+  {
+    background-color: #EEE;
+ }
+ 
+ 
+ .tree-table .item:hover .indicator
+  {
+    background-color: #666;
+ }
+ 
+ .tree-table .item .data:hover
+  {
+    background-color: #F2F2F2;
+  } 
+ 
+ .tree-table .item.selected .indicator
+   {
+    background-color: silver;
+  }
+    
+  .tree-table .item.selected .indicator:hover
+  {
+    
+  }
+  
+  .tree-table .indicator.ui-dragging{
+	width: 100px;
+	height: 100px;
+	opacity: 1px;
+	background: black;
+  }
+  
+  .tree-table .indicator .row-menu-holder
+  {
+	position: relative;
+  }
+  
+   .tree-table .item:hover .indicator
+  {
+	background-color: #666;
+  }  
+  
+  .tree-table td.indicator_cells
+   {
+	width: 22px;
+	padding: 0px;
+	background-color: #F2F2F2;
+  }
+  
+  
+  
+    .relative
+	{
+		position: relative;
+	}
+  
+  .tree-table .item.template
+  {
+    display: none;
+  }
+  
+   .tree-table .item.deleted
+  {
+    display: none;
+  }
+  
+  
+  .tree-table .item .invalid
+  {
+	color:red;
+  }
+  
+   .tree-table .item .data.falled
+  {
+	display: none;
+ }
+  
+   
+  .tree-table tr td.first
+   {
+	padding-left: 10px;
+	text-align: right;
+  }
+  
+  .tree-table .item.edited .data
+  {
+  
+ }
+  
+ .tree-table .item .data.editing
+  {
+    background-color: #FFFFCC;
+  }
+  
+ 
+  
+  .grid-holder .table-footer{
+	padding-top: 10px;
+	padding-bottom: 10px;
+	border: 1px solid silver;
+	position: relative;
+  }
+  
+   .grid-holder .pager
+    {
+		text-align: center;
+   }
+   
+  .grid-holder .pager span
+    {
+      margin-left: 10px;
+	  margin-right: 10px;
+	  font-size: 10px;
+	  font-weight: bold;
+	  cursor: pointer;
+	  color: #656565;
+   }
+   
+   .grid-holder .pager .active
+    {
+      color: #4274BA;
+   }
+   
+   .grid-holder .pager span:hover
+    {
+	  color: #7CB862;
+   }
+   
+   .grid-holder .pager .pages
+    {
+	  display: inline;
+   }
+
+   
+  
+  .tree-table .item:hover .context-menu{
+	background-color: #f2f2f2;
+  }
+   
+  .context-menu{
+    height: 29px;
+    position: absolute;
+    z-index: 12;
+    display: none;
+	width: 180px;
+	top: -14px !important;
+	left: 35px!important;
+	background-color: white;
+  }
+  
+  .table-menu .button, .mini-menu-button{
+    height: 25px;
+    width: 25px;
+    margin-left: 3px;
+    background-color: white;
+    border : solid 1px silver;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    float: left;
+    background-position: center;
+    background-repeat: no-repeat;
+	cursor: pointer;
+  }
+  
+  .table-menu
+  {
+	position: absolute;
+	top: 4px;
+	left: 24px;
+  }
+  
+  .table-menu .separator{
+    height: 25px;
+    width: 25px;
+    margin-left: 3px;
+    float: left;
+  }
+  
+  
+  .table-menu .button.edited, .mini-menu-button.edited{
+    display: none;
+  }
+  
+  .table-menu .button:hover, .mini-menu-button:hover{
+    background-color: #FFFFCC;
+	-moz-box-shadow: 1px 1px 1px gray;
+	box-shadow: 1px 1px 1px gray;
+  }
+  
+  .table-menu .button[action='edit']{
+    background-image: url("http://services.web-manufacture.net/Grids/edit.png");
+  }
+  
+  .table-menu .button[action='save']{
+    background-image: url("http://services.web-manufacture.net/Grids/check.png");
+  }
+  
+  .table-menu .button[action='cancel']{
+    background-image: url("http://services.web-manufacture.net/Grids/undored.png");
+  }
+  
+  .table-menu .button[action='remove'], .table-menu .button[action='removeAll']{
+    background-image: url("http://services.web-manufacture.net/Grids/button_cancel.png");
+  }
+  
+  .table-menu .button[action='insert']{
+    background-image: url("http://services.web-manufacture.net/Grids/edit_add.png");
+  }
+  
+  .table-menu .button[action='reload']{
+    background-image: url("http://services.web-manufacture.net/Grids/reload.png");
+  }
+  
+  .table-menu .button[action='save-all']{
+    background-image: url("http://services.web-manufacture.net/Grids/saveall.png");
+  }
+  
+  .tree-table .button.load-indicator
+  {
+	background-image: url("http://services.web-manufacture.net/Grids/load.gif");
+  }
+  
+  .tree-table .button.roll-button
+  {
+	background-image: url("http://services.web-manufacture.net/Grids/roll.png");
+	background-position: right center;
+	background-repeat: no-repeat;
+	position: absolute;
+	right: 0px;
+	top: 0px;
+	height: 20px;
+    width: 20px;
+	cursor: pointer;
+  }
+  
+     
+   .tree-table .button.row-processor-active
+    {
+	  background-color: #FFFFAA;
+   }
+   
+   .tree-table .button.row-processor-hover
+    {
+	  background-color: #FFCCAA;
+   }
+  
+  .tree-table .notify
+  {
+	 float:left;
+	 position: absolute;
+	 right: 10px;
+  }
+  
+ .search-menu
+  {
+	display: none;
+  }
+  
+  .search-row input
+  {
+  	width: 100%;
+  	height: 100%;
+  	border : none;
+  }
+
+  #search-button
+  {
+  	 background: white url("http://services.web-manufacture.net/Grids/viewmag.png") center center no-repeat;
+	  width: 23px;
+	 height: 23px;
+	 overflow: hidden;
+	 position: absolute;
+	 top: 0px;
+	 right: 3px;
+  }
+  
+  
+  .search-menu:hover
+  {
+	opacity: 1;
+  }
+   

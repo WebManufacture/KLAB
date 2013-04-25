@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+    <head>
+	<title>DOM</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+	<script type="text/javascript" src="Utils.js"></script>
+	<script type="text/javascript" src="DOM.js"></script>
+	<script type="text/javascript" src="Url.js"></script>
+	<script type="text/javascript" src="Ajax.js"></script>
+	<script type="text/javascript" src="Jasp.js"></script>
+	<link type='text/css' rel='stylesheet' href="System.default.css"/>
+	<style type="text/css">
+	    .line{
+		color: #999;
+		padding-left: 20px;
+	    }
+	    
+	    .line.function .key, .line.function .value{
+		color: #414A4C;
+	    }
+	    
+	    .line.object .key{
+		color: #3366FF;
+	    }
+	    
+	    .line.string .key{
+		color: #006666;
+	    }
+	    
+	    .line.number .key{
+		color: #663366;
+	    }
+	    
+	    .line.boolean .key{
+		color: #999999;
+	    }
+	    
+	    .line.other .key{
+		color: red;
+	    }
+	    
+	    .line.other .value{
+		color: #999;
+	    }
+	    
+	    .inner-object{
+		background: none repeat scroll 0 0 #F0FFF0;
+		border-radius: 10px 10px 10px 10px;
+		box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+		margin: 10px;
+		padding: 10px;
+	    }
+	    
+	    .content{
+		display: inline;		
+	    }
+	    
+	    .content.key{
+		cursor: pointer;
+	    }
+	    
+	    .content.value{
+		color: #C364C5;
+	    }
+	    
+	    
+	    .value.nawkey{
+		color: black;
+	    }
+	    
+	    .search{
+		margin-top: solid 1px red;
+	    }
+	    
+	    .founded-result{
+		background-color: #CCC;
+	    }
+	    #messeng{
+		left: 50%;
+		position:absolute;
+	    }
+	    .title{
+		padding: 7px;
+		color: red;
+		font-size: 12pt;
+		text-align: center;
+		border-radius: 50px 50px 0 0;
+		width: 300px;
+		background: #CC9966;
+	    }
+	    .bodys{
+		padding: 10px;
+		width: 294px;
+		height: auto;
+		background: #003300;
+		color: #66CC00;
+		
+	    }
+	    .invisibles{ 
+		display: none;
+	    }
+	</style>
+	<script type="text/javascript">
+	    
+	    function init() {
+		var body = DOM("body");
+		inspec(body, window);
+	    }
+	    function inspec(parentElement, inspectedObject) {
+		for (obj in inspectedObject) {
+		    var div = parentElement.div(".line");
+		    div.link = inspectedObject[obj];	    
+		    div.onclick = test;
+		    div.onmouseover = createMessage;
+		    div.set("@key",obj);
+		    div.key = obj;
+		    var key = div.div(".content.key", obj);
+		    div.add(" : ");
+		    addValue(div);
+		}
+	    }
+	    function addValue(div) {
+		var valueDiv = div.div('.content.value');		
+		if (div.link == null) {
+		    div.add(".other");
+		    valueDiv.add("null");
+		    return valueDiv;
+		}
+		if (div.link == undefined) {
+		    div.add(".other");
+		    valueDiv.add("undefined");
+		    return valueDiv;
+		}
+		if (typeof(div.link) == 'function') {
+		    div.add(".function");
+		    valueDiv.add("function()");
+		    return valueDiv;
+		}
+		div.add("." + typeof(div.link));
+		valueDiv.add(div.link + "");
+		return div;
+	    }
+	    function test(event){
+		if (typeof(this.link) != 'function'){
+		    if (this.is(".open")){
+			this.get(".inner-object").del();
+			this.del(".open");
+		    }
+		    else{
+			var ss = this.div(".inner-object");
+			this.add(".open");
+			inspec(ss, this.link);		
+		    }
+		    event.stopPropagation();
+		}
+	    }
+	    function search(button){
+		DOM.all('.founded-result').del('.founded-result');
+		var input = DOM.get('#searchText').value;
+		var results = DOM.all('div[key*="'+input+'"]');
+		for (var i = 0; i < results.length; i++){
+		    results.add(".founded-result");
+		}
+	    }
+	    function mouseShowHandler(e){
+		e = e || window.event
+		    
+		    if (e.pageX == null && e.clientX != null ) { 
+			var html = document.documentElement;
+			var body = document.body;
+			e.pageY = e.clientY + (html && html.scrollTop || body && body.scrollTop || 0) - (html.clientTop || 0)
+			    }
+		return e.pageY;
+	    }
+	    function createMessage(event) {
+		if (typeof(this.link) == 'function'){
+		    var ss = DOM.get("#messeng");
+		    ss.del('.invisibles');
+		    var title = ss.get('.title');
+		    title.set(this.key);
+		    var bodys= ss.get('.bodys');
+		    bodys.set(this.link);
+		    var top = mouseShowHandler();
+		    DOM.get("#messeng").style.top = top+'px';
+		}
+		else if (typeof(this.link) != 'function'){
+		    DOM.get("#messeng").add('.invisibles');
+		}
+	    }
+	</script>
+    </head>
+    <body onload="init();">
+	<ul id="sharebar" style="width: 65px; margin-left: 75px; display: block; position: fixed; top: 100px; ">
+	</ul>
+	<div id="messeng" class="invisibles"> <div class="title"></div> <div class="bodys"></div></div>
+	Что ищем: <input id="searchText" type="text" name="nick" value=""/><input type="button" onClick="search(this);" value="Искать"/></body>
+</html>

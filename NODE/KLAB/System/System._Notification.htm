@@ -1,0 +1,68 @@
+
+<div class="notify invisible" onclick="Notify.Hide();">
+  <span class="message">Load complete!</span>
+</div>
+
+<div class="notify error invisible" onclick="Notify.Hide();">
+  <span class="message">Load complete!</span>
+</div>
+<style type="text/css">
+  
+  .notify {
+    background-color: navy;
+    border: 1px solid black;
+    border-radius: 10px 10px 10px 10px;
+    top: 0;
+    color: white;
+    height: 300px;
+    opacity: 0.9;
+    position: fixed;
+    right: 0;
+    text-align: center;
+    width: 300px;
+    z-index: 200;
+}
+  
+  .notify.error {
+    background-color: red;
+}
+   
+  
+</style>
+
+<script type="text/javascript">
+  Notify = {};
+  
+  Notify.NContainer = W.get(".notify");
+  W.Body.add(Notify.NContainer);
+  Notify.NContainer.Text = Notify.NContainer.get(".message");
+  Notify.EContainer = W.get(".notify.error");
+  W.Body.add(Notify.EContainer);
+  Notify.EContainer.Text = Notify.EContainer.get(".message");
+
+  Notify.showError = function(errorMsg, url, lineNumber){
+    Notify.Error(errorMsg + "<br/>" + url + "<br/>" + lineNumber);
+  }
+
+  window.onerror = Notify.showError;
+  
+  L.OnError.add(Notify.showError);
+  
+  Notify.Show = function(text){
+     Notify.NContainer.Text.html(text);
+     window.setTimeout(Notify.Hide, 3000);
+     Notify.NContainer.show();
+  }
+    
+  Notify.Error = function(text){
+     Notify.EContainer.Text.html(text);
+     window.setTimeout(Notify.Hide, 3000);
+     Notify.EContainer.show();
+  }
+    
+  Notify.Hide = function(text){
+     Notify.NContainer.hide();
+     Notify.EContainer.hide();
+  }
+    
+</script>

@@ -1,0 +1,16 @@
+<style type='text/css'>
+  
+</style>
+
+<script type='text/javascript' src='Grids.js'></script>
+
+<script type='text/javascript' class='deffered'>
+    var grids = DOM.all(".grid");
+    
+    for (var i = 0; i <= grids.length; i++){
+	var table = Grids.InitTable(grids[i]);
+	table.Load();
+    }
+</script>
+
+    

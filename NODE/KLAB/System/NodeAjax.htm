@@ -1,0 +1,83 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+	<title>AJAX</title>
+	<link type='text/css' rel='stylesheet' href="http://Services.web-manufacture.net/Styles/System.default.css"/>
+	<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Utils.js"></script>
+	<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/DOM.js"></script>
+	<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Log.js"></script>
+	<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Url.js"></script>
+	<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Ajax.js"></script>
+	<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Jasp.js"></script>
+	<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+	<style type="text/css">
+	    
+	</style>
+    </head>
+    <body>
+	<div id='Statuses'>
+	    
+	</div>
+	<div id='NodeResponse'>
+	    
+	</div>
+	<script type='text/javascript'>
+	
+	    function GetData2(callback){
+		window.GetData2Callback = callback;
+		window.setTimeout(TimeoutComplete, 5000);
+	    }
+	    
+	    function TimeoutComplete(){
+		window.GetData2Callback();
+	    }
+	    
+	    
+	    function GetData(callback) {		
+		var xmlhttp = getXmlHttp();
+		xmlhttp.open('GET', 'http://localhost:8888/', true);
+		xmlhttp.onload = callback;
+		xmlhttp.onerror = function(error) {
+		    alert(error);
+		};
+		xmlhttp.send(null);
+	    };
+	    
+	    
+	    function Init(){
+		var callback1 = function(){DOM("#NodeResponse").innerHTML += this.responseText;};
+		GetData(callback1);
+		DOM("#NodeResponse").innerHTML = "START!";
+		GetData2(function(){DOM("#NodeResponse").innerHTML += "END GET DATA2";})
+	    }
+	    
+	    
+	    WS.DOMload(Init);
+	    
+	    
+	    function getXmlHttp(){
+		var xmlhttp;
+		try {
+		    xmlhttp = new ActiveXObject("Msxml2.XMLHTTP");
+		} catch (e) {
+		    try {
+			xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+		    } catch (E) {
+			xmlhttp = false;
+		    }
+		}
+		if (!xmlhttp && typeof XMLHttpRequest!='undefined') {
+		    xmlhttp = new XMLHttpRequest();
+		}
+		return xmlhttp;
+	    }
+	    
+	    
+	    
+	</script>
+	
+	
+	
+	
+    </body>
+</html>

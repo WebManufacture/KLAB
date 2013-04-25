@@ -58,6 +58,7 @@ try{
 	
 	Server.Init = function(){
 		var config = Server.Config;
+		console.log(config);
 		var router = Server.Router = RouterModule;
 		var filesRouter = Files(config, Server);
 		router.map("mainMap", 
@@ -70,7 +71,14 @@ try{
 					   },
 					   "/>" : {
 						   GET : function(context){
-							   var path = Path.resolve("." + context.pathName);
+							   var path = context.pathName;
+							   if (config.basepath){
+									 path = config.basepath + context.pathName;
+							   }
+							   if (path.indexOf(".") != 0){
+									path = "." + path;   
+							   }
+							   path = Path.resolve(path);
 							   fs.stat(path, function(err, stat){
 								   if (err){
 									   context.continue();   
@@ -96,7 +104,7 @@ try{
 										   }		
 										   context.finish(200, result);
 									   });
-									   return;   
+									   return;
 								   }
 								   context.continue();
 							   });
