@@ -98,6 +98,12 @@ FilesRouter.SEARCH = function(context){
 			return;
 		}
 		context.res.setHeader("Content-Type", "application/json; charset=utf-8");
+		for (var i = 0; i < files.length; i++){
+			var fname = files[i];			
+			files[i] = fs.statSync(fpath + "\\" + fname);
+			files[i].name = fname;
+			files[i].fileType = files[i].isDirectory() ? "directory" : files[i].isFile() ? "file" : "unknown";
+		}
 		context.finish(200, JSON.stringify(files));
 		context.continue();
 	});
