@@ -1,6 +1,7 @@
 var http = require('http');
 var Url = require('url');
 var fs = require('fs');
+var Path = require('path');
 try{
 	require("./Modules/Node/Utils.js");
 	var RouterModule = require("./Modules/Node/Router.js");
@@ -58,15 +59,51 @@ try{
 	Server.Init = function(){
 		var config = Server.Config;
 		var router = Server.Router = RouterModule;
+		var filesRouter = Files(config, Server);
 		router.map("mainMap", 
 				   {
-					   "/>": Files(config, Server),
 					   "/map": {
 						   GET : function(context){
 							   context.res.setHeader("Content-Type", "application/json; charset=utf-8");
 							   context.finish(200, JSON.stringify(Server.CreateMap(router.Handlers.mainMap)));
 						   }
-					   }
+					   },
+					   "/>" : {
+						   GET : function(context){
+							   var path = Path.resolve("." + context.pathName);
+							   fs.stat(path, function(err, stat){
+								   if (err){
+									   context.continue();   
+									   return;
+								   }
+								   if (stat.isDirectory()){
+								   	   context.res.setHeader("Content-Type", "text/html; charset=utf-8");
+									   fs.readFile("./files.htm", "utf8", function(err, result){   
+										   if (err){
+											   context.finish(500, "Not found files view page " + err);
+											   return;
+										   }		
+										   context.finish(200, result);
+									   });
+									   return;
+								   }
+								   if (stat.isFile() && context.query["action"] == "edit"){
+									   context.res.setHeader("Content-Type", "text/html; charset=utf-8");
+									   fs.readFile("./TextEditor.htm", "utf8", function(err, result){   
+										   if (err){
+											   context.finish(500, "Not found files view page " + err);
+											   return;
+										   }		
+										   context.finish(200, result);
+									   });
+									   return;   
+								   }
+								   context.continue();
+							   });
+							   return false;
+						   }
+					   },					   
+					   "/<": filesRouter
 				   });
 		
 		console.log("KLab server v "  + Server.Config.ver);

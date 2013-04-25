@@ -7,9 +7,7 @@
 	<script type="text/javascript" src="http://services.web-manufacture.net/Base/v1.3/Url.js"></script>
 	<script type="text/javascript" src="http://services.web-manufacture.net/Base/v1.3/Events.js"></script>
 	<script type="text/javascript" src="http://services.web-manufacture.net/Base/v1.3/Log.js"></script>
-	<script type="text/javascript" src="http://services.web-manufacture.net/Base/v1.3/Node.js"></script>
-	
-	<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Ajax.js"></script>
+	<script type="text/javascript" src="http://services.web-manufacture.net/Base/v1.3/Net.js"></script>
 	<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Jasp.js"></script>
 	<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Modules.js"></script>
 	<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/ui.js"></script>
@@ -71,14 +69,15 @@
 			FS.InputField = DOM.get('.search-elem');
 			FS.InputField.onkeyup = FS.SearchFile;
 			//Drag.NoBodyDrop = true;
-			FS.server = new NodeServer();
-			FS.server.browse("/", FS.LoadTreeComplete);
+			FS.server = Net.GetTunnel();
+			FS.CurrentDir = window.location.pathname.replace(/\/\//g, "/");
+			FS.ReloadSystem();
 		};
 		
 		FS.ReloadSystem = function() {
 			FS.Loaded = false;
 			FS.Tree.clear();
-			FS.server.browse("/", FS.LoadTreeComplete);
+			FS.server.browse(FS.CurrentDir, FS.LoadTreeComplete);
 		};
 		
 		FS.GetActiveFiles = function() {
@@ -88,11 +87,31 @@
 		FS.LoadTreeComplete = function(result, status) {
 			if (status == 200){
 				var files = JSON.parse(result);
+				if (FS.CurrentDir != "/"){
+					var fname = "..";
+					var file = FS.Tree.div();
+					file.div(".name", fname);
+					file.fileType = "link";
+					file.fileName = fname;
+					FS.InitDirElement(file);
+				}
 				for (var i = 0; i < files.length; i++) {
-					var file = FS.Tree.div('.File');
-					file.div(".name", files[i]);
-					file.fileName = files[i];
-					FS.InitFileElement(file);
+					if (files[i].fileType == "directory"){
+						var fname = files[i].name;
+						var file = FS.Tree.div();
+						file.fileName = fname;
+						file.fileType = "directory";
+						FS.InitDirElement(file);
+					}
+				}
+				for (var i = 0; i < files.length; i++) {
+					if (files[i].fileType == "file"){
+						var fname = files[i].name;
+						var file = FS.Tree.div();
+						file.fileName = fname;
+						file.fileType = "file";
+						FS.InitFileElement(file);
+					}
 				}
 				FS.Loaded = true;
 			}
@@ -103,7 +122,8 @@
 		
 		FS.InitFileElement = function(elem) {
 			var fileName = elem.fileName;// = elem.innerHTML;
-			elem.cls("file");
+			elem.add(".file");			
+			elem.div(".name", fileName);
 			var splt = fileName.split(".");
 			if (splt.length < 2){
 				splt.push("unknown");	
@@ -116,6 +136,28 @@
 			FS.InitExt(elem);
 			elem.onclick = FS.FileClick;
 			elem.ondblclick = FS.FileActivate;
+			//Drag.MakeDraggable(elem);
+		};
+		
+		FS.InitDirElement = function(elem) {
+			var fileName = elem.name = elem.fileName;// = elem.innerHTML;
+			elem.div(".name").textContent = fileName;
+			if (elem.fileType == "link"){
+				elem.add(".link");	
+				if (elem.name == "."){
+					elem.add(".top");		
+				}
+				if (elem.name == ".."){
+					elem.add(".back");		
+				}
+				elem.ondblclick = FS.DirActivate;
+			}
+			else{
+				elem.add(".dir");	
+				elem.onclick = FS.DirClick;
+				elem.ondblclick = FS.DirActivate;
+			}
+			elem.add('@name', fileName.toLowerCase());
 			//Drag.MakeDraggable(elem);
 		};
 		
@@ -161,6 +203,48 @@
 			FS._toggle(this, 'selected');
 		};
 		
+		FS.DirClick = function(event) {
+			if (event.shiftKey) {
+				this.add(".selected");
+				return;
+			}
+			if (event.ctrlKey) {	
+				if (location.pathName == "/"){
+					window.open(location + this.name);
+				}
+				else{
+					window.open(location + "/" + this.name);
+				}
+				return;
+			}
+			FS._toggle(this, 'selected');
+		};
+		
+		FS.DirActivate = function(event) {
+			if (this.is(".link")){
+				if (this.is(".back")){
+					var parts = FS.CurrentDir.split("/");
+					FS.CurrentDir = "";
+					for (var i = 0; i < parts.length - 1; i++){
+						if (parts[i] != ""){
+							FS.CurrentDir += "/" + parts[i];
+						}
+					}
+					if (FS.CurrentDir == "") FS.CurrentDir = "/";
+				}
+				if (this.is(".top")){
+					FS.CurrentDir = "/";
+				}
+			}
+			if (this.is(".dir")){
+				if (FS.CurrentDir == "/") FS.CurrentDir = "";
+				FS.CurrentDir += "/" + this.name;				
+			}	
+			history.pushState(null, FS.CurrentDir, FS.CurrentDir);
+			//location.pathname += "/" + this.name;
+			FS.ReloadSystem();
+		};
+		
 		FS._toggle = function(elem, toggledclass){
 			if (elem.is('.' + toggledclass)){
 				elem.del('.' + toggledclass);
@@ -174,14 +258,22 @@
 		};
 		
 		FS.FileActivate = function() {
-			window.open("/" + this.fileName);
+			if (location.pathName == "/"){
+				window.open(location + this.fileName);
+			}
+			else{
+				window.open(location + "/" + this.fileName);
+			}
 			this.del('.selected');
 		};
 		
 		FS.LoadFile = function(file) {
-			var url = "/" + file.fileName;
-			//if (file.is(".css") || file.is(".htm") || file.is(".html") || file.is(".js") || file.is(".cs")) {
-				url = Url.Resolve("TextEditor.htm", {url : url});
+			var url = location + file.fileName;
+			if (location.pathName != "/"){
+				url = location + "/" + file.fileName;
+			}
+			//if (file.is(".css") || file.is(".htm") || file.is(".html") || file.is(".js") || file.is(".cs") || file.is() {
+				url += "?action=edit";
 			//}
 			window.open(url);
 		};
@@ -390,7 +482,7 @@
 		{
 			position: relative;
 			margin-top: 10px;
-			padding-left: 55px;
+			padding-left: 5px;
 			padding-right: 100px;
 			box-sizing: border-box;
 			max-width: 800px;
@@ -411,16 +503,28 @@
 			background-color: #CCFF33;
 		}
 		
-		
-		.tree-container .File
+		.tree-container .file, .dir, .link
 		{
 			color: gray;
 			display: block;
 			clear: both;
-			padding-left: 5px;
+			padding-left: 50px;
 			padding-top: 5px;
 			padding-bottom: 5px;
 			cursor: pointer;
+		}
+		
+		.link.back{
+			background-image: url("http://cdn1.iconfinder.com/data/icons/customicondesignoffice5/24/go-back.png");
+    		background-position: 20px center;
+    		background-repeat: no-repeat;
+		}
+		
+		.dir{
+			background-image: url("http://cdn1.iconfinder.com/data/icons/momenticons-basic/16x16/folderopen1.png");
+    		background-position: 20px center;
+    		background-repeat: no-repeat;
+			
 		}
 		
 		.tree-container .tag
@@ -455,26 +559,26 @@
 			display: block;
 		}
 		
-		.tree-container .File.selected
+		.tree-container .file.selected, .dir.selected
 		{
 			background-color: #EEE;
 		}
 		
 		
-		.tree-container .File.drop-ready
+		.tree-container .file.drop-ready
 		{
 			border: dotted 1px gray;
 			border-radius : 4px;
 			-moz-border-radius : 4px;
 		}
 		
-		.tree-container .File.drop-selected
+		.tree-container .file.drop-selected
 		{
 			border: solid 1px gray;
 			background-color: #CCFFFF;
 		}  
 		
-		.tree-container .File:hover
+		.tree-container .file:hover, .dir:hover, .link:hover
 		{
 			text-shadow: 1px 1px 1px #ccc;
 			border-bottom: dotted 1px gray;
@@ -482,14 +586,14 @@
 		}
 		
 		
-		.tree-container .File .name
+		.tree-container .file .name, .dir .name, .link .name
 		{
 			display: inline;
 			color: inherit;
 			text-decoration: none;
 		}
 		
-		.tree-container .File .tags{
+		.tree-container .file .tags, .dir .tags{
 			float: right;
 		}
 		
