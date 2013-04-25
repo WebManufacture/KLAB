@@ -1,0 +1,1047 @@
+<module name="XEditor"
+        type="jasp" 
+        url="XEditor2.htm" 
+        window='.xml_editor'
+        window_mode="self-managed"
+        default="ui_standart_window">
+<include url="system.windows.htm" name="Windows"></include>
+<script type="text/javascript" key="xml_editor_script" id="xml_editor_script">
+      XmlEditor = function(content) {
+        this.Editor = J.Modules.XEditor.child(".xml_editor");
+        this.Content = this.Editor.find(".xml-content");
+        this.TagContainer = [];
+        this.ClassContainer = [];
+        this.IdContainer = [];
+        this.Active = true;
+        this.Eid = "";
+        this.Source = content;
+        this.Mode = null;
+
+        this.CreateWindow = function() {
+          var editor = new XmlEditor(W.div());
+          editor = Windows.CreateWindow(editor, "ui_standart_window");
+          editor.Show();
+        },
+     
+        Show: function(element) {
+            this.Content.empty();
+            this.WrapElement(this.Source, this.Content));
+            this.BindEvents();
+            this.Editor.RefreshTagsList();
+            this.Menu.Bind();
+            this.TagsMenu.Init();
+        },
+       
+        TagsMenu =   
+          
+        TagsMenu : {
+          XE: null,
+          
+          Init: function() {
+             var items = this.XE.Editor.find(".insert-menu .menu-btn");
+             this.items.click(this.XE.TagsMenu.InsertElement);           
+          }, 
+ 
+         InsertElement: function(event){
+           var j = $(this);
+           event.preventDefault();
+           if (j[0].hasAttribute("template")){
+               XE.TagsMenu.InsertTemlate(j.attr("template"));
+               return false;
+           }
+           if (j.hasClass("tag-btn")){
+               var template = "<" + j.attr("tag") + "></" + j.attr("tag") + ">";
+               XE.TagsMenu.InsertTemlate(template);
+               return false;
+           }
+           if (j.hasClass("attr-btn")){
+               XE.TagsMenu.InsertAttribute(j.attr("attr"), this.getAttribute("value"));
+           }
+           return false;
+         },
+           
+           InsertTemlate : function(template){
+              var sel = XE.GetSelection();
+              for (var i = 0; i< sel.length; i++){
+                if (sel[i].linked == null) alert("NULL!");
+                $(sel[i].linked).append(template);
+                var content = XE.Wrapper.WrapContent(template);
+                $(sel[i]).find("lasttag").before(content);
+                XE.Wrapper.BindEvents(content);
+              }
+           },
+        
+           InsertAttribute: function(attr, value){
+              var sel = XE.GetSelection();
+              if (value == undefined || value == null){
+                 value = "";
+              }
+              for (var i = 0; i< sel.length; i++){
+                if (sel[i].linked == null) alert("NULL!");
+                $(sel[i].linked).attr(attr, value);                
+                $(sel[i]).find("attributes").append(XE.Wrapper.CreateAttribute(attr, value));
+                XE.Wrapper.SynchronizeElement(sel[i]);
+              }
+           },
+        },
+
+      GetNewElem : function(elem){
+        var tag = W.div("system-element");
+        elem.Synchronize = this.Synchronize;
+        elem.SynchronizeAttr = this.SynchronizeAttr;
+        tag.Synchronize = this.Synchronize;
+        tag.SynchronizeAttr = this.SynchronizeAttr;
+        tag.BindEvents = this.BindEvents;
+        return tag;
+      },
+      
+      WrapElement: function(element) {
+        var name = element.smallname;
+        this.attr("name", name);
+        var id = element.attr("id");
+        if (id != null && id != undefined) {
+          this.attr("identifier", id);
+        }
+        this.CheckElem(name);
+        this.indicator = this.CheckChild(".indicator", "system-element");
+        this.firsttag = this.CheckChild(".firsttag", 'system-element');
+        this.firsttag.CheckChild(".lt","system-element", "&lt;");
+        this.nameElem = this.firsttag.CheckChild(".name", "system-element", name);
+        this.identifierElem = this.firsttag.CheckChild(".id","system-element", id);
+        this.classesElem = this.firsttag.CheckChild(".classes","system-element");
+        this.firsttag.CheckChild(".gt","system-element", "&gt;");
+        this.CheckChild(".attributes","system-element");
+        this.innerNodes = this.CheckChild(".childs","system-element");
+        this.lasttag = this.CheckChild(".lasttag",'system-element');
+        this.lasttag.CheckChild(".lt","system-element", "/&lt;");
+        this.lasttag.CheckChild(".name","system-element");      
+        this.lasttag.CheckChild(".gt","system-element", "/&gt;");        
+        this.SynchronizeAttr();
+      },
+
+      SynchronizeAttr : function() {
+        XE.Wrapper.InitElem(this);
+        var element = this.linked;
+        var attributes = this.child("attributes");
+        for (var index = 0; index < element.attributes.length; index++) {
+          var attr = element.attributes[index];
+          var tag = attributes.child("attribute[name='" + attr.name + "']");
+          if (tag == null) {
+            tag = XE.Wrapper.CreateAttribute(attr.name, attr.value);
+            tag = attributes.add(attribute);
+          }
+          else{
+            tag.attr("class", "system-element");
+            tag.attr("name", attr.name);
+            tag.attr("value", attr.value);
+            tag.text(attr + " = " + value);
+          }
+        }
+
+        var classes = element.classList;
+        var classString = "";
+        var classesTag = this.find(">firstag>classes");
+        for (var i = 0; i < classes.length; i++) {
+          var classItem = classes[i];
+          var tag = attributes.child("div.class-item[name='" + classItem + "']");
+          if (tag == null) {
+            tag = W.tag("div", "class-item system-element", "." + classItem);
+            tag.attr("name", classItem);
+          }
+          else{
+            tag.attr("class", "class-item system-element");
+            tag.attr("name", classItem);
+            tag.text("." + classItem);
+          }
+        }
+      },
+
+      CreateAttribute : function(attr, value){
+        var attribute = W.tag("Attribute", "system-element", attr + " = " + value);
+        return attribute;
+      },
+      
+      BindEvents: function()
+      {
+        this.ondblclick = this.ShowEditor;
+        this.onmouseover(this.ElementHover);
+        this.onmouseout(this.ElementOut);
+        this.indicator.onmouseover(this.ShowMenu);
+        this.indicator.onclick(this.ShowHideElement);
+        this.firsttag.name.onclick(this.SelectElement);
+        this.firsttag.name.onmouseover(this.ShowMenu);
+      },
+      
+      WrapContent: function(element) {
+        elem = W.tag("file", "", element);
+        return(elem.each(XE.Wrapper.WrapElement));
+      },
+      
+      WrapNode: function(element, parent) {
+        switch (element.nodeType){
+          case 3:
+            var value = element.nodeValue;
+            var elem = W.tag("value", "system-element", value);
+            var linefeed = elem.innerHTML.replace(/ /g, "");
+            if (linefeed == "\n" || linefeed == "\r" || linefeed == "\r\n" || linefeed == "\n\r") {
+              elem.cls("linebreak");
+            }
+            if (element.parentNode != null) {
+              if (element.parentNode.tagName == "STYLE") {
+                elem.innerHTML = value;
+              }
+              if (element.parentNode.tagName == "SCRIPT") {
+                elem.innerHTML = value;
+              }
+              element = elem;
+            }
+            break;
+          case 7:
+            element = element.nodeValue;
+            break;
+          case 9:
+            element = element.documentElement;
+          default:
+            var welem = this.GetNewElem();
+            welem.Synchronize();
+            var content = welem.child("content");            
+            for (var i = 0; i < element.childNodes.length; i++) {
+              var node = element.childNodes[i];
+              this.WrapElement(node, content);
+            }
+        }
+        parent.add(element);
+      },
+          
+      
+      
+      UnWrapElement: function(element) {
+        var jelem = $(element);
+        var elem = null;
+        switch (element.tagName) {
+          case "ELEMENT":
+            elem = document.createElement(element.getAttribute("name"));
+            elem.id = element.getAttribute("identifier");
+            var childs = jelem.children();
+            for (var i = 0; i < childs.length; i++) {
+              var children = this.UnWrapElement(childs[i]);
+              if (children != null) {
+                if (children.nodeType == 2) {
+                  elem.setAttributeNode(children);
+                }
+                else {
+                  try {
+                    elem.appendChild(children);
+                  }
+                  catch (error) {
+                    alert("can't insert:\n" + children);
+                  }
+                }
+              }
+            }
+            break;
+          case "ATTRIBUTE":
+            elem = document.createAttribute(element.getAttribute("name"));
+            elem.value = element.getAttribute("value");
+            break;
+          case "VALUE":
+            elem = document.createTextNode(element.innerHTML);
+            break;
+          case "FIRSTTAG":
+          case "LASTTAG":
+            return null;
+          default:
+            elem = $(element).clone();
+        }
+        return elem;
+      },
+    },
+
+      ShowCss: function(event) {
+            var item = XmlEditor.Content.find(".withmenu");
+            ShowCssInfo(item[0].linked);
+            event.preventDefault();
+      },      
+      
+      ShowMenu: function(event){
+        var item = $(this).parents("element")[0];
+        XmlEditor.Content.find(".withmenu").removeClass("withmenu");
+        item.addClass("withmenu");
+        XmlEditor.Menu.Show(item[0]);
+      },
+      
+        GetSelection: function() {
+            var selected = XmlEditor.Content.find(".selected");
+            return selected;
+        },
+      
+        RemoveSelection: function() {
+            XE.GetSelection().removeClass("selected");
+        },
+      
+        SelectElement: function(event) {
+            var item = $(this).parent().parent();
+            if (item.parents(".selected").length > 0){
+              item.parents(".selected").removeClass("selected");
+              item.addClass("selected");
+              event.preventDefault();
+              return;
+            }
+            item.find(".selected").removeClass("selected");
+            item.toggleClass("selected");
+            event.preventDefault();
+        },
+
+        ShowHideElement: function(event) {
+            $(this).parent().toggleClass("hided");
+            event.preventDefault();
+        },
+      
+        ShowAttributes: function() {
+            XmlEditor.Content.find("attribute").toggle();
+            return false;
+        },
+
+        ShowEditor: function() {
+            return false;
+        },
+
+
+        RefreshTagsList: function() {
+            var container = this.Editor.find(".tags-container");
+            container.empty();
+            for (var i = 0; i < this.ClassContainer.length; i++) {
+                var key = this.ClassContainer[i];
+                container.append("<div class='class-item ui-item' name='" + key + "'>" + key + "</div>");
+            }
+            for (var i = 0; i < this.TagContainer.length; i++) {
+                var key = this.TagContainer[i];
+                container.append("<div class='tag-item ui-item' name='" + key + "'>" + key + "</div>");
+            }
+            for (var i = 0; i < this.IdContainer.length; i++) {
+                var key = this.IdContainer[i];
+                container.append("<div class='id-item ui-item' name='" + key + "'>" + key + "</div>");
+            }
+            var items = container.find(".class-item");
+            items.click(this.FilterByClass);
+            items.draggable({ helper: "clone", appendTo: "body" });
+            var items = container.find(".tag-item");
+            items.click(this.FilterByTag);
+            items.draggable({ helper: "clone", appendTo: "body" });
+            var items = container.find(".id-item");
+            items.click(this.FilterById);
+            items.draggable({ helper: "clone", appendTo: "body" });
+            $("element[name = 'style'],element[name = 'script']").addClass("hided");
+        },
+
+        FilterByClass: function(event) {
+            var item = $(this).attr("name");
+            $(".filtered", XmlEditor.Content).removeClass("filtered");
+            var elements = $(".class-item[name='" + item + "']", XmlEditor.Content);
+            elements.addClass("filtered");
+            elements.parent().parent().parent().addClass("filtered");
+        },
+
+        FilterByTag: function(event) {
+            var item = $(this).attr("name");
+            $(".filtered", XmlEditor.Content).removeClass("filtered");
+            var filter = "element[name='" + item + "']";
+            $(filter + ">firsttag name, " + filter + ">lasttag name", XmlEditor.Content).addClass("filtered");
+        },
+
+        FilterById: function(event) {
+            var item = $(this).attr("name");
+            $(".filtered", XmlEditor.Content).removeClass("filtered");
+            var elements = $("element[identifier='" + item + "']", XmlEditor.Content);
+            $(">firsttag id", elements).addClass("filtered");
+            elements.addClass("filtered");
+        },
+
+        ElementHover: function() {
+            //$(".current", XmlEditor.Content).removeClass("current");      
+            $(this).parents("element").addClass("over");
+            $(this).addClass("current");
+            //$(".css-info").html(GetInfo(this.linked));
+            return false;
+        },
+
+
+        ElementOut: function() {
+            $(this).parents("element").removeClass("over");
+            $(this).removeClass("current");
+            $(this).removeClass("over");
+        },
+
+
+        SetEditable: function(isEditable) {
+            this.Editable = isEditable;
+            if (isEditable) {
+                $(this.Editor).addClass("editable");
+                $(".current", this.Content).removeClass("current");
+                $("element:first", this.Content).addClass("current");
+            }
+            else {
+                $(this.Editor).removeClass("editable");
+            }
+        },
+
+        NextTag: function() {
+            var current = $(".current:first", this.Content);
+            if (current.length > 0) {
+                var next = current.nextAll("element");
+                if (next.length > 0) {
+                    current.removeClass("current");
+                    $(next[0]).addClass("current");
+                }
+            }
+        },
+
+        PrevTag: function() {
+            var current = $(".current:first", this.Content);
+            if (current.length > 0) {
+                var prev = current.prevAll("element");
+                if (prev.length > 0) {
+                    current.removeClass("current");
+                    $(prev[0]).addClass("current");
+                }
+            }
+        },
+
+        InnerTag: function() {
+            var current = $(".current:first", this.Content);
+            if (current.length > 0) {
+                var inner = $(">element:first", current);
+                if (inner.length > 0) {
+                    current.removeClass("current");
+                    inner.addClass("current");
+                }
+            }
+        },
+
+        OuterTag: function(fileName) {
+            var current = $(".current:first", this.Content);
+            if (current.length > 0) {
+                var parent = current.parent();
+                if (parent.length > 0) {
+                    current.removeClass("current");
+                    if (parent[0].tagName == "ELEMENT") {
+                        parent.addClass("current");
+                    }
+                }
+            }
+        },
+
+        ElementEditor: {
+            Active: false,
+            EditedElement: null,
+            TagEditor: null,
+            EditorJQ: null,
+
+            Init: function() {
+                this.EditorJQ = $("editor", XmlEditor.EditorName);
+            },
+
+            Show: function() {
+                this.Active = true;
+                var element = $(".current", XmlEditor.Content);
+                element.addClass("editing");
+                this.EditedElement = element[0];
+                this.TagEditor = document.createElement("input");
+                this.TagEditor.type = "text";
+                this.TagEditor.value = this.EditedElement.id;
+                this.id = "editorTag" + this.EditedElement.id;
+                $(">firsttag", element).html(this.TagEditor);
+                var valueElements = $(">value", element);
+                for (var i = 0; i < valueElements.length; i++) {
+                    valueElements[i].oldvalue = $(valueElements[i]).text();
+                    var ValueEditor = document.createElement("textarea");
+                    ValueEditor.value = valueElements[i].innerHTML;
+                    $(valueElements[i]).html(ValueEditor);
+                }
+
+                var attrElements = $(">attribute", element);
+                for (var i = 0; i < attrElements.length; i++) {
+                    attrElements[i].oldvalue = $(attrElements[i]).text();
+                    var attrInput = document.createElement("input");
+                    attrInput.type = "text";
+                    attrInput.value = attrElements[i].oldvalue;
+                    $(attrElements[i]).html(attrInput);
+                }
+
+                this.TagEditor.focus();
+            },
+
+            Apply: function() {
+                var newTagName = this.TagEditor.value;
+                $(">firsttag", this.EditedElement).html("&lt;" + newTagName + "&gt;");
+                $(">lasttag", this.EditedElement).html("&lt;/" + newTagName + "&gt;");
+                var valueElements = $(">value", this.EditedElement);
+                for (var i = 0; i < valueElements.length; i++) {
+                    var newValue = $("textarea", valueElements[i]).val();
+                    valueElements[i].innerHTML = newValue;
+                }
+
+                var attrElements = $(">attribute", this.EditedElement);
+                for (var i = 0; i < attrElements.length; i++) {
+                    var newValue = $("input", attrElements[i]).val();
+                    attrElements[i].innerHTML = newValue;
+                }
+
+                this.EditedElement.id = newTagName;
+                $(this.EditedElement).removeClass("editing");
+                this.Active = false;
+            },
+
+            Close: function() {
+                $(">firsttag", this.EditedElement).html("&lt;" + this.EditedElement.id + "&gt;");
+                var valueElements = $(">value", this.EditedElement);
+                for (var i = 0; i < valueElements.length; i++) {
+                    valueElements[i].innerHTML = valueElements[i].oldvalue;
+                }
+
+                var attrElements = $(">attribute", this.EditedElement);
+                for (var i = 0; i < attrElements.length; i++) {
+                    attrElements[i].innerHTML = attrElements[i].oldvalue;
+                }
+                $(this.EditedElement).removeClass("editing");
+                this.Active = false;
+            },
+
+            KeyHandler: function(event) {
+                switch (event.keyCode) {
+                    case 27:
+                        this.Close();
+                        break;
+                    default: return;
+                }
+                return false;
+            }
+        },
+
+        Menu: {
+            jElement: null,
+            Active : false,
+
+            Initialize: function() {
+               XmlEditor.Menu.jElement = $(".xml_editor .element-menu");
+            },
+          
+          
+            Bind: function() {
+               XmlEditor.Menu.Active = true;
+               XmlEditor.Content.prepend(XmlEditor.Menu.jElement);
+            },
+
+            GetSelection: function() {
+                this.LastElement = $(".current:first", XmlEditor.Content);
+                this.SelectedElements = $(".current", XmlEditor.Content);
+            },
+
+            Show: function(elem){
+                XmlEditor.Menu.jElement.css("top", elem.offsetTop + "px");
+        var right = elem.offsetLeft + "px"
+        XmlEditor.Menu.jElement.css("right", right);
+            },
+
+            Wrap: function() {
+                var newTag = document.createElement("tag");
+                $(this.SelectedElements).removeClass("current");
+                $(this.SelectedElements).wrapAll(newTag);
+                var parent = $(this.LastElement).parent();
+                XmlEditor.WrapElement(parent[0]);
+                parent.addClass("current");
+                this.Close();
+            },
+
+            Insert: function() {
+                var newTag = document.createElement("tag");
+                XmlEditor.WrapElement(newTag);
+                $(">LastTag", this.LastElement).before(newTag);
+                this.Close();
+            },
+
+            Edit: function() {
+                this.Close();
+                XmlEditor.ElementEditor.Show();
+            },
+
+            Delete: function() {
+                var elements = XmlEditor.Content.find(".selected");
+                for (var i = 0; i < elements.length; i++) {
+                    if (elements[i].linked != null) {
+                        $(elements[i].linked).remove();
+                    }
+                }
+                elements.remove();
+            },
+
+            Close: function() {
+                this.Active = false;
+                this.MenuItem.hide();
+            },
+
+            ClickEventHandler: function() {
+                var name = this.id;
+                XmlEditor.Menu[name]();
+            },
+
+            KeyHandler: function(event) {
+                this.GetSelection();
+                switch (event.keyCode) {
+                    case 27: this.Close(); break;
+                    case 87: this.Wrap(); break;
+                    case 68: this.Delete(); break;
+                    case 90: this.Edit(); break;
+                    case 81: this.Insert(); break;
+                    default: return;
+                }
+                return false;
+            }
+        }
+        this.Menu.Initialize();
+    }
+        
+    J.Modules.XEditor.ShowWindow = XmlEditor.CreateWindow;
+</script>
+
+<style type="text/css">
+    .xml_editor
+    {
+        /* background: #FFF;
+    border: solid 1px black;
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    top: 0px;
+    left: 0px;
+    z-index: 190;
+    background-image:url(data:image/gif;base64,R0lGODlhAwADAIAAANve4f/7/yH5BAAAAAAALAAAAAADAAMAAAIETHAZBQA7);*/
+    }
+    #xmlEditorFrame
+    {
+        position: absolute;
+        width: 1px;
+        height: 1px;
+        z-index: 0;
+    }
+    
+    .xml_editor{
+        position: relative;
+    }
+
+  .insert-menu{
+    position: relative;
+  }  
+  
+  .insert-menu .menu-btn{
+    border: 1px solid navy;
+    color: gray;
+    float: left;
+    height: 16px;
+    font-size: 12px;
+    padding: 2px 4px;
+    margin: 2px 3px;
+    cursor: pointer;
+    position: relative;
+    background: white;
+    white-space: nowrap;
+  }
+  
+  .insert-menu .menu-btn:hover{
+    color: #0099FF!important;
+    text-shadow: gray 1px 1px 1px;
+  }
+  
+  .insert-menu .menu-btn .container{
+    display: none;
+    position: absolute;
+    z-index: 20;
+    top: 16px;    
+    left: 20px;
+    padding: 10px;
+    background: #EEE;
+    border: 1px solid silver;
+  }
+  
+  .insert-menu .menu-btn .container>.title{
+    margin: -5px 10px 5px 10px;
+    display: block;
+    font-size: 10px;
+    color: gray;
+  }
+  
+  .insert-menu .menu-btn:hover>.container{
+    display: block;
+  }
+  
+  .insert-menu .tag-btn{
+    color: navy;
+  }
+  
+  .insert-menu .tag-btn{
+    /*color: #0099FF;*/
+  }
+  
+  .insert-menu .attr-btn{
+     color: #006699; 
+  }
+  
+  .insert-menu .attr-btn[attr="class"]{
+     color: #006600; 
+  }
+  
+  .insert-menu .attr-btn[attr="id"]{
+     color: #CC00CC; 
+  }
+  
+  .insert-menu .attr-btn[attr="class"]{
+     color: #006600; 
+  }
+  
+  .xml_editor table.general-layout{
+    width: 100%;
+    height: 100%;
+  }
+  
+  .xml_editor .xml-content-cell{
+    width: 100%;
+    height: 100%;
+  }
+  
+    .xml_editor .xml-content
+    {
+        background: white;
+        border: solid 1px silver;
+        height: 100%;
+        overflow-y: scroll;
+        padding-top: 5px;
+        padding-bottom: 5px;
+        padding-left: 50px;
+        position: relative;
+    }
+  
+    .xml_editor .element-menu
+    {
+        background-color: rgba(240,240,0,0.8);
+        border: solid 1px silver;
+        width: 50px;
+        height: 20px;
+        position: absolute;
+        top: -15px;
+        left: 0px;  
+        padding 1px 4px;    
+    }
+  
+   .xml_editor .element-menu .item
+    {
+    width: 18px;
+    height: 18px;
+    float: left;
+    background: white no-repeat center center;
+    border: 1px solid gray;
+    cursor: pointer;
+  }
+  
+  .xml_editor .element-menu .item:hover;
+  {
+    background-color: red;
+    
+  }
+  
+    .xml_editor .tags-container
+    {
+        background: #EEE;
+        width: 100px;
+        height: 100%;
+        overflow-y: scroll;
+        padding: 5px;
+    }
+    .xml-content .class-item
+    {
+        display: inline;
+    }
+     .tags-container .ui-item:hover
+    {
+    /*text-shadow: 1px 1px 1px gray;*/
+    }
+     .tags-container .class-item
+    {
+        display: block;
+        color: green;
+        border-bottom: solid 1px navy;
+        width: 100%;
+        cursor: pointer;
+        padding-bottom: 3px;
+        padding-top: 5px;
+    }
+     .tags-container .tag-item
+    {
+        display: block;
+        color: navy;
+        border-bottom: solid 1px navy;
+        width: 100%;
+        cursor: pointer;
+        padding-bottom: 3px;
+        padding-top: 5px;
+    }
+     .tags-container .id-item
+    {
+        display: block;
+        color: #CC00CC;
+        border-bottom: solid 1px navy;
+        width: 100%;
+        cursor: pointer;
+        padding-bottom: 3px;
+        padding-top: 5px;
+    }
+    
+    .xml-content attribute
+    { 
+      font-weight:bold;
+      color:#006699;
+      display: block;
+      margin-left: 40px;
+    }
+
+    .xml-content element
+    {
+        padding-left: 15px;
+        border-left: dotted 1px gray;
+        display: block;
+        color: #333;
+        border: 1px solid transparent;
+    }
+  
+    .xml-content element
+    {
+        
+    }
+  
+     .xml-content element value
+    {
+        display: block;
+        padding-left: 20px;
+    }
+     .xml-content element.over
+    {
+        color: #CCC!important;
+    }
+    
+    .xml-content element.current
+    {
+        color: red!important;
+    }
+  
+    .xml-content element.current lt, .xml-content element.current gt
+    {
+        color: red;
+    }
+  
+    .xml-content element indicator
+    {
+        width: 15px;
+        height: 15px;
+        border-bottom: 1px solid gray;
+        float: left;
+        margin-left: -15px;
+        
+    }
+  
+    .xml-content element firsttag, .xml-content element lasttag
+    {
+        /*color: #00A; */
+        color: inherit;
+        display: inline;
+    }
+    
+    .xml-content element > firsttag name, .xml-content element > lasttag name
+    {
+        color: inherit;
+        font-weight: bold;
+        cursor: pointer;
+    }
+ 
+     .xml-content element firsttag id,  .xml-content element lasttag id
+    {
+        color: #CC00CC;
+    }
+     .xml-content element firsttag classes,  .xml-content element lasttag classes
+    {
+        color: #006600;
+    }
+  
+     .xml-content element.selected
+    {
+        background-color: #EEE;
+    }
+     .xml-content element.hided
+    {
+        border-bottom: solid 2px gray;
+    }
+     .xml-content element.hided element,  .xml-content element.hided value
+    {
+        display: none;
+    }
+     .xml-content element.selected > attribute
+    {
+    }
+     .xml-content element.selected.editing
+    {
+        background-color: #CDF;
+    }
+     .xml-content FirstTag input[type="text"]
+    {
+        font-weight: bold;
+        width: 100%;
+        border: none;
+        background-color: transparent;
+    }
+  
+     .xml-content value textarea
+    {
+        width: 100%;
+        border: none;
+        background-color: transparent;
+    }
+  
+    .xml-content attribute input[type="text"]
+    {
+        width: 100%;
+        background-color: transparent;
+        border: none;
+    }
+    
+    /* Element styles */ 
+  
+    .xml-content element[name="link"] > attribute[name="href"]
+    {
+        display: inline;
+    }  
+    
+  
+    .xml-content element[name="script"] > attribute[name="src"],  .xml-content element[name="script"] > attribute[name="type"]
+    {
+        display: inline;
+    }
+  
+    .xml-content element[name="link"],  .xml-content element[name="style"]
+    {
+        color: #0099FF;
+    }
+  
+    .xml-content element[name="style"] > attribute[name="type"]
+    {
+        display: inline;
+    }
+  
+    .xml-content element[name="div"]
+    {
+        color: navy;
+    }
+  
+     .xml-content .class-item.filtered,  .xml-content name.filtered,  .xml-content id.filtered
+    {
+        background-color: yellow;
+    }
+</style>
+<div class="xml_editor" url="XEditor2.htm" module="XEditor" title="X-Editor">
+<div class="header menu" handler="XElementHtml">
+    <div class="menuitem" menu="Select" icon="edit-select-all.png" onclick="XmlEditor.RemoveSelection();">
+    </div>
+    <div class="menuitem" menu="Show" icon="showreel.png" onclick="XmlEditor.ShowAttributes();">
+    </div>
+    <div class="menuitem" menu="Delete" icon="delete-mini.png" onclick="XmlEditor.Menu.Delete();">
+    </div>
+    <div class="menuitem" menu="Reload" icon="reload.png" onclick="ReloadXmlEditor();">
+    </div>
+    <div class="menuitem btn-close-module" menu="Close" icon="close-small.png">
+    </div>
+    <div class="menuitem" menu="Save" icon="save-small.png" onclick="XmlEditor.Save();">
+    </div>
+</div>
+  <table class="general-layout">
+    <tr>
+      <td>
+    </td>
+      <td class="insert-menu">
+        <div class="tag-btn menu-btn" tag="div">
+          <span class="title">div</span>
+          <div class="container">
+            <div class="tag-btn menu-btn inner" tag="div" template="<div class=''></div>">
+              <span class="title">&lt;div class=""&gt;</span>
+              <div class="container">
+                <div class="tag-btn menu-btn inner" tag="div" template="<div class='item'></div>">
+                  <span class="title">&lt;div class="item"&gt;</span>
+                </div>
+              </div>
+            </div>
+            <div class="tag-btn menu-btn inner" tag="div" template="<div id=''></div>">
+              <span class="title">&lt;div id=""&gt;</span>
+            </div>
+          </div>
+        </div>
+        <div class="tag-btn menu-btn" tag="span"><span class="title">span</span></div>
+        <div class="tag-btn menu-btn" tag="script"><span class="title">script</span>
+          <div class="container">
+            <div class="tag-btn menu-btn" tag="script" template="<script type='text/javascript' src=''/>"><span class="title">script-src</span></div>
+          </div>
+        </div>
+        <div class="tag-btn menu-btn" tag="style"><span class="title">style</span>
+          <div class="container">
+            <div class="tag-btn menu-btn" tag="link" template="<link rel='shortcut icon' href=''/>"><span class="title">link-favicon</span></div>
+            <div class="tag-btn menu-btn" tag="link" template="<link type='text/css' rel='stylesheet' href=''/>"><span class="title">link-css</span></div>
+          </div>
+        </div>
+        <div class="tag-btn menu-btn" tag="br" template="<br/>"><span class="title">br</span></div>
+        <div class="tag-btn menu-btn" tag="table"><span class="title">table</span>
+          <div class="container">
+            <div class="tag-btn menu-btn" tag="tr"><span class="title">tr</span></div>
+            <div class="tag-btn menu-btn" tag="td"><span class="title">td</span></div>
+          </div>
+        </div>
+        
+        <div class="tag-btn menu-btn" tag="input" template="<input type='text'/>"><span class="title">input</span>
+          <div class="container">
+                        <div class="tag-btn menu-btn" tag="input" template="<input type='radio'/>"><span class="title">input[radio]</span></div>
+                        <div class="tag-btn menu-btn" tag="input" template="<input type='checkbox'/>"><span class="title">input[checkbox]</span></div>
+                        <div class="tag-btn menu-btn" tag="input" template="<input type='file'/>"><span class="title">input[file]</span></div>
+                        <div class="tag-btn menu-btn" tag="input" template="<input type='hidden'/>"><span class="title">input[hidden]</span></div>
+                        <div class="tag-btn menu-btn" tag="input" template="<input type='password'/>"><span class="title">input[password]</span></div>
+                        <div class="tag-btn menu-btn" tag="input" template="<input type='reset'/>"><span class="title">input[reset]</span></div>
+                        <div class="tag-btn menu-btn" tag="input" template="<input type='submit'/>"><span class="title">input[submit]</span></div>
+          </div>
+        </div>
+        <div class="tag-btn menu-btn"><span class="title">other</span></div>
+        <div class="attr-btn menu-btn" attr="class"><span class="title">class</span>
+          <div class="container">
+             <span class="title">General</span>
+             <div class="attr-btn menu-btn" attr="class" value="main"><span class="title">class.main</span></div>
+             <div class="attr-btn menu-btn" attr="class" value="content"><span class="title">class.content</span></div>
+             <div class="attr-btn menu-btn" attr="class" value="nav"><span class="title">class.nav</span></div>
+            <div class="attr-btn menu-btn" attr="class" value="sidebar"><span class="title">class.sidebar</span></div>
+            <div class="attr-btn menu-btn" attr="class" value="footer"><span class="title">class.footer</span></div>
+            <div class="attr-btn menu-btn" attr="class" value="header"><span class="title">class.header</span></div>
+          </div>
+        </div>
+        <div class="attr-btn menu-btn" attr="id"><span class="title">id</span></div>
+        <div class="attr-btn menu-btn" attr="style"><span class="title">style</span></div>
+        <div class="attr-btn menu-btn"><span class="title">other</span></div>
+    </td>
+    </tr>
+    <tr>
+      <td class="tags-container-cell">
+        <div id="tagsContainer" class="tags-container">
+        </div>
+      </td>
+      <td class="xml-content-cell">
+        <div id="xmlContainer" class="xml-content">
+          <div class="element-menu">
+            <div class="item" style="background-image:url('css.png');" onclick="XE.ShowCss();">              
+            </div>
+          </div>
+        </div>
+      </td>
+    </tr>
+  </table>
+</div>
+</module>

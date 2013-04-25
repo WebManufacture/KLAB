@@ -1,0 +1,35 @@
+ <!DOCTYPE html>
+
+<html>
+
+    <head>
+	<title>Редактор</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+	<script src="System.JS.js" type="text/javascript"></script>
+	<script src="System.Utils.js" type="text/javascript"></script>
+	<script src="System.AJAX.js" type="text/javascript"></script>
+	<script src="System.Jasp.js" type="text/javascript"></script>
+	<script src="System.Modules.js" type="text/javascript"></script>
+	<link rel="stylesheet" href="designer.css"></link>
+    	<script type="text/javascript" src="designer.js"></script>
+    </head>
+
+    <body>
+
+	<include url='module.xeditor.htm'></include>
+
+	<include url='system.windows.htm'></include>
+
+	<div class="header toolbar">
+
+	    <div onclick="M.LoadModule('Designer.CssEdit.htm');" icon="text-css.png" tooltip="CSS" class="menuitem" style="background-image: url(&quot;Images/text-css.png&quot;); background-repeat: no-repeat; background-position: center center;"></div>
+
+   	    <div onclick="M.LoadModule('module.xeditor.htm');" icon="text-xml.png" tooltip="CSS" class="menuitem" style="background-image: url(&quot;Images/text-css.png&quot;); background-repeat: no-repeat; background-position: center center;"></div>
+
+	</div>
+
+ 
+
+    </body> 
+
+</html> 

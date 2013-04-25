@@ -57,11 +57,11 @@ FilesRouter.GET = FilesRouter.HEAD = function(context){
 	var ext = paths.extname(fpath);		
 	ext = ext.replace(".", "");
 	ext = Files.MimeTypes[ext];
-	if (ext){
-		context.res.setHeader("Content-Type", ext);
+	if (!ext){
+		context.res.setHeader("Content-Type", "text/plain; charset=utf-8");
 	}
 	else{
-	    context.res.setHeader("Content-Type", "text/plain; charset=utf-8");
+		context.res.setHeader("Content-Type", ext);	    
 	}
 	ext = 'binary';
 	fs.readFile(fpath, ext, function(err, result){

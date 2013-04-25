@@ -1,0 +1,400 @@
+.simple-grid
+{
+	font-family: Verdana,Arial;
+       font-size: 13px;
+	border-collapse: collapse;
+	border: 1px solid #9C9AB7;
+	position: relative;
+	margin: 0;
+    overflow.hidden;
+}
+
+.simple-grid .ajax_shadow
+{
+	position: absolute;
+	width: 100%;
+	height: 100%;
+	z-index: 10;
+	background-color: rgba(0, 50, 60, 0.5);
+	background-position: center center;
+	background-repeat: no-repeat;
+	text-align: center;	
+}
+
+.simple-grid .source,
+.simple-grid .support{
+    display: none; 
+}
+
+
+
+.simple-grid .title
+{
+	background-color: #D6E7A5;
+	border-top: solid 5px #9CC525;
+	padding: 15px 10px 10px 10px;
+	font-size: 14px;
+}
+
+.simple-grid .table-btn
+{
+	width: 32px;
+	height: 32px;
+	border: solid 1px gray;
+	float: left;
+	margin: 2px;
+}
+.simple-grid .table-btn:hover
+{
+	box-shadow: 2px 2px 1px silver;
+}
+
+.table-btn.save
+{
+    background-image: url("save.png");
+}
+
+.table-btn.close
+{
+    background-image: url("close.png");
+}
+
+.simple-grid .row
+{
+	box-sizing: border-box; /*для Оперы*/
+	-moz-box-sizing: border-box; /*для мозилы*/
+	width: 100%;
+    display: inline-block;
+}
+
+.simple-grid .cell.nopadding
+{
+	padding: 0!important;
+}
+
+.simple-grid .cell
+{
+	float: left;
+	height: 26px;	
+	-moz-box-sizing: border-box;
+	box-sizing: border-box;
+}
+
+.simple-grid .row .cell
+{
+	border-right: 1px solid #9C9AB7;
+	border-bottom: 1px solid #9C9AB7;
+	border-left: none;
+	border-top: none;
+	padding: 5px;
+	background-color: #EEE;
+	text-align: center;
+}
+
+.simple-grid .row.single_row .cell
+{
+	border-bottom: none;
+}
+
+.simple-grid .row .cell.no_border
+{
+	border: none;
+}
+
+.simple-grid .cell.left
+{
+	text-align: left;
+}
+
+.simple-grid .cell.input, .simple-grid .cell.form
+{
+	padding: 2px;
+}
+
+.simple-grid .cell.select
+{
+	padding: 2px 2px;
+}
+
+.simple-grid .row .cell.last
+{
+	border-right: none;
+}
+
+.simple-grid .fullrow
+{
+	width: 100%;
+}
+
+
+.simple-grid .control
+{
+	display: block;	
+	height: 26px;
+	background-position: center;
+	background-repeat: no-repeat;
+	background-attachment: inherit;
+	cursor: pointer;
+	opacity: 0.5;
+}
+
+.simple-grid .control:hover
+{
+	opacity: 1;
+}
+
+
+.simple-grid .ID
+{
+	display: none;
+}
+
+.simple-grid .table-btn
+{
+	cursor: pointer;
+}
+
+.simple-grid .table-btn.zoomed:hover
+{
+	width: 64px!important;
+	height: 64px!important;
+}
+
+.simple-grid .table-btn.solid
+{
+	border: silid 1px gray;
+	background-color: White;
+	opacity: 1;
+}
+
+.simple-grid .control.disabled
+{
+	opacity: 0.1!important;
+}
+
+.simple-grid .control.save.zoomed:hover
+{
+	background-image: url("../Image/save64.png");
+}
+
+.simple-grid .control.save
+{
+	background-image: url("../Image/save.png");
+}
+
+.simple-grid .control.add
+{
+	background-image: url("../image/edit_add.png");
+}
+
+.simple-grid .control.scroll_down
+{
+	background-image: url("../image/arrow_down.png");
+}
+
+.simple-grid .control.scroll_up
+{
+	background-image: url("../image/arrow_up.png");
+}
+
+
+.simple-grid .control.move_down
+{
+	background-image: url("../image/arrow_down.png");
+}
+
+.simple-grid .control.move_up
+{
+	background-image: url("../image/arrow_up.png");
+}
+
+.simple-grid .control.remove
+{
+	background-image: url("../image/remove.png");
+}
+
+.simple-grid .control.comment
+{
+	background-image: url("../image/comment_blue.png");
+	position: relative;
+}
+
+.simple-grid .comment.active .control.comment
+{
+	background-image: url("../image/comment_active.png");
+}
+
+
+.simple-grid .header
+{
+}
+
+.simple-grid .top, .simple-grid .bottom
+{
+	/*background: url("image/gvGradient.gif") repeat-x scroll center top #9C9AB7;*/
+	background-color: #EEE;
+	cursor: pointer;
+	font-weight: normal;
+	overflow: hidden;
+	text-align: center;
+}
+
+.simple-grid .top.absolute
+{
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	width: 100%;
+	z-index: 1;	
+	border-bottom: solid 1px #9C9AB7;
+}
+
+.simple-grid .bottom.absolute
+{
+	position: absolute;
+	bottom: 0px;
+	left: 0px;
+	width: 100%;
+	z-index: 1;	
+	border-top: solid 1px #9C9AB7;
+}
+
+.simple-grid .title
+{
+	background: url("../image/gvTitleBack.gif") repeat-x center top #787797;
+	color: White;
+	font-weight: bold;
+	font-size: 14px;
+	padding: 5px;
+	text-align: center;
+}
+
+.simple-grid .header .cell
+{
+	background: url("../image/gvGradient.gif") repeat-x scroll center top #9C9AB7;
+	cursor: pointer;
+	font-weight: normal;
+	overflow: hidden;
+	padding: 5px;
+	text-align: left;
+	white-space: nowrap;
+}
+
+.simple-grid .items
+{
+	width: 100%;
+	height: 100%;
+}
+
+
+.simple-grid .vr_input
+{
+	height: 18px;
+}
+
+.simple-grid .vr_input.cell
+{
+	width: 100%;
+	border: none;
+}
+
+
+.simple-grid .select .vr_select
+{
+	height: 18px;
+	width: 100%;
+	border: none;
+	background-color: White;
+	color: Black;
+}
+
+.simple-grid .vr_input
+{
+	border: solid 1px gray;
+	float: left;
+}
+.simple-grid .vr_input.mini
+{
+	width: 40px;
+}
+.simple-grid .vr_input.small
+{
+	width: 80px;
+}
+
+.simple-grid .popupComment
+{
+    background-color: rgba(204, 204, 204, 0.5);
+    height: 80px;
+    margin-left: 27px;
+    margin-top: -103px;
+    padding: 10px;
+    position: absolute;
+    width: 180px;
+}
+
+.simple-grid .new_item .item-details {
+    display: none;
+}
+
+.simple-grid .item-details {
+    width: 100%;
+    float: left;
+    height: inherit;
+    padding-left: 26px;
+    background-color: #EEEEEE;
+    padding-bottom: 10px;
+    padding-top: 5px;
+}
+
+.simple-grid .item-details .details {
+    display: none;
+}
+
+.simple-grid .item-details .dtitle {
+    cursor: pointer;
+    color: gray;
+    text-decoration: underline;
+}
+
+.simple-grid textarea
+{
+	border: solid 1px gray;
+	background-color: rgba(204, 204, 204, 0.5);
+	height: 60px;
+	width: 180px;	
+}
+
+
+.progress-bar
+{
+	position: absolute;
+	left: 30%;
+	top: 48%;
+	width: 40%;
+	height: 4%;
+	z-index: 11;
+	background-image: url("../image/progressback.png");
+	background-position: 0px 0px;
+	background-repeat: repeat-x;
+	text-align: center;
+}
+
+.progress-bar .progress
+{
+	float: left;
+	height: 100%;
+	background-color: #57CBF9;
+	background-image: url("../image/progressvalue.png");
+	background-position: 0px 0px;
+	background-repeat: repeat-x;
+}
+
+.progress-bar .value
+{
+    font-size: 16px;
+	font-weight: bold;
+    left: 42%;
+    position: absolute;
+    top: 7%;
+}

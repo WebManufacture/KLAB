@@ -1,0 +1,359 @@
+[2012-07-13 15:49:17,923] [122192] ERROR ControllerLogger - Controller error
+System.Data.SqlClient.SqlException: Ошибка преобразования даты или времени из символьной строки.
+   в System.Data.SqlClient.SqlConnection.OnError(SqlException exception, Boolean breakConnection)
+   в System.Data.SqlClient.SqlInternalConnection.OnError(SqlException exception, Boolean breakConnection)
+   в System.Data.SqlClient.TdsParser.ThrowExceptionAndWarning(TdsParserStateObject stateObj)
+   в System.Data.SqlClient.TdsParser.Run(RunBehavior runBehavior, SqlCommand cmdHandler, SqlDataReader dataStream, BulkCopySimpleResultSet bulkCopyHandler, TdsParserStateObject stateObj)
+   в System.Data.SqlClient.SqlDataReader.ConsumeMetaData()
+   в System.Data.SqlClient.SqlDataReader.get_MetaData()
+   в System.Data.SqlClient.SqlCommand.FinishExecuteReader(SqlDataReader ds, RunBehavior runBehavior, String resetOptionsString)
+   в System.Data.SqlClient.SqlCommand.RunExecuteReaderTds(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, Boolean async)
+   в System.Data.SqlClient.SqlCommand.RunExecuteReader(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, String method, DbAsyncResult result)
+   в System.Data.SqlClient.SqlCommand.RunExecuteReader(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, String method)
+   в System.Data.SqlClient.SqlCommand.ExecuteScalar()
+   в Kernel.SQLQuery.ExecuteScalar(String m_query, String m_cs) в D:\DEV-COMMERCE\WBranch-2012-07-10\Kernel\SQLQuery.cs:строка 102
+   в MessagesServer.Data.Message.Insert() в D:\DEV-COMMERCE\WBranch-2012-07-10\MessagesServer\Data\Message.cs:строка 221
+   в MessagesServer.Data.Message.Save() в D:\DEV-COMMERCE\WBranch-2012-07-10\MessagesServer\Data\Message.cs:строка 263
+   в MessagesServer.Controllers.MessagesController.AddMessage(MessagePhantom phantom, Nullable`1 sendDate) в D:\DEV-COMMERCE\WBranch-2012-07-10\MessagesServer\Controllers\Controller.cs:строка 330
+[2012-07-13 15:50:55,272] [122192] ERROR NetLogger - Thread
+System.Threading.ThreadAbortException: Поток находился в процессе прерывания.
+   в System.Net.Sockets.Socket.Accept()
+   в MessagesServer.Controllers.Receiver.Listen() в D:\DEV-COMMERCE\WBranch-2012-07-10\MessagesServer\Controllers\Receiver.cs:строка 110
+[2012-07-13 15:52:54,419] [122452] DEBUG NetLogger - Thread
+System.Net.Sockets.SocketException: Операция блокирования прервана вызовом WSACancelBlockingCall
+   в System.Net.Sockets.Socket.Accept()
+   в MessagesServer.Controllers.Receiver.Listen()
+[2012-07-13 15:57:32,611] [121896] INFO NetLogger - Thread
+System.Net.Sockets.SocketException: Операция блокирования прервана вызовом WSACancelBlockingCall
+   в System.Net.Sockets.Socket.Accept()
+   в MessagesServer.Controllers.Receiver.Listen() в D:\DEV-COMMERCE\WBranch-2012-07-10\MessagesServer\Controllers\Receiver.cs:строка 110
+[2012-07-13 16:22:44,841] [122444] ERROR NetLogger - Thread
+System.Net.Sockets.SocketException: Операция блокирования прервана вызовом WSACancelBlockingCall
+   в System.Net.Sockets.Socket.Accept()
+   в MessagesServer.Controllers.Receiver.Listen() в D:\DEV-COMMERCE\WBranch-2012-07-10\MessagesServer\Controllers\Receiver.cs:строка 110
+[2012-07-18 00:33:15,662] [6848] ERROR NetLogger - Thread
+System.Threading.ThreadAbortException: Поток находился в процессе прерывания.
+   в System.Net.Sockets.Socket.Accept()
+   в MessagesServer.Controllers.Receiver.Listen() в D:\DEV-COMMERCE\WBranch-2012-07-10\MessagesServer\Controllers\Receiver.cs:строка 110
+[2012-07-18 02:49:42,482] [7112] ERROR NetLogger - Thread
+System.Threading.ThreadAbortException: Поток находился в процессе прерывания.
+   в System.Net.Sockets.Socket.Accept()
+   в MessagesServer.Controllers.Receiver.Listen() в D:\DEV-COMMERCE\WBranch-2012-07-10\MessagesServer\Controllers\Receiver.cs:строка 110
+[2012-07-18 22:54:01,808] [8948] ERROR  - App Error
+System.Web.HttpCompileException: d:\DEV-COMMERCE\WBranch-2012-07-10\MessagesServer\Statistics.aspx(45): error CS0103: Имя 'Config' отсутствует в текущем контексте
+   в System.Web.Compilation.BuildManager.CompileWebFile(VirtualPath virtualPath)
+   в System.Web.Compilation.BuildManager.GetVPathBuildResultInternal(VirtualPath virtualPath, Boolean noBuild, Boolean allowCrossApp, Boolean allowBuildInPrecompile)
+   в System.Web.Compilation.BuildManager.GetVPathBuildResultWithNoAssert(HttpContext context, VirtualPath virtualPath, Boolean noBuild, Boolean allowCrossApp, Boolean allowBuildInPrecompile)
+   в System.Web.Compilation.BuildManager.GetVirtualPathObjectFactory(VirtualPath virtualPath, HttpContext context, Boolean allowCrossApp, Boolean noAssert)
+   в System.Web.Compilation.BuildManager.CreateInstanceFromVirtualPath(VirtualPath virtualPath, Type requiredBaseType, HttpContext context, Boolean allowCrossApp, Boolean noAssert)
+   в System.Web.UI.PageHandlerFactory.GetHandlerHelper(HttpContext context, String requestType, VirtualPath virtualPath, String physicalPath)
+   в System.Web.UI.PageHandlerFactory.GetHandler(HttpContext context, String requestType, String virtualPath, String path)
+   в System.Web.HttpApplication.MaterializeHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   в System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+[2012-07-19 01:07:22,515] [6844] ERROR NetLogger - Thread
+System.Net.Sockets.SocketException: Операция блокирования прервана вызовом WSACancelBlockingCall
+   в System.Net.Sockets.Socket.Accept()
+   в MessagesServer.Controllers.Receiver.Listen() в D:\DEV-COMMERCE\WBranch-2012-07-10\MessagesServer\Controllers\Receiver.cs:строка 110
+[2012-07-19 01:10:19,616] [8556] ERROR NetLogger - Thread
+System.Net.Sockets.SocketException: Операция блокирования прервана вызовом WSACancelBlockingCall
+   в System.Net.Sockets.Socket.Accept()
+   в MessagesServer.Controllers.Receiver.Listen() в D:\DEV-COMMERCE\WBranch-2012-07-10\MessagesServer\Controllers\Receiver.cs:строка 110
+[2012-07-19 01:10:21,868] [10056] ERROR NetLogger - Thread
+System.Net.Sockets.SocketException: Операция блокирования прервана вызовом WSACancelBlockingCall
+   в System.Net.Sockets.Socket.Accept()
+   в MessagesServer.Controllers.Receiver.Listen()
+[2012-07-19 01:10:39,565] [8552] ERROR  - App Error
+System.Web.HttpCompileException: d:\DEV-COMMERCE\WBranch-2012-07-10\MessagesServer\Statistics.aspx(45): error CS0103: Имя 'Config' отсутствует в текущем контексте
+   в System.Web.Compilation.BuildManager.CompileWebFile(VirtualPath virtualPath)
+   в System.Web.Compilation.BuildManager.GetVPathBuildResultInternal(VirtualPath virtualPath, Boolean noBuild, Boolean allowCrossApp, Boolean allowBuildInPrecompile)
+   в System.Web.Compilation.BuildManager.GetVPathBuildResultWithNoAssert(HttpContext context, VirtualPath virtualPath, Boolean noBuild, Boolean allowCrossApp, Boolean allowBuildInPrecompile)
+   в System.Web.Compilation.BuildManager.GetVirtualPathObjectFactory(VirtualPath virtualPath, HttpContext context, Boolean allowCrossApp, Boolean noAssert)
+   в System.Web.Compilation.BuildManager.CreateInstanceFromVirtualPath(VirtualPath virtualPath, Type requiredBaseType, HttpContext context, Boolean allowCrossApp, Boolean noAssert)
+   в System.Web.UI.PageHandlerFactory.GetHandlerHelper(HttpContext context, String requestType, VirtualPath virtualPath, String physicalPath)
+   в System.Web.UI.PageHandlerFactory.GetHandler(HttpContext context, String requestType, String virtualPath, String path)
+   в System.Web.HttpApplication.MaterializeHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   в System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+[2012-07-19 02:02:00,681] [8648] ERROR NetLogger - Thread
+System.Threading.ThreadAbortException: Поток находился в процессе прерывания.
+   в System.Net.Sockets.Socket.Accept()
+   в MessagesServer.Controllers.Receiver.Listen() в D:\DEV-COMMERCE\WBranch-2012-07-10\MessagesServer\Controllers\Receiver.cs:строка 110
+[2012-07-20 00:39:02,480] [10512] ERROR NetLogger - Thread
+System.Threading.ThreadAbortException: Поток находился в процессе прерывания.
+   в System.Net.Sockets.Socket.Accept()
+   в MessagesServer.Controllers.Receiver.Listen() в D:\DEV-COMMERCE\WBranch-2012-07-10\MessagesServer\Controllers\Receiver.cs:строка 110
+[2012-07-26 18:02:13,119] [4904] ERROR NetLogger - Thread
+System.Threading.ThreadAbortException: Поток находился в процессе прерывания.
+   в System.Net.Sockets.Socket.Accept()
+   в MessagesServer.Controllers.Receiver.Listen() в D:\DEV-COMMERCE\WBranch-2012-07-10\MessagesServer\Controllers\Receiver.cs:строка 110
+[2012-07-26 19:12:10,763] [4584] ERROR NetLogger - Thread
+System.Threading.ThreadAbortException: Поток находился в процессе прерывания.
+   в Microsoft.Win32.SafeNativeMethods.FormatMessage(Int32 dwFlags, HandleRef lpSource, Int32 dwMessageId, Int32 dwLanguageId, StringBuilder lpBuffer, Int32 nSize, IntPtr arguments)
+   в System.ComponentModel.Win32Exception.GetErrorMessage(Int32 error)
+   в System.Net.Sockets.Socket.Accept()
+   в MessagesServer.Controllers.Receiver.Listen() в D:\DEV-COMMERCE\WBranch-2012-07-10\MessagesServer\Controllers\Receiver.cs:строка 110
+[2012-07-27 04:16:26,259] [5216] ERROR NetLogger - Thread
+System.Threading.ThreadAbortException: Поток находился в процессе прерывания.
+   в System.Net.SafeCloseSocket.InnerSafeCloseSocket.Accept(SafeCloseSocket socketHandle, Byte[] socketAddress, Int32& socketAddressSize)
+   в System.Net.Sockets.Socket.Accept()
+   в MessagesServer.Controllers.Receiver.Listen()
+[2012-07-27 05:11:26,104] [7804] ERROR NetLogger - Thread
+System.Threading.ThreadAbortException: Поток находился в процессе прерывания.
+   в System.Net.Sockets.Socket.Accept()
+   в MessagesServer.Controllers.Receiver.Listen() в D:\DEV-COMMERCE\WBranch-2012-07-10\MessagesServer\Controllers\Receiver.cs:строка 110
+[2012-07-27 05:53:14,947] [4860] ERROR NetLogger - Thread
+System.Net.Sockets.SocketException: Операция блокирования прервана вызовом WSACancelBlockingCall
+   в System.Net.Sockets.Socket.Accept()
+   в MessagesServer.Controllers.Receiver.Listen() в D:\DEV-COMMERCE\WBranch-2012-07-10\MessagesServer\Controllers\Receiver.cs:строка 110
+[2012-07-27 05:54:47,999] [5536] ERROR NetLogger - Thread
+System.Threading.ThreadAbortException: Поток находился в процессе прерывания.
+   в System.Net.Sockets.Socket.Accept()
+   в MessagesServer.Controllers.Receiver.Listen() в D:\DEV-COMMERCE\WBranch-2012-07-10\MessagesServer\Controllers\Receiver.cs:строка 110
+[2012-07-27 06:41:32,268] [6992] ERROR NetLogger - Thread
+System.Net.Sockets.SocketException: Операция блокирования прервана вызовом WSACancelBlockingCall
+   в System.Net.Sockets.Socket.Accept()
+   в MessagesServer.Controllers.Receiver.Listen() в D:\DEV-COMMERCE\WBranch-2012-07-10\MessagesServer\Controllers\Receiver.cs:строка 110
+[2012-07-27 07:07:47,213] [5248] ERROR NetLogger - Thread
+System.Threading.ThreadAbortException: Поток находился в процессе прерывания.
+   в System.ComponentModel.Win32Exception.GetErrorMessage(Int32 error)
+   в System.Net.Sockets.Socket.Accept()
+   в MessagesServer.Controllers.Receiver.Listen() в D:\DEV-COMMERCE\WBranch-2012-07-10\MessagesServer\Controllers\Receiver.cs:строка 110
+[2012-07-27 07:52:58,336] [6780] ERROR  - App Error
+System.Web.HttpCompileException: d:\DEV-COMMERCE\WBranch-2012-07-10\MessagesServer\Statistics.aspx(45): error CS0103: Имя 'Config' отсутствует в текущем контексте
+   в System.Web.Compilation.BuildManager.CompileWebFile(VirtualPath virtualPath)
+   в System.Web.Compilation.BuildManager.GetVPathBuildResultInternal(VirtualPath virtualPath, Boolean noBuild, Boolean allowCrossApp, Boolean allowBuildInPrecompile)
+   в System.Web.Compilation.BuildManager.GetVPathBuildResultWithNoAssert(HttpContext context, VirtualPath virtualPath, Boolean noBuild, Boolean allowCrossApp, Boolean allowBuildInPrecompile)
+   в System.Web.Compilation.BuildManager.GetVirtualPathObjectFactory(VirtualPath virtualPath, HttpContext context, Boolean allowCrossApp, Boolean noAssert)
+   в System.Web.Compilation.BuildManager.CreateInstanceFromVirtualPath(VirtualPath virtualPath, Type requiredBaseType, HttpContext context, Boolean allowCrossApp, Boolean noAssert)
+   в System.Web.UI.PageHandlerFactory.GetHandlerHelper(HttpContext context, String requestType, VirtualPath virtualPath, String physicalPath)
+   в System.Web.UI.PageHandlerFactory.GetHandler(HttpContext context, String requestType, String virtualPath, String path)
+   в System.Web.HttpApplication.MaterializeHandlerExecutionStep.System.Web.HttpApplication.IExecutionStep.Execute()
+   в System.Web.HttpApplication.ExecuteStep(IExecutionStep step, Boolean& completedSynchronously)
+[2012-07-27 07:56:15,883] [5796] ERROR NetLogger - Thread
+System.Threading.ThreadAbortException: Поток находился в процессе прерывания.
+   в System.Net.Sockets.Socket.Accept()
+   в MessagesServer.Controllers.Receiver.Listen() в D:\DEV-COMMERCE\WBranch-2012-07-10\MessagesServer\Controllers\Receiver.cs:строка 110
+[2012-07-27 07:56:17,523] [6596] ERROR NetLogger - Thread
+System.Net.Sockets.SocketException: Операция блокирования прервана вызовом WSACancelBlockingCall
+   в System.Net.Sockets.Socket.Accept()
+   в MessagesServer.Controllers.Receiver.Listen() в D:\DEV-COMMERCE\WBranch-2012-07-10\MessagesServer\Controllers\Receiver.cs:строка 110
+[2012-07-27 15:37:40,421] [4192] ERROR NetLogger - Thread
+System.Net.Sockets.SocketException: Операция блокирования прервана вызовом WSACancelBlockingCall
+   в System.Net.Sockets.Socket.Accept()
+   в MessagesServer.Controllers.Receiver.Listen() в D:\DEV-COMMERCE\WBranch-2012-07-10\MessagesServer\Controllers\Receiver.cs:строка 110
+[2012-07-27 22:09:13,859] [3104] ERROR NetLogger - Thread
+System.Threading.ThreadAbortException: Поток находился в процессе прерывания.
+   в System.Net.Sockets.Socket.Accept()
+   в MessagesServer.Controllers.Receiver.Listen() в D:\DEV-COMMERCE\WBranch-2012-07-10\MessagesServer\Controllers\Receiver.cs:строка 110
+[2012-07-28 14:08:48,506] [540] ERROR NetLogger - Thread
+System.Threading.ThreadAbortException: Поток находился в процессе прерывания.
+   в System.Net.Sockets.Socket.Accept()
+   в MessagesServer.Controllers.Receiver.Listen() в D:\DEV-COMMERCE\WBranch-2012-07-10\MessagesServer\Controllers\Receiver.cs:строка 110
+[2012-07-28 18:42:57,907] [8068] ERROR NetLogger - Thread
+System.Threading.ThreadAbortException: Поток находился в процессе прерывания.
+   в System.Net.Sockets.Socket.Accept()
+   в MessagesServer.Controllers.Receiver.Listen() в D:\DEV-COMMERCE\WBranch-2012-07-10\MessagesServer\Controllers\Receiver.cs:строка 110
+[2012-07-29 05:52:58,590] [5976] ERROR NetLogger - Thread
+System.Threading.ThreadAbortException: Поток находился в процессе прерывания.
+   в Microsoft.Win32.SafeNativeMethods.FormatMessage(Int32 dwFlags, HandleRef lpSource, Int32 dwMessageId, Int32 dwLanguageId, StringBuilder lpBuffer, Int32 nSize, IntPtr arguments)
+   в System.ComponentModel.Win32Exception.GetErrorMessage(Int32 error)
+   в System.Net.Sockets.Socket.Accept()
+   в MessagesServer.Controllers.Receiver.Listen() в D:\DEV-COMMERCE\WBranch-2012-07-10\MessagesServer\Controllers\Receiver.cs:строка 110
+[2012-07-29 07:08:48,747] [5628] ERROR NetLogger - Thread
+System.Threading.ThreadAbortException: Поток находился в процессе прерывания.
+   в System.Runtime.InteropServices.ExternalException..ctor(String message)
+   в System.Net.Sockets.Socket.Accept()
+   в MessagesServer.Controllers.Receiver.Listen() в D:\DEV-COMMERCE\WBranch-2012-07-10\MessagesServer\Controllers\Receiver.cs:строка 110
+[2012-07-29 07:09:18,582] [3772] ERROR NetLogger - Thread
+System.Net.Sockets.SocketException: Операция блокирования прервана вызовом WSACancelBlockingCall
+   в System.Net.Sockets.Socket.Accept()
+   в MessagesServer.Controllers.Receiver.Listen()
+[2012-07-29 07:10:15,247] [3504] ERROR NetLogger - Thread
+System.Net.Sockets.SocketException: Операция блокирования прервана вызовом WSACancelBlockingCall
+   в System.Net.Sockets.Socket.Accept()
+   в MessagesServer.Controllers.Receiver.Listen() в D:\DEV-COMMERCE\WBranch-2012-07-10\MessagesServer\Controllers\Receiver.cs:строка 110
+[2012-07-29 07:31:25,692] [2164] ERROR NetLogger - Thread
+System.Threading.ThreadAbortException: Поток находился в процессе прерывания.
+   в System.Net.Sockets.Socket.Accept()
+   в MessagesServer.Controllers.Receiver.Listen() в D:\DEV-COMMERCE\WBranch-2012-07-10\MessagesServer\Controllers\Receiver.cs:строка 110
+[2012-07-29 08:25:21,831] [4032] ERROR NetLogger - Thread
+System.Net.Sockets.SocketException: Операция блокирования прервана вызовом WSACancelBlockingCall
+   в System.Net.Sockets.Socket.Accept()
+   в MessagesServer.Controllers.Receiver.Listen() в D:\DEV-COMMERCE\WBranch-2012-07-10\MessagesServer\Controllers\Receiver.cs:строка 110
+[2012-07-30 18:04:50,472] [16784] ERROR NetLogger - Thread
+System.Threading.ThreadAbortException: Поток находился в процессе прерывания.
+   в System.Net.Sockets.Socket.Accept()
+   в MessagesServer.Controllers.Receiver.Listen() в D:\DEV-COMMERCE\WBranch-2012-07-10\MessagesServer\Controllers\Receiver.cs:строка 110
+[2012-07-30 18:12:17,202] [19760] ERROR NetLogger - Thread
+System.Threading.ThreadAbortException: Поток находился в процессе прерывания.
+   в Microsoft.Win32.SafeNativeMethods.FormatMessage(Int32 dwFlags, HandleRef lpSource, Int32 dwMessageId, Int32 dwLanguageId, StringBuilder lpBuffer, Int32 nSize, IntPtr arguments)
+   в System.ComponentModel.Win32Exception.GetErrorMessage(Int32 error)
+   в System.Net.Sockets.Socket.Accept()
+   в MessagesServer.Controllers.Receiver.Listen() в D:\DEV-COMMERCE\WBranch-2012-07-10\MessagesServer\Controllers\Receiver.cs:строка 110
+[2012-07-30 18:15:51,778] [19976] ERROR NetLogger - Thread
+System.Threading.ThreadAbortException: Поток находился в процессе прерывания.
+   в System.Net.Sockets.Socket.Accept()
+   в MessagesServer.Controllers.Receiver.Listen() в D:\DEV-COMMERCE\WBranch-2012-07-10\MessagesServer\Controllers\Receiver.cs:строка 110
+[2012-07-30 18:50:59,308] [18216] ERROR NetLogger - Thread
+System.Threading.ThreadAbortException: Поток находился в процессе прерывания.
+   в System.Net.Sockets.Socket.Accept()
+   в MessagesServer.Controllers.Receiver.Listen() в D:\DEV-COMMERCE\WBranch-2012-07-10\MessagesServer\Controllers\Receiver.cs:строка 110
+[2012-08-01 06:07:33,112] [9240] ERROR NetLogger - Thread
+System.Net.Sockets.SocketException: Операция блокирования прервана вызовом WSACancelBlockingCall
+   в System.Net.Sockets.Socket.Accept()
+   в MessagesServer.Controllers.Receiver.Listen() в D:\DEV-COMMERCE\WBranch-2012-07-10\MessagesServer\Controllers\Receiver.cs:строка 110
+[2012-08-01 17:34:37,852] [7428] ERROR NetLogger - Thread
+System.Threading.ThreadAbortException: Поток находился в процессе прерывания.
+   в Microsoft.Win32.SafeNativeMethods.FormatMessage(Int32 dwFlags, HandleRef lpSource, Int32 dwMessageId, Int32 dwLanguageId, StringBuilder lpBuffer, Int32 nSize, IntPtr arguments)
+   в System.ComponentModel.Win32Exception.GetErrorMessage(Int32 error)
+   в System.Net.Sockets.Socket.Accept()
+   в MessagesServer.Controllers.Receiver.Listen() в D:\DEV-COMMERCE\WBranch-2012-07-10\MessagesServer\Controllers\Receiver.cs:строка 110
+[2012-08-01 19:46:21,710] [9728] ERROR NetLogger - Thread
+System.Net.Sockets.SocketException: Операция блокирования прервана вызовом WSACancelBlockingCall
+   в System.Net.Sockets.Socket.Accept()
+   в MessagesServer.Controllers.Receiver.Listen() в D:\DEV-COMMERCE\WBranch-2012-07-10\MessagesServer\Controllers\Receiver.cs:строка 110
+[2012-08-01 20:10:59,873] [17108] ERROR NetLogger - Thread
+System.Threading.ThreadAbortException: Поток находился в процессе прерывания.
+   в System.Net.Sockets.Socket.Accept()
+   в MessagesServer.Controllers.Receiver.Listen() в D:\DEV-COMMERCE\WBranch-2012-07-10\MessagesServer\Controllers\Receiver.cs:строка 110
+[2012-08-01 20:41:14,732] [2568] ERROR NetLogger - Thread
+System.Net.Sockets.SocketException: Операция блокирования прервана вызовом WSACancelBlockingCall
+   в System.Net.Sockets.Socket.Accept()
+   в MessagesServer.Controllers.Receiver.Listen() в D:\DEV-COMMERCE\WBranch-2012-07-10\MessagesServer\Controllers\Receiver.cs:строка 110
+[2012-08-01 20:41:59,783] [4424] DEBUG NetLogger - Thread
+System.Threading.ThreadAbortException: Поток находился в процессе прерывания.
+   в System.Net.Sockets.Socket.Accept()
+   в MessagesServer.Controllers.Receiver.Listen() в D:\DEV-COMMERCE\WBranch-2012-07-10\MessagesServer\Controllers\Receiver.cs:строка 110
+[2012-08-01 21:11:51,784] [11200] TRACE NetLogger - Thread
+System.Threading.ThreadAbortException: Поток находился в процессе прерывания.
+   в System.Net.Sockets.Socket.Accept()
+   в MessagesServer.Controllers.Receiver.Listen() в D:\DEV-COMMERCE\WBranch-2012-07-10\MessagesServer\Controllers\Receiver.cs:строка 110
+[2012-08-01 21:24:55,797] [8708] INFO NetLogger - Thread
+System.Threading.ThreadAbortException: Поток находился в процессе прерывания.
+   в System.Net.Sockets.Socket.Accept()
+   в MessagesServer.Controllers.Receiver.Listen() в D:\DEV-COMMERCE\WBranch-2012-07-10\MessagesServer\Controllers\Receiver.cs:строка 110
+[2012-08-01 21:46:17,980] [15220] ERROR NetLogger - Thread
+System.Threading.ThreadAbortException: Поток находился в процессе прерывания.
+   в Microsoft.Win32.SafeNativeMethods.FormatMessage(Int32 dwFlags, HandleRef lpSource, Int32 dwMessageId, Int32 dwLanguageId, StringBuilder lpBuffer, Int32 nSize, IntPtr arguments)
+   в System.ComponentModel.Win32Exception.GetErrorMessage(Int32 error)
+   в System.Net.Sockets.Socket.Accept()
+   в MessagesServer.Controllers.Receiver.Listen() в D:\DEV-COMMERCE\WBranch-2012-07-10\MessagesServer\Controllers\Receiver.cs:строка 110
+[2012-08-01 21:51:08,946] [11076] ERROR NetLogger - Thread
+System.Threading.ThreadAbortException: Поток находился в процессе прерывания.
+   в System.Net.Sockets.Socket.Accept()
+   в MessagesServer.Controllers.Receiver.Listen() в D:\DEV-COMMERCE\WBranch-2012-07-10\MessagesServer\Controllers\Receiver.cs:строка 110
+[2012-08-01 21:51:11,722] [4144] ERROR NetLogger - Thread
+System.Net.Sockets.SocketException: Операция блокирования прервана вызовом WSACancelBlockingCall
+   в System.Net.Sockets.Socket.Accept()
+   в MessagesServer.Controllers.Receiver.Listen() в D:\DEV-COMMERCE\WBranch-2012-07-10\MessagesServer\Controllers\Receiver.cs:строка 110
+[2012-08-01 21:51:15,229] [10500] ERROR SqlLogger - Notification error
+System.Data.SqlClient.SqlException: Неверный синтаксис около "nolock". Если имелось в виду обобщенное табличное выражение, то предыдущая инструкция должна быть явно завершена точкой с запятой.
+   в System.Data.SqlClient.SqlConnection.OnError(SqlException exception, Boolean breakConnection)
+   в System.Data.SqlClient.SqlInternalConnection.OnError(SqlException exception, Boolean breakConnection)
+   в System.Data.SqlClient.TdsParser.ThrowExceptionAndWarning(TdsParserStateObject stateObj)
+   в System.Data.SqlClient.TdsParser.Run(RunBehavior runBehavior, SqlCommand cmdHandler, SqlDataReader dataStream, BulkCopySimpleResultSet bulkCopyHandler, TdsParserStateObject stateObj)
+   в System.Data.SqlClient.SqlDataReader.ConsumeMetaData()
+   в System.Data.SqlClient.SqlDataReader.get_MetaData()
+   в System.Data.SqlClient.SqlCommand.FinishExecuteReader(SqlDataReader ds, RunBehavior runBehavior, String resetOptionsString)
+   в System.Data.SqlClient.SqlCommand.RunExecuteReaderTds(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, Boolean async)
+   в System.Data.SqlClient.SqlCommand.RunExecuteReader(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, String method, DbAsyncResult result)
+   в System.Data.SqlClient.SqlCommand.RunExecuteReader(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, String method)
+   в System.Data.SqlClient.SqlCommand.ExecuteReader(CommandBehavior behavior, String method)
+   в System.Data.SqlClient.SqlCommand.ExecuteReader(CommandBehavior behavior)
+   в Kernel.SQLQuery.ExecuteReader(CommandBehavior m_command) в D:\DEV-COMMERCE\WBranch-2012-07-10\Kernel\SQLQuery.cs:строка 52
+   в MessagesServer.Controllers.MessagesController.GetNotificationsFromDB(CacheItem cacheItem, Int32 userId, Nullable`1 lastKey) в D:\DEV-COMMERCE\WBranch-2012-07-10\MessagesServer\Controllers\Controller.cs:строка 128
+[2012-08-01 21:51:15,343] [10500] ERROR SqlLogger - Notification error
+System.Data.SqlClient.SqlException: Неверный синтаксис около "nolock". Если имелось в виду обобщенное табличное выражение, то предыдущая инструкция должна быть явно завершена точкой с запятой.
+   в System.Data.SqlClient.SqlConnection.OnError(SqlException exception, Boolean breakConnection)
+   в System.Data.SqlClient.SqlInternalConnection.OnError(SqlException exception, Boolean breakConnection)
+   в System.Data.SqlClient.TdsParser.ThrowExceptionAndWarning(TdsParserStateObject stateObj)
+   в System.Data.SqlClient.TdsParser.Run(RunBehavior runBehavior, SqlCommand cmdHandler, SqlDataReader dataStream, BulkCopySimpleResultSet bulkCopyHandler, TdsParserStateObject stateObj)
+   в System.Data.SqlClient.SqlDataReader.ConsumeMetaData()
+   в System.Data.SqlClient.SqlDataReader.get_MetaData()
+   в System.Data.SqlClient.SqlCommand.FinishExecuteReader(SqlDataReader ds, RunBehavior runBehavior, String resetOptionsString)
+   в System.Data.SqlClient.SqlCommand.RunExecuteReaderTds(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, Boolean async)
+   в System.Data.SqlClient.SqlCommand.RunExecuteReader(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, String method, DbAsyncResult result)
+   в System.Data.SqlClient.SqlCommand.RunExecuteReader(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, String method)
+   в System.Data.SqlClient.SqlCommand.ExecuteReader(CommandBehavior behavior, String method)
+   в System.Data.SqlClient.SqlCommand.ExecuteReader(CommandBehavior behavior)
+   в Kernel.SQLQuery.ExecuteReader(CommandBehavior m_command) в D:\DEV-COMMERCE\WBranch-2012-07-10\Kernel\SQLQuery.cs:строка 52
+   в MessagesServer.Controllers.MessagesController.GetNotificationsFromDB(CacheItem cacheItem, Int32 userId, Nullable`1 lastKey) в D:\DEV-COMMERCE\WBranch-2012-07-10\MessagesServer\Controllers\Controller.cs:строка 128
+[2012-08-01 21:51:15,346] [10500] ERROR SqlLogger - Chat error
+System.Data.SqlClient.SqlException: Неверный синтаксис около "nolock". Если имелось в виду обобщенное табличное выражение, то предыдущая инструкция должна быть явно завершена точкой с запятой.
+   в System.Data.SqlClient.SqlConnection.OnError(SqlException exception, Boolean breakConnection)
+   в System.Data.SqlClient.SqlInternalConnection.OnError(SqlException exception, Boolean breakConnection)
+   в System.Data.SqlClient.TdsParser.ThrowExceptionAndWarning(TdsParserStateObject stateObj)
+   в System.Data.SqlClient.TdsParser.Run(RunBehavior runBehavior, SqlCommand cmdHandler, SqlDataReader dataStream, BulkCopySimpleResultSet bulkCopyHandler, TdsParserStateObject stateObj)
+   в System.Data.SqlClient.SqlDataReader.ConsumeMetaData()
+   в System.Data.SqlClient.SqlDataReader.get_MetaData()
+   в System.Data.SqlClient.SqlCommand.FinishExecuteReader(SqlDataReader ds, RunBehavior runBehavior, String resetOptionsString)
+   в System.Data.SqlClient.SqlCommand.RunExecuteReaderTds(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, Boolean async)
+   в System.Data.SqlClient.SqlCommand.RunExecuteReader(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, String method, DbAsyncResult result)
+   в System.Data.SqlClient.SqlCommand.RunExecuteReader(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, String method)
+   в System.Data.SqlClient.SqlCommand.ExecuteReader(CommandBehavior behavior, String method)
+   в System.Data.SqlClient.SqlCommand.ExecuteReader(CommandBehavior behavior)
+   в Kernel.SQLQuery.ExecuteReader(CommandBehavior m_command) в D:\DEV-COMMERCE\WBranch-2012-07-10\Kernel\SQLQuery.cs:строка 52
+   в MessagesServer.Controllers.MessagesController.GetChatMessagesFromDB(Int32 woid, Int32 sender, Int32 receiver, Nullable`1 fromDate, Nullable`1 lastKey) в D:\DEV-COMMERCE\WBranch-2012-07-10\MessagesServer\Controllers\Controller.cs:строка 185
+[2012-08-01 21:51:32,263] [6100] DEBUG SqlLogger - Notification error
+System.Data.SqlClient.SqlException: Неверный синтаксис около "nolock". Если имелось в виду обобщенное табличное выражение, то предыдущая инструкция должна быть явно завершена точкой с запятой.
+   в System.Data.SqlClient.SqlConnection.OnError(SqlException exception, Boolean breakConnection)
+   в System.Data.SqlClient.SqlInternalConnection.OnError(SqlException exception, Boolean breakConnection)
+   в System.Data.SqlClient.TdsParser.ThrowExceptionAndWarning(TdsParserStateObject stateObj)
+   в System.Data.SqlClient.TdsParser.Run(RunBehavior runBehavior, SqlCommand cmdHandler, SqlDataReader dataStream, BulkCopySimpleResultSet bulkCopyHandler, TdsParserStateObject stateObj)
+   в System.Data.SqlClient.SqlDataReader.ConsumeMetaData()
+   в System.Data.SqlClient.SqlDataReader.get_MetaData()
+   в System.Data.SqlClient.SqlCommand.FinishExecuteReader(SqlDataReader ds, RunBehavior runBehavior, String resetOptionsString)
+   в System.Data.SqlClient.SqlCommand.RunExecuteReaderTds(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, Boolean async)
+   в System.Data.SqlClient.SqlCommand.RunExecuteReader(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, String method, DbAsyncResult result)
+   в System.Data.SqlClient.SqlCommand.RunExecuteReader(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, String method)
+   в System.Data.SqlClient.SqlCommand.ExecuteReader(CommandBehavior behavior, String method)
+   в System.Data.SqlClient.SqlCommand.ExecuteReader(CommandBehavior behavior)
+   в Kernel.SQLQuery.ExecuteReader(CommandBehavior m_command) в D:\DEV-COMMERCE\WBranch-2012-07-10\Kernel\SQLQuery.cs:строка 52
+   в MessagesServer.Controllers.MessagesController.GetNotificationsFromDB(CacheItem cacheItem, Int32 userId, Nullable`1 lastKey) в D:\DEV-COMMERCE\WBranch-2012-07-10\MessagesServer\Controllers\Controller.cs:строка 128
+[2012-08-01 21:51:32,265] [6100] ERROR SqlLogger - Chat error
+System.Data.SqlClient.SqlException: Неверный синтаксис около "nolock". Если имелось в виду обобщенное табличное выражение, то предыдущая инструкция должна быть явно завершена точкой с запятой.
+   в System.Data.SqlClient.SqlConnection.OnError(SqlException exception, Boolean breakConnection)
+   в System.Data.SqlClient.SqlInternalConnection.OnError(SqlException exception, Boolean breakConnection)
+   в System.Data.SqlClient.TdsParser.ThrowExceptionAndWarning(TdsParserStateObject stateObj)
+   в System.Data.SqlClient.TdsParser.Run(RunBehavior runBehavior, SqlCommand cmdHandler, SqlDataReader dataStream, BulkCopySimpleResultSet bulkCopyHandler, TdsParserStateObject stateObj)
+   в System.Data.SqlClient.SqlDataReader.ConsumeMetaData()
+   в System.Data.SqlClient.SqlDataReader.get_MetaData()
+   в System.Data.SqlClient.SqlCommand.FinishExecuteReader(SqlDataReader ds, RunBehavior runBehavior, String resetOptionsString)
+   в System.Data.SqlClient.SqlCommand.RunExecuteReaderTds(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, Boolean async)
+   в System.Data.SqlClient.SqlCommand.RunExecuteReader(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, String method, DbAsyncResult result)
+   в System.Data.SqlClient.SqlCommand.RunExecuteReader(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, String method)
+   в System.Data.SqlClient.SqlCommand.ExecuteReader(CommandBehavior behavior, String method)
+   в System.Data.SqlClient.SqlCommand.ExecuteReader(CommandBehavior behavior)
+   в Kernel.SQLQuery.ExecuteReader(CommandBehavior m_command) в D:\DEV-COMMERCE\WBranch-2012-07-10\Kernel\SQLQuery.cs:строка 52
+   в MessagesServer.Controllers.MessagesController.GetChatMessagesFromDB(Int32 woid, Int32 sender, Int32 receiver, Nullable`1 fromDate, Nullable`1 lastKey) в D:\DEV-COMMERCE\WBranch-2012-07-10\MessagesServer\Controllers\Controller.cs:строка 185
+[2012-08-01 21:51:35,264] [6100] ERROR SqlLogger - Chat error
+System.Data.SqlClient.SqlException: Неверный синтаксис около "nolock". Если имелось в виду обобщенное табличное выражение, то предыдущая инструкция должна быть явно завершена точкой с запятой.
+   в System.Data.SqlClient.SqlConnection.OnError(SqlException exception, Boolean breakConnection)
+   в System.Data.SqlClient.SqlInternalConnection.OnError(SqlException exception, Boolean breakConnection)
+   в System.Data.SqlClient.TdsParser.ThrowExceptionAndWarning(TdsParserStateObject stateObj)
+   в System.Data.SqlClient.TdsParser.Run(RunBehavior runBehavior, SqlCommand cmdHandler, SqlDataReader dataStream, BulkCopySimpleResultSet bulkCopyHandler, TdsParserStateObject stateObj)
+   в System.Data.SqlClient.SqlDataReader.ConsumeMetaData()
+   в System.Data.SqlClient.SqlDataReader.get_MetaData()
+   в System.Data.SqlClient.SqlCommand.FinishExecuteReader(SqlDataReader ds, RunBehavior runBehavior, String resetOptionsString)
+   в System.Data.SqlClient.SqlCommand.RunExecuteReaderTds(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, Boolean async)
+   в System.Data.SqlClient.SqlCommand.RunExecuteReader(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, String method, DbAsyncResult result)
+   в System.Data.SqlClient.SqlCommand.RunExecuteReader(CommandBehavior cmdBehavior, RunBehavior runBehavior, Boolean returnStream, String method)
+   в System.Data.SqlClient.SqlCommand.ExecuteReader(CommandBehavior behavior, String method)
+   в System.Data.SqlClient.SqlCommand.ExecuteReader(CommandBehavior behavior)
+   в Kernel.SQLQuery.ExecuteReader(CommandBehavior m_command) в D:\DEV-COMMERCE\WBranch-2012-07-10\Kernel\SQLQuery.cs:строка 52
+   в MessagesServer.Controllers.MessagesController.GetChatMessagesFromDB(Int32 woid, Int32 sender, Int32 receiver, Nullable`1 fromDate, Nullable`1 lastKey) в D:\DEV-COMMERCE\WBranch-2012-07-10\MessagesServer\Controllers\Controller.cs:строка 185
+[2012-08-01 21:55:29,710] [4124] ERROR NetLogger - Thread
+System.Net.Sockets.SocketException: Операция блокирования прервана вызовом WSACancelBlockingCall
+   в System.Net.Sockets.Socket.Accept()
+   в MessagesServer.Controllers.Receiver.Listen() в D:\DEV-COMMERCE\WBranch-2012-07-10\MessagesServer\Controllers\Receiver.cs:строка 110
+[2012-08-01 21:57:05,075] [20140] ERROR NetLogger - Thread
+System.Threading.ThreadAbortException: Поток находился в процессе прерывания.
+   в System.Net.Sockets.Socket.Accept()
+   в MessagesServer.Controllers.Receiver.Listen() в D:\DEV-COMMERCE\WBranch-2012-07-10\MessagesServer\Controllers\Receiver.cs:строка 110
+[2012-08-01 21:57:08,007] [14508] ERROR NetLogger - Thread
+System.Threading.ThreadAbortException: Поток находился в процессе прерывания.
+   в System.Net.Sockets.Socket.Accept()
+   в MessagesServer.Controllers.Receiver.Listen() в D:\DEV-COMMERCE\WBranch-2012-07-10\MessagesServer\Controllers\Receiver.cs:строка 110
+[2012-08-01 22:28:18,355] [14636] ERROR NetLogger - Thread
+System.Net.Sockets.SocketException: Операция блокирования прервана вызовом WSACancelBlockingCall
+   в System.Net.Sockets.Socket.Accept()
+   в MessagesServer.Controllers.Receiver.Listen() в D:\DEV-COMMERCE\WBranch-2012-07-10\MessagesServer\Controllers\Receiver.cs:строка 110

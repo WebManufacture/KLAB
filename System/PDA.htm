@@ -1,0 +1,1011 @@
+<html>
+<head>
+<!--script src="http://code.hivext.ru/frameworks/js/core.js" />
+<script src="http://api.hivext.ru/1.0/storage/uploader.js" />
+<script src="http://api.hivext.ru/1.0/development/applications.js" />
+<script src="http://api.hivext.ru/1.0/users/authentication.js" /-->
+
+</head>
+<body>
+    <script type='text/javascript'>
+try{        
+
+Element.prototype.has = function (cls) {
+            return this.className.indexOf(cls) >= 0;
+        }
+
+        Element.prototype.get = function (cls) {
+            return this.querySelector(cls);
+        }
+        
+        Element.prototype.find = function (cls) {
+            return this.querySelectorAll(cls);
+        }
+
+Element.prototype.child = function (cls) {
+            var res = this.querySelector(cls);
+if (res != null){
+if (res.parentNode == this){
+return res;
+}
+}
+return null;
+
+        }
+
+        Element.prototype.childs = function (cls) {
+            var C = this.querySelectorAll(cls);
+            var E=[];
+for(var I=0;I<C.length;I++){
+              if (C[I].parentNode == this)
+E.push(C[I]);
+            }
+return E;
+        }
+
+Element.prototype.acls = function (cls) {
+            this.className += ' ' + cls;
+        }
+        
+        Element.prototype.dcls = function (cls) {
+
+            this.className = this.className.replace(cls,'');
+        }
+
+        Element.prototype.add = function (cls) {
+            return this.appendChild(cls);
+        }
+
+Element.prototype.del = function (cls, global) {
+            var C = this.querySelectorAll(cls);
+for(var I=0;I<C.length;I++){
+              if (C[I].parentNode == this || global)
+                C[I].remove();
+            }
+        }
+
+Element.prototype.remove = function(){
+  
+  this.parentNode.removeChild(this);
+}
+        
+        Element.prototype.adv = function (cls,val) {
+var dv = div(cls,val,this);
+            return dv;
+        }
+
+Element.prototype.att = function (att, val) {
+if (val != undefined){
+	return this.setAttribute(att,val);
+}
+            return this.getAttribute(att);
+        }
+        
+        
+
+function get (cls) {
+            return document.querySelector(cls);
+        }
+        
+        
+        Element.prototype.html = function (cls) {
+		if (cls!= undefined){
+		this.innerHTML = cls;
+		}
+            return this.innerHTML;
+        }
+
+        function div(cls, val, prnt) {
+            return tag('div',cls,val,prnt);
+        }
+
+function tag(name, cls, val, prnt) {
+            var elm = document.createElement(name);
+            if (cls != undefined) {
+                elm.className = cls;
+            }
+            if (val != undefined) {
+                elm.innerHTML = val;
+            }
+            if (prnt != undefined) {
+                prnt.add(elm);
+            }
+            return elm;
+        }
+
+hive={
+Init:function (){
+this.appid = 'e9b3fcd2b63608cda5ef1d01af0be516'
+this.email = 'Azzoo@yandex.ru';
+this.pwd = 'Mirror@Hive';
+this.uid = null;
+this.uname = null;
+this.sessid = null;
+Users.Authentication.Signin(appid, email, pwd, authSuccess);
+},
+
+authSuccess:function(oResponse) {
+  if(oResponse.result == 0) {
+    sessid = oResponse.session;
+    uid = oResponse.uid;
+    uname = oResponse.name;
+    GetTypes();
+  }
+},
+
+GetTypes:function(){
+  Data.Base.GetTypes(appid, sessid,  GetTypesCallback)
+},
+
+GetTypesCallback:function(oResponse) {
+  if(oResponse.result == 0) {
+    alert(oResponse.types);
+  }
+}
+
+}
+
+function SavePage() {
+  try{
+  var req = new XMLHttpRequest();
+  var url = 'http://system.web-manufacture.net/System.ContentHandler.ashx?file=jaspMobile.htm&action=save&path=jaspMobile.htm';
+  var data = document.body.innerHTML;
+  req.onload = DataSaved;
+  req.url = url;
+  req.open('POST', url, true);
+  req.send(data);
+  }
+  catch(E)
+  {
+    alert(E);
+  }
+  var btn = document.getElementById('save_btn');
+  btn.setAttribute('class', 'item active');
+}
+
+        function DataSaved() {
+            var btn = document.getElementById('save_btn');
+            btn.setAttribute('class', 'item');
+            alert('saved');
+
+        }
+
+
+        function Init() {
+            var elem = document.getElementById("menu");
+
+editor.init();
+            var elems = elem.find('.item.tag');
+            for (var i = 0; i < elems.length; i++) {
+                elems[i].onclick = TagInsert;
+
+            }
+             var elems = elem.find('.item.cmd');
+            for (var i = 0; i < elems.length; i++) {
+                elems[i].onclick = ItemClick;
+
+            }
+           
+        }
+
+function edit(node){
+ var cnt = document.getElementById("this-page-content");
+ cnt.html('');
+ wrapNodes(node, cnt);
+}
+
+        function wrapNodes(node, cnt) {
+            var elems = node.childNodes;
+            for (var i = 0; i < elems.length; i++) {
+                if (elems[i].tagName == undefined) {
+                    cnt.add(WrapValue(elems[i]));
+                }
+                else {
+                    WrapElem(elems[i], cnt);
+                }
+            }
+            return;
+        }
+
+        function WrapValue(elem) {
+            var value = elem.nodeValue;
+            var elm = div('value');
+            elm.innerText = value;
+            return elm;
+        }
+
+        function WrapElem(elm, cnt) {
+            try{
+            var tag = elm.tagName.toLowerCase();
+            var dv = div('elem');
+            dv.linked = elm;
+            dv.setAttribute('tag', tag);
+            cnt.add(dv);
+            var sign = div('sign', '-', dv);
+            sign.onclick = SignClick;
+            dv.tagElem = div('tagname', "&lt;" + tag + "&gt;", dv);
+            dv.tagElem.onclick = TagClick;
+          
+            var id = elm.getAttribute('id');
+            if (id != null) {
+            	dv.att('key', id);
+                dv.adv('id',"#" + id);
+            }
+dv.classes = dv.adv('classes');
+            var classes = elm.getAttribute('class');
+if (classes != null && classes.length > 0) {
+var cc = classes.split(' ');
+for (var i = 0; i < cc.length; i++){
+if (cc[i].length > 0) {
+var C = dv.classes.adv('cls',"." + cc[i]);
+C.cls = cc[i];
+C.att('cls', C.cls);
+}
+}
+}
+for (var i = 0; i < elm.attributes.length; i++){
+var A = elm.attributes[i];
+if (A.name=='id' || A.name=='class') continue;
+var V = A.name+'='+A.value;
+att = div('attr',V,dv);
+att.att('name',A.name);
+att.att('value',A.value);
+}
+
+            dv.content = div('content', '', dv);
+            //var tagend = div('tagend', "&lt;/" + tag + "&gt;", dv);
+
+            if (tag == 'script') { WrapScript(elm.innerHTML, dv.content);
+               return  dv;
+            }
+            if (tag == 'style') {
+                dv.content.innerHTML = WrapStyles(elm.innerHTML);
+                return dv;
+            }
+            if (id != "this-page-content") {
+                wrapNodes(elm, dv.content);
+            }
+}
+catch(E){
+alert(E);
+}
+            return dv;
+        }
+
+        function WrapStyles(txt) {
+            var html = "<div class='value'>";
+            var styles = txt.match(/[^{]+\{[^}]+\}/g);
+            for (var i = 0; i < styles.length; i++) {
+                var st = styles[i];
+                html += '<div class="css">';
+                var iBod = st.indexOf('{');
+                var bod = st.substr(iBod);
+                var sl = st.substring(0, iBod);
+                sl = sl.match(/[.#]?[A-Za-z\-_0-9]+,?/g);
+                if (sl == null) {
+                    continue;
+                }
+                for (var j = 0; j < sl.length; j++) {
+                    html += "<div class='selector'>";
+                    html += sl[j];
+                    html += "</div>";
+                }
+                html += "{";
+                html += "<div class='body'>";
+
+                sl = bod.match(/([A-Za-z\-_]+)\s*:\s*([^;]+)/g);
+                if (sl == null) {
+                    continue;
+                }
+                for (var j = 0; j < sl.length; j++) {
+                    var it = sl[j].split(':');
+                    html += "<div class='prop'>";
+                    html += "<div class='name'>";
+                    html += it[0] + ':';
+                    html += "</div>";
+                    html += "<div class='val'>";
+                    html += it[1] + ';';
+                    html += "</div>";
+                    html += "</div>";
+                }
+
+                html += "</div>";
+                html += "<br/>";
+                html += "}";
+                html += '</div>';
+            }
+
+            return html + "</div class='value'>";
+        }
+
+        function WrapScript(txt, cnt) {
+            cnt = cnt.adv('value');
+			
+            var func = txt.match(/function\s+(\w+)\s*\([^\)]*\)/g);
+            if (func == null) {
+                return txt;
+            }
+            for (var i = 0; i < func.length; i++) {
+var html = div('func','',cnt);
+                var st = func[i];
+                var qt=st.indexOf('(');
+				var funcname = st.substring(9,qt).replace(/ /g,'');
+                html.innerHTML = st;
+                html.func = window[funcname];
+            }
+ 
+        }
+
+        function SignClick(event) {
+            var p = this.parentNode;
+            if (p.invisible) {
+                p.invisible = false;
+                this.innerHTML = '-';
+                p.className = p.className.replace(/\s?invisible/g, '');
+            }
+            else {
+                p.invisible = true;
+                this.innerHTML = '+';
+                p.className += ' invisible';
+            }
+        }
+
+        var lastsel = null;
+
+        function TagClick(event) {
+            var p = this.parentNode;
+            if (p.selected) {
+                p.selected = false;
+                p.className = p.className.replace(/\s?selected/g, '');
+                lastsel = null;
+            }
+            else {
+                if (lastsel != null) {
+                    lastsel.selected = false;
+                    lastsel.className = lastsel.className.replace(/\s?selected/g, '');
+                }
+                p.selected = true;
+                p.className += ' selected';
+                lastsel = p;
+            }
+        }
+
+        function TagInsert() {
+if (lastsel == null) return;
+var tag= this.html();
+            tag = document.createElement(tag);
+lastsel.linked.add(tag);
+            WrapElem(tag, lastsel.content);
+        }
+        
+        function TemplateInsert() {
+if (lastsel == null) return;
+e = lastsel;
+var html = this.att('template');
+e.linked.innerHTML += html;
+var tag = div();
+tag.innerHTML = html;
+wrapNodes(tag, e.content);
+        }
+
+       
+
+function DelItems() {
+if (lastsel == null) return;   lastsel.linked.remove();
+lastsel.remove();
+}
+
+function ItemClick(){
+	this.acls('active');
+	var E = this.att('onclick');
+window.eval(E);
+this.dcls('active');
+}
+
+function click(btn, func){
+  btn.onclick=function(){
+this.acls('active');
+func.call(this);
+this.dcls('active');
+}
+};
+
+function EditItems() {
+if (lastsel == null) return; 
+editor.item = lastsel;
+editor.linked = lastsel.linked;
+editor.edit();
+}
+
+command = function(name, value){
+  this.name = name;
+  this.value = value;
+}
+
+editor = {
+  item: null,
+  linked: null,
+  elem:null,
+  cmd:[],
+  init: function() {
+this.elem = get("#this-page-editor");
+this.hide();
+
+},
+
+hide:function  () {
+editor.elem.att('style','display:none;');
+},
+
+show:function  () {
+editor.elem.att('style','display:block;');
+},
+
+edit:function  () {
+var E = editor;
+E.cmd = [];
+var L = E.item;
+var E = E.elem;
+E.html('');
+var pan = E.adv('title');
+var title = pan.adv('tag', L.att('tag'));
+var id = L.att('key');
+if (id == null) id='';
+var ids = pan.adv('id', '#'+id);
+var dv = pan.adv('classes');
+editor.classes = dv;
+var cc = L.classes.childs('.cls');
+for (var i = 0; i < cc.length; i++){
+att = dv.adv('cls', cc[i].html());
+att.onclick = editor.removeClass;
+att.cls = cc[i].att('cls');
+}//for
+
+
+var acll = E.adv('btn','+classes');
+acll.onclick=editor.showClasses;
+var acl = E.adv('aclspanel');
+var acc = '<input id="add_cls" type="text"/>';
+var acc = acl.adv('accl',acc);
+var nc = acc.adv('btn','Add');
+nc.onclick = editor.newClass;
+var cls = {};
+var cc = content.find('.cls');
+for (var i = 0; i < cc.length; i++){
+var att=cc[i].att('cls');
+if (cls[att] == undefined){
+cls[att] = cc[i].html();
+var ac = acl.adv('acls','+' + cc[i].html());
+ac.onclick = editor.addClass;
+ac.cls = att;
+ac.item = L;
+}
+}
+acl.adv('clear');
+
+var dv = E.adv('attrs');
+var att = L.childs('.attr');
+for (var i = 0; i < att.length; i++){
+dv.adv('att', '@'+att[i].html());
+}
+var C = L.content;
+var dv = E.adv('values');
+var att = C.childs('.value');
+for (var i = 0; i < att.length; i++){
+dv.adv('value', att[i].html());
+}
+var M = E.adv('menu');
+var sbtn = M.adv('item cmd','sve');
+var cbtn = M.adv('item cmd','cls');
+click(sbtn,editor.save);
+click(cbtn,editor.hide);
+editor.show();
+},
+
+removeClass : function(){
+   this.parentNode.removeChild(this);
+   editor.cmd.push(
+     new command('dcls',this.cls));
+},
+
+addClass : function(){
+  var C = editor.classes;
+  var att = C.adv('cls', '.' + this.cls);
+  att.cls=this.cls;
+  att.onclick = editor.removeClass;
+  editor.cmd.push(
+     new command('acls',this.cls));
+},
+
+showClasses : function(){
+  var cls = editor.elem.get('.aclspanel');
+  if (cls.has('visible'))
+    cls.dcls('visible');
+  else
+    cls.acls('visible');
+},
+
+newClass : function(){
+  var E = editor.elem.get('#add_cls');
+  var C = editor.elem.get('.classes');
+  var att = C.adv('cls', '.' + E.value);
+  att.cls = E.value;
+  att.onclick = editor.removeClass;
+  editor.cmd.push(
+     new command('acls',att.cls));
+},
+
+save:function(){
+E = editor;
+for (var i = 0; i < E.cmd.length; i++){
+   var C=E.cmd[i];
+   if(C.name == 'dcls'){
+     var U = '.cls[cls="'+C.value+'"]';
+     U=E.item.classes.child(U);
+     if (U != null){
+       U.remove();
+     }
+}
+if(C.name == 'acls'){
+     var U = div('cls', '.' + C.value, E.item.classes);
+     U.att('cls',C.value);
+}
+}
+}
+}
+
+function ShowObjectInfo(){
+  var cnt = content;
+  cnt.html('');
+  var dv = cnt.adv('eobj');
+  dv.linked = window;
+  var R=div('link', window, dv);
+  R.dv = dv;
+  click(R,showparent);
+  ShowObject(window, dv);
+}
+
+function ShowObject(obj, cnt) {
+for (var I in obj){
+var item = cnt.adv('obj');
+item.obj = obj[I];
+item.acls(typeof(item.obj));
+item.parent = cnt;
+item.html(typeof(item.obj) +
+'&lt;' + I + '&gt;');
+click(item,showobj);
+ }
+}
+
+function showobj(){
+  var dv=this.parent;
+  dv.del('.eobj');
+  dv.del('.obj');
+  var eo = dv.adv('eobj');
+  eo.linked = this.obj;
+  var R = typeof(this.obj) + this.obj;
+  var R=div('link', R, eo);
+  R.dv = eo;
+  click(R,showparent);
+  ShowObject(this.obj, eo);
+}
+
+
+function showparent(){
+  var dv=this.dv;
+  dv.del('.eobj');
+  dv.del('.obj');
+  ShowObject(dv.linked, dv);
+}
+
+jedit={
+
+show:function(){
+content.html('');
+jedit.area = div('jeditor','',content);
+var kb = content.adv('keyboard');
+var sym = 
+'1234567890qwertyuiopasdfghjklzxcvbnm"\'.,(){}[]<>\\/=-+*#:;|&$';
+var bl=
+['up','fn','space','ent','del']
+for (var I = 0; I < sym.length; I++){
+var key=kb.adv('sym',sym[I]);
+key.sym = sym[I];
+key.onclick = jedit.key;
+}
+for (var I = 0; I < bl.length; I++){
+key = kb.adv('sym bl',bl[I]);
+key.onclick = jedit.key;
+}
+var btn = content.adv('item cmd','ok');
+click(btn,jedit.run);
+},
+
+key: function(){
+this.acls('active');
+jedit.area.innerText += this.sym;
+jedit.key = this;
+window.setTimeout(jedit.unkey,200);
+},
+
+unkey:function(elem){
+jedit.key.dcls('active');
+},
+
+run:function(){
+try{
+alert('run');
+var stat = [];
+var cnt = body.innerHTML;
+var sym = 
+'1234567890qwertyuiopasdfghjklzxcvbnm"\'.,(){}[]<>\\/=-+*#:;|&$';
+for (var I = 0; I < sym.length; I++)
+stat[I]=0;
+for (var I = 0; I < cnt.length; I++){
+  var S = cnt[I].toLowerCase();
+  var M = sym.indexOf(S);
+  if (M >= 0){
+    stat[M]++;
+  }
+}
+for (var I = 0; I < stat.length; I++)
+stat[I]+=' ' + sym[I];
+stat.sort();
+for (var I = 0; I < sym.length; I++){
+  content.adv('',stat[I]);
+}
+/*
+var S=jedit.area.value;
+window.eval(S);*/
+}
+catch(E){
+alert(E);
+}
+}
+
+}
+
+}
+catch(E){
+alert(E);
+}
+    </script>
+    <style type='text/css'>
+.visible{
+display:block!important;
+}
+
+        body
+        {
+            width: 235px;
+            height: 280px;
+        }
+        
+        div 
+        {
+            background: none;
+        }
+        
+        hr
+        {
+            clear: both;
+        }
+        
+        .menu
+        {
+            width: 235px;
+            font-size: 10px;
+            border: 1px solid gray;
+        }
+        
+        .menu .item
+        {
+            height: 13px;
+            float: left;
+            width: 30px;
+            overflow: hidden;
+            border: 1px solid #aaa;
+            padding: 0px 3px;
+        }
+        .menu .tag
+        {
+            color: green;
+        }
+        
+        .menu .attr
+        {
+            color: magenta;
+        }
+        
+        .menu .item.active
+        {
+            background: yellow;
+        }
+        
+        #this-page-content
+        {
+            width: 235px;
+            height: 280px;
+            overflow-y: scroll;
+            position: relative;
+        }
+        
+        .elem
+        {
+            padding-left: 5px;
+            margin-left: 10px;
+            clear: both;
+border-left: 1px solid gray;
+        }
+        
+        .elem.selected
+        {
+            background-color: #DDD;
+        }
+		
+		.elem.selected>.tagname,.elem.selected>.tagend
+        {
+            background-color: #DDD;
+        }
+        
+        .elem .sign
+        {
+            font-weight: bold;
+            float: left;
+            display:block;
+border:1px solid silver;
+            margin-left: -20px;
+            width:10px;
+text-align:center;
+        }
+        
+        .elem .tagname, .elem .tagend
+        {
+            font-weight: bold;
+            color: navy;
+        }
+        
+        .elem.invisible .tagname
+        {
+            color: magenta;
+            float: left;
+            border-bottom: 1px solid gray;
+        }
+        
+        .elem.invisible .tagend
+        {
+            color: magenta;
+            display: block;
+            float: left;
+            border-bottom: 1px solid gray;
+        }
+        
+        .elem.invisible > .content
+        {
+            display: none;
+        }
+        
+        .elem.invisible > .attr
+        {
+            display: none;
+        }
+        
+        
+        .elem .id, .elem .cls
+        {
+            font-weight: normal;
+            display: inline;
+        }
+        
+        .elem .id
+        {
+            color: #CC00AA;
+        }
+        
+        .elem .cls
+        {
+            color: green;
+        }
+        
+        .elem .attr
+        {
+            color: #00aaff;
+        }
+        
+        .css
+        {
+            clear: both;
+            padding-top: 5px;
+        }
+        
+        .css .selector
+        {
+            float: left;
+            color: orange;
+        }
+        
+        .css .body
+        {
+            clear: both;
+            padding-left: 5px;
+        }
+        
+        .css .body .prop
+        {
+            clear: both;
+        }
+        
+        .css .body .prop .name, .css .body .prop .val
+        {
+            float: left;
+        }
+        
+        .css .body .prop .name
+        {
+            color: navy;
+        }
+        
+        .editor{
+          display:none;
+          width:200px;
+          position:absolute;
+          top:10;
+          left:20px;
+          z-index:1000;
+          border:1px solid black;
+          background-color:#eee;
+        }
+
+        .editor .menu{
+width:200px;
+}
+
+        .editor .tag{
+           color:orange;
+float:left;
+        }
+
+        .editor .id{
+           color:maroon;
+           float:left;
+        }
+
+        .editor .cls{
+           color:green;
+float:left;
+        }
+
+        .editor .attr{
+           color:blue;
+        }
+
+        .editor .value{
+           color:navy;
+        }
+
+.editor .aclspanel{
+display:none;
+}
+
+.editor .title{
+width: 100%;
+clear:both;
+}
+
+.editor .aclspanel{
+width: 100%;
+clear:both;
+}
+
+.editor .aclspanel input{
+float:left;
+}
+
+.editor .aclspanel .btn{
+width: 20px;
+}
+
+.btn{
+padding: 1px 4px;
+border: 1px solid navy;
+}
+
+.btn.active, .keyboard .sym.active{
+background: yellow;
+}
+
+.keyboard{
+/*position: fixed;
+top:30px;
+left:0;
+width: 220px;
+height: 150px;*/
+}
+
+
+.keyboard .sym{
+width:20px;
+height:20px;
+border: 1px solid gray;
+opacity: 0.5;
+background:white;
+float:left;
+font-weight:bold;
+text-align:center;
+vertical-align: middle;
+color:navy;
+}
+
+.keyboard .sym.bl{
+ background-color:#f0ddff;
+}
+    </style>
+    <div class="menu" id='menu'>
+        <div class="tag item">div</div>
+        <div class="tag item">script</div>
+        <div class="tag item">style</div>
+        <div class="tag item">br</div>
+        <div class="tag item">link</div>
+        <div class="attr item">class</div>
+        <div class="attr item">id</div>
+        <div class="attr item">val</div>
+
+        <div class="item cmd" onclick="ShowObjectInfo();">wnd</div>
+        <div class="item cmd" onclick="jedit.show();">jed</div>
+        <div class="item cmd" onclick="edit(document.body);">bdy</div>
+        <div class="item cmd" onclick="DelItems();">del</div>
+        <div class="item cmd">cut</div>
+        <div class="item cmd">cpy</div>
+        <div class="item cmd">pst</div>
+ 	<div class="item cmd" onclick="EditItems();">edt</div>
+        <div id='save_btn' class="item cmd" onclick="SavePage();">sve</div>
+    </div>
+    <div class="editor" id='this-page-editor'>
+
+</div>
+</div>
+    <div class="content" id='this-page-content'>
+    </div>
+    <script type='text/javascript'>
+        Init();
+
+
+var body = document.body;
+//edit(body);
+content = get("#this-page-content");
+
+    </script>
+</body>
+</html>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

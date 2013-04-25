@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html>
+    <head>
+	<title>Форум</title>
+	<link type="text/css" href="system.default.css" rel="stylesheet"></link>
+    <link type="text/css" rel="stylesheet" href="http://system.web-manufacture.net/Forum-sourse.css">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <script type="text/javascript" src="Utils.js"></script>
+    <script type="text/javascript" src="DOM.js"></script>
+    <script type="text/javascript" src="Url.js"></script>
+    <script type="text/javascript" src="Ajax.js"></script>
+    <script type="text/javascript" src="Jasp.js"></script>
+    
+    <style type="text/css">
+    </style>
+    
+    
+    <script text='text/javascript'>
+	
+	function init(){
+	    // var section = DOM.get('.row');
+	    ///  section.onclick = clickPage;
+	    // var nub = DOM.get('.row ');
+	    
+	    
+	    //var mas = ['.novosti','.video','.foto','.games','.prikol','.razrab']
+	    //for(var i=0;i<mas.length;i++){
+	    //    var nub = DOM.all(mas[i]);
+	    //    val(nub,'.odd','.even');
+	    //}
+	    
+	    
+	    var elem = DOM.all('.row');
+	    //var nubnub = nub.get(".cell");
+	    
+	    val(elem,'.name','.even');
+	    
+	    val(elem,'.tema','.odd');
+	    val(elem,'.answer','.even');
+	    val(elem,'.last-message','.odd');
+	    
+	    
+	}
+	function val(elem,cals,clas1){
+	    for (i=0;i < elem.length;i++){
+		var timeperem = elem[i].get(cals);
+		timeperem.add(clas1);
+		}
+		
+	}
+	
+	//   var a = clas2;
+	//   var lm = timeperem.all(".cell");
+	//   for (var i=0;i < lm.length;i++){
+	//if (a == clas2){
+	//    lm[i].add(clas1);
+	//    a = clas1;
+	//}
+	//else if (a == clas1){
+	//    lm[i].add(clas2);
+	//    a=clas2;
+	//}
+	//   }
+	//}
+	function clickPage()
+	{
+	    ///DOM.all('.tems').del();
+	    ///var nameElem = this.get('.name');
+	    
+	    // тут  можно просто заменить на myelem.get(".name"); так как мы уже нашли .novosti
+	    
+	    //var nameElem = myelem.all(".name"); все элементы с именем Нейм
+	    
+	    
+	    ///var term = nameElem.div(".tems");
+	    
+	    ///term.add('$Ерунда');
+	    
+	    //var elem  = nameElem.div(".newdiv"); задаем клас диву
+	    //var elem  = DOM.div(".button", "Сохранить", {context: "search"}); добавление кнопки
+	    //myelem.add(elem);
+	    
+	    // nameElem.style.width = "100px"; //задаем размеры так
+	    
+	    //DOM(".razrab.active").del(".active"); удаление актив из разраба
+	}
+	
+	WS.DOMload(init);
+    </script> 
+    
+    
+</head>
+
+<body>    
+    <div class='forum'>
+	<div  class='title'>
+	    <div class='text'>Форум</div>
+	</div>
+	<div class="section ">
+	    <div class='title'>
+		Общее
+	    </div> 	
+	    <div class='header '>
+		<div class = 'name cell'>Форум</div>
+		<div class = 'tema cell'>Тем</div>
+		<div class = 'answer cell'>Ответов</div>
+		<div class = 'last-message cell'>Последнее сообщение</div>
+		<div class = 'clear'></div>
+	    </div> 
+	    <div class = 'novosti row ' >		
+		<div class ='name cell'>Новости</div>
+		<div class ='tema cell'>-</div>
+		<div class ='answer cell'>-</div>
+		<div class ='last-message cell'>-</div>		
+	    </div>
+	    <div class = 'video row ' >
+		<div class ='name cell'>Видео</div>
+		<div class ='tema cell'>-</div>
+		<div class ='answer cell'>-</div>
+		<div class ='last-message cell'>-</div>
+	    </div>
+	    <div class = 'foto row ' >
+		<div class ='name cell'>Фото</div>
+		<div class ='tema cell'>-</div>
+		<div class ='answer cell'>-</div>
+		<div class ='last-message cell'>-</div>
+	    </div>
+	    
+	    <div class = 'games row ' >
+		<div class ='name cell'>Игры</div>
+		<div class ='tema cell'>-</div>
+		<div class ='answer cell'>-</div>
+		<div class ='last-message cell'>-</div>
+	    </div>
+	    <div class = 'prikol row ' >
+		<div class ='name cell'>Приколы</div>
+		<div class ='tema cell'>-</div>
+		<div class ='answer cell'>-</div>
+		<div class ='last-message cell'>-</div>
+	    </div>
+	    <div class = 'razrab row ' >	    
+		<div class ='name cell'>Разрабы</div>
+		<div class ='tema cell'>-</div>
+		<div class ='answer cell'>-</div>
+		<div class ='last-message cell'>-</div>
+	    </div>
+	    <div class = 'games row ' >
+		<div class ='name cell'>FAQ</div>
+		<div class ='tema cell'>-</div>
+		<div class ='answer cell'>-</div>
+		<div class ='last-message cell'>-</div>
+	    </div>
+	    <div class = 'prikol row ' >
+		<div class ='name cell'>Помощь</div>
+		<div class ='tema cell'>-</div>
+		<div class ='answer cell'>-</div>
+		<div class ='last-message cell'>-</div>
+	    </div>
+	    <div class = 'razrab row ' >	    
+		<div class ='name cell'>Разрабы</div>
+		<div class ='tema cell'>-</div>
+		<div class ='answer cell'>-</div>
+		<div class ='last-message cell'>-</div>
+	    </div>
+	    <div class = 'games row ' >
+		<div class ='name cell'>Дисциплины</div>
+		<div class ='tema cell'>-</div>
+		<div class ='answer cell'>-</div>
+		<div class ='last-message cell'>-</div>
+	    </div>
+	    <div class = 'prikol row ' >
+		<div class ='name cell'>Примеры</div>
+		<div class ='tema cell'>-</div>
+		<div class ='answer cell'>-</div>
+		<div class ='last-message cell'>-</div>
+	    </div>
+	    <div class = 'razrab row ' >	    
+		<div class ='name cell'>Разрабы</div>
+		<div class ='tema cell'>-</div>
+		<div class ='answer cell'>-</div>
+		<div class ='last-message cell'>-</div>
+	    </div>
+	    <div class = 'games row ' >
+		<div class ='name cell'>Игры</div>
+		<div class ='tema cell'>-</div>
+		<div class ='answer cell'>-</div>
+		<div class ='last-message cell'>-</div>
+	    </div>
+	    <div class = 'prikol row ' >
+		<div class ='name cell'>Задания</div>
+		<div class ='tema cell'>-</div>
+		<div class ='answer cell'>-</div>
+		<div class ='last-message cell'>-</div>
+	    </div>
+	    <div class = 'razrab row ' >	    
+		<div class ='name cell'>Погода</div>
+		<div class ='tema cell'>-</div>
+		<div class ='answer cell'>-</div>
+		<div class ='last-message cell'>-</div>
+	    </div>
+	    <div class = 'games row ' >
+		<div class ='name cell'>Всевозможное</div>
+		<div class ='tema cell'>-</div>
+		<div class ='answer cell'>-</div>
+		<div class ='last-message cell'>-</div>
+	    </div>
+	    <div class = 'prikol row ' >
+		<div class ='name cell'>Невозможное</div>
+		<div class ='tema cell'>-</div>
+		<div class ='answer cell'>-</div>
+		<div class ='last-message cell'>-</div>
+	    </div>
+	    <div class = 'razrab row ' >	    
+		<div class ='name cell'>Факты</div>
+		<div class ='tema cell'>-</div>
+		<div class ='answer cell'>-</div>
+		<div class ='last-message cell'>-</div>
+	    </div>
+	    <div class='clear'></div>
+	</div>
+	<div class="add-thems">
+	    
+	    Добавить тему
+	    <input id="text" type="text" value="" name="text">
+	    <br>
+	    <input id="button" type="button" value="Добавить тему" onclick="addTem();">
+	    
+	</div>
+    </div>
+</body>
+</html></html>
+

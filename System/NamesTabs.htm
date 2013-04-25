@@ -1,0 +1,477 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title> Super Specialists </title>
+		<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+		<link type='text/css' rel='stylesheet' href="http://Services.web-manufacture.net/Styles/System.default.css"/>
+		
+		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Utils.js"></script>
+		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/DOM.js"></script>
+		<script type="text/javascript" src="http://system.web-manufacture.net/Names.js"></script>		
+		<script type="text/javascript" src="http://system.web-manufacture.net/recursionNames.js"></script>
+		<script type="text/javascript" src="http://system.web-manufacture.net/Specialities.js"></script>
+		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/NodeTunnel.js"></script>
+		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Url.js"></script>
+		<style>
+			
+			.clear{
+				clear: both;	
+			}
+			
+			
+			#specialists{
+				float: left;
+				background-color: #FF893B;
+				width: auto;
+				min-width: 500px;
+				
+			}
+			
+			#specialists .specialist,
+			#specialists .newSpec{	
+				background-color: white;
+				border-radius: 5px 5px 5px 5px;
+				border: 1px solid black;
+				margin: 2px;
+			}
+			
+			
+			#specialists .specialist:hover{
+				background-color: #FFE886;
+			}			
+			
+			
+			#tabs-panel{
+				width: 20px;
+				height: 100%;
+				border-right: 1px solid navy;
+				float: left;
+			}
+			
+			#tabs-panel .tab-container{
+				width: 19px;
+				height: 60px;
+				background-color: #FFCA53;
+				border-radius: 10px 0px 0px 10px;
+				border: 1px solid black;
+				border-right: none;
+				cursor: pointer;
+				color: black;
+				
+			}
+			
+			#tabs-panel .tab-container:hover{
+				background-color: #FF893B;
+			}
+			
+			#tabs-panel .tab-container:active{
+				background-color: silver;
+			}
+			
+			#tabs-panel .tab-container.selected{
+				background-color: #FF893B;
+				font-weight: bold;
+				color: black;
+				width: 21px;
+			}
+			
+			#tabs-panel .name-tab{
+				-moz-user-select: none;
+				-webkit-user-select: none;
+				-moz-transform: rotate(270deg);
+				-webkit-transform: rotate(270deg);
+				width: 55px;
+				height: 19px;
+				position: relative;	
+				text-align: center;
+				left: -18px;
+				top: 20px;
+				
+			}
+			
+			.addSpecBut{
+				background-image:url('http://cdn2.iconfinder.com/data/icons/onebit/PNG/onebit_31.png');
+				height:22px;
+				width:22px;
+				background-size:cover;
+				cursor: pointer;
+			}
+			
+			
+			.specialist.small-plate .additional-info{
+				display: none;
+			}
+			
+			.spec-field
+			{
+				display: inline-block;
+				margin: 2px;
+				padding: 2px;
+			}
+			
+			.spec-pattern
+			{
+				display: inline-block;
+				width: 80px;
+				margin-right: 2px;
+				margin-left: 5px;
+			}
+			
+			.spec-pattern .spec-field
+			{
+				margin-top: 0;				
+				max-width: 70px;
+				overflow: hidden;
+				margin: 0 0 -5px 0;/*убрала нижний отступ*/
+				white-space: nowrap;
+				/*height: 15px;*/
+			}
+			
+			.org-pattern{
+				background-color:#42786B;
+				-moz-box-shadow: 1px 1px 1px #838B8B;
+				-webkit-box-shadow: 1px 1px 1px #838B8B;
+				box-shadow: 1px 1px 1px #838B8B;
+				font-weight: bold;
+				color: white;
+			}
+			
+			.specialist .org-name{
+				color: #6B121A;
+				font-weight: bold;
+				
+			}
+			
+			.specialist .speciality{
+				background-color: #FF653E;
+				-moz-box-shadow: 1px 1px 1px #838B8B;
+				-webkit-box-shadow: 1px 1px 1px #838B8B;
+				box-shadow: 1px 1px 1px #838B8B;
+				color: white;
+				
+			}
+			.specialist .spec-pattern .speciality:hover{
+				overflow: visible;
+				max-width: 500px;
+				position: absolute;
+			}
+			
+			.specialist .index{
+				background-color:#71CCB6;
+				-moz-box-shadow: 1px 1px 1px #838B8B;
+				-webkit-box-shadow: 1px 1px 1px #838B8B;
+				box-shadow: 1px 1px 1px #838B8B;
+				font-weight: bold;
+				color: white;
+			}
+			
+			.specialist .full-name{
+				font-size: 20px;
+				font-weight: bold;
+			}
+			
+			.specialist .org-town,
+			.specialist .org-address{	
+				color:white;
+				background-color: #71CCB6;
+			}
+			
+			.specialist .telephone,
+			.specialist .e-mail{
+				color: #70A188;					
+			}
+			
+			.specialist .telephone .field,
+			.specialist .e-mail .field{
+				display: inline-block;	
+			}
+			
+			.specialist .field-pic{
+				height:20px;
+				width:20px;
+				background-size:cover; 
+				margin: 0 0 -5px 0;/*убрала нижний отступ*/
+				display: inline-block;
+			}
+			
+			.specialist .telPic{
+				background-image:url('http://cdn3.iconfinder.com/data/icons/token/Token,%20128x128,%20PNG/Telephone.png');
+				
+			}
+			
+			
+			.specialist .mailPic{
+				background-image:url('http://cdn3.iconfinder.com/data/icons/token/Token,%20128x128,%20PNG/Envelope.png');
+			}
+			
+			.newSpec.hideDiv{
+				display:none;
+			}
+			
+			#specialists .newSpec{
+				background-color: #FFE886;
+				width:500px;
+			}
+			.newSpec .addInfo{
+				width: 95%;
+				/*margin-left: 5px;
+				margin-right: 2px;*/
+				margin: 5px;
+				
+				
+			}
+			
+			.newSpec .buttons{
+				text-align:center;
+			}
+			
+			.newSpec .input{
+				text-align:center;
+				height:20px;
+			}
+			.newSpec .input.Name{
+				background-color:#D0F18F;
+			}
+			.newSpec .input.Tel,
+			.newSpec .input.Mail{
+				width: 45%;
+			}
+			/*http://kuler.adobe.com/#themeID/2046286*/
+			
+			
+			.newSpec .input.empty{
+				color: #8B8989;	
+			}
+		
+			
+		</style>
+		
+		<script>
+			
+			
+			
+			var sNames = [];
+			
+			function Init() {
+				var Server = new NodeTunnel('http://unimedica3.web-manufacture.net:808');
+				Server.all('http://unimedica3.web-manufacture.net:808', function(rt, er){
+					sNames = JSON.parse(rt);
+					var nameTabs = DOM.get("#tabs-panel");
+					var proto = DOM(".tab-container.prototype");
+					var counter=10;
+					var spec=TabIndexer.GetSource(sNames, counter);
+					console.log(spec);
+					for (var s in spec){
+						var tab_proto = proto.clone();
+						tab_proto.MyIndexes=[spec[s][0], spec[s][1]];
+						//var smth=spec[s][1];
+						console.log(s);
+						tab_proto.all(".name-tab").set(null, s);
+						nameTabs.add(tab_proto);
+					}
+					
+				});
+				
+				
+				
+			};
+			
+			WS.DOMload(Init);
+			
+			
+			
+			function fix(){
+				var lPan = DOM.get("#specialists");
+				var pin = DOM.get("#pinButton");
+				if (lPan.is('.panel-pin')){
+					pin.del('.pined');
+					lPan.del('.panel-pin'); 
+				} else {
+					pin.add('.pined');
+					lPan.add('.panel-pin');
+				};
+			};
+			
+			function makeTabSelected(a){
+				var allTabs = DOM.all('.tab-container');
+				allTabs.del('.selected');
+				a.add('.selected');
+				showSelectedSpecs(a);
+			};  
+			
+			function showSelectedSpecs(tab){
+				var spcDiv = DOM.get("#specialists");
+				var proto = DOM(".specialist.prototype");
+				//var sNames=FullNames;
+				
+				spcDiv.all(".specialist").del();
+				var ind2= tab.MyIndexes[1];
+				for (ind1=tab.MyIndexes[0]; ind1 <= tab.MyIndexes[1]; ind1++){
+					var spec_proto = proto.clone();					
+					spec_proto.all(".full-name").set(null, sNames[ind1].name);
+					spcDiv.add(spec_proto);				
+				}				
+			};
+			
+			function showInfo(s){
+				if (s.is('.small-plate')){
+					s.del('.small-plate');
+					
+				} else {
+					s.add('.small-plate');
+					
+				}
+			};
+			
+			function CreateNewSpec(){
+				var spcDiv = DOM.get("#specialists");
+				//spcDiv.all(".specialist").del();
+				var srcDiv = DOM.get('.speciality.addInfo');
+				var nSpec = DOM.get(".newSpec");
+				
+				if(nSpec.is('.hideDiv')){
+					nSpec.del('.hideDiv');
+				}else {
+					nSpec.add('.hideDiv');
+				}
+				
+				var proto = DOM(".selectSpeciality");
+				var sSpec=FullSpecialities;
+				var l=sSpec.length-1;					
+				for (var i=0; i<=l; i++){
+					var sSpec_proto = proto.clone();					
+					//sSpec_proto.all(".speciality.addInfo .selectSpeciality").set(null, sSpec[i]);
+					//srcDiv.add(sSpec_proto);
+					sSpec_proto.set(null, sSpec[i]);
+					srcDiv.add(sSpec_proto);
+					
+				}
+				InputWDT.Init();
+			};
+			
+			
+			InputWDT = {
+				Init : function(){
+					DOM.all("input[default-text]").each(function(elem){
+						elem.onfocus = InputWDT.InputFocused;
+						elem.onblur = InputWDT.InputBlur;
+						InputWDT.InitInput(elem);
+					});
+				},
+				
+				InitInput : function(elem){
+					if(!elem.value || elem.value==elem.get('@default-text')){
+						elem.add('.empty');
+						elem.value = elem.get('@default-text');
+					}
+				},
+				
+				InputFocused : function(){
+					if(this.is('.empty')){
+						this.del('.empty');
+						this.value='';
+					}
+				},
+				
+				InputBlur : function(){
+					if(!this.value){
+						this.add('.empty');
+						this.value=this.get('@default-text');
+					}
+				},
+				
+				
+			}
+				
+		</script>
+	</head>
+	<body>
+		<include url='http://services.web-manufacture.net/UI/Dragging.htm'></include>
+		<!--include url='http://services.web-manufacture.net/Authentication/Authentication.htm'></include-->
+		
+		<div class='addSpecBut' title="Add new specialist" id='addSpecBut' onclick="CreateNewSpec()">	</div>
+		<div id="tabs-panel">
+			
+			<div class='tab-container prototype' onclick= 'makeTabSelected(this)' display='block'>
+				
+				<div class='name-tab'>
+					Таб
+				</div>
+			</div>	
+			
+		</div>
+		<div id="specialists">
+			<div class='newSpec hideDiv'>
+				<!--<input type="submit" value="Submit" />-->
+				
+				<select class="org-info addInfo spec-field" size="1" >
+					<option class='selectSpeciality'> Выбрать контору и тип конторы </option>
+				</select>
+				<br/>
+				<select class="speciality addInfo spec-field" size="1">
+					<option class='selectSpeciality'> Выбрать профессию </option>
+				</select>
+				<br/>
+				<input class="input Name addInfo" default-text="ФИО">
+				<br/>
+				<input class="input Tel addInfo" default-text="telephone">
+				<input class="input Mail addInfo" default-text="e-mail">
+				<br/>
+				<div class='buttons'>
+					<div class='btn-ira ok ' title='OK'> OK </div>
+					<div class='btn-ira clear ' title='Clear'> Clear </div>
+					<div class='btn-ira cancel ' title='Cancel'> Cancel </div>
+				</div>
+			</div>
+			
+		</div>
+		
+		<div class="specialist prototype small-plate" onclick='showInfo(this)'>
+			<div class='spec-field spec-pattern'>
+				<div class='org-pattern spec-field field' field='org-pattern'>
+					ОП 
+				</div>
+			</div>
+			
+			<div class='org-name spec-field field' field='org-name'>
+				"Засада", особое отделение №666
+			</div>
+			
+			<div class='org-address spec-field field additional-info' field='org-address'>
+				ул.Светлая, 27
+			</div>
+			<div class='org-town spec-field field additional-info' field='org-town'>
+				пгт Бобруйск
+			</div>
+			<br/>
+			<div class='spec-pattern  spec-field'>
+				<div class='speciality spec-field field' field='speciality'>
+					Техник по племенному делу
+				</div>
+			</div>
+			<div class='index field spec-field additional-info' field='index'>
+				A95
+			</div>
+			<div class='full-name spec-field field' field='full-name'>
+				Иванов Иван Петрович
+			</div>
+			<div class='additional-info'>
+				<div class='telephone spec-field'>
+					<div class='telPic field-pic'></div>
+					<div class='telephone field'  field='telephone'>063-777-77-77</div>
+				</div>
+				<div class='e-mail spec-field'>
+					<div class='mailPic field-pic'></div>
+					<div class='e-mail field' field='e-mail'>ivanov@mail.ru</div>
+				</div>
+				<br/>
+				<div class='diagram  spec-field field' field='diagram'>
+					bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla-bla
+				</div>
+			</div>
+		</div>
+		
+		
+		
+	</body>
+</html>

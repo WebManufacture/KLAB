@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+    <head>
+	<script type="text/javascript" src="system.js.js" key="jss"></script>
+	<script type="text/javascript" src="system.utils.js" key="jss"></script>
+	<script type="text/javascript" src="system.jasp.js" key="jss"></script>
+	<script type="text/javascript" src="system.ajax.js" key="jss"></script>
+	<script type="text/javascript" src="system.modules.js" key="jss"></script>
+    </head>
+    <body>
+	<div id="contDiv">
+	</div>
+	<H1>ggggg</H1>
+	
+	<div style="text-decoration: underline; color: blue; cursor: pointer;" onclick="RT()">nnn</a>
+	
+	<script type="text/javascript">
+	    function RT()
+	    {
+		
+		
+		var R = new XMLHttpRequest();
+		R.open("GET", "http://system.web-manufacture.net/DarjaAJAX.htm", true);
+		
+		R.onload = OnReponse;
+		
+		R.send();
+	    }
+	    
+	    function OnReponse()
+	    {
+		var cont=document.getElementById("contDiv");
+		if(this.status == 200)
+		    cont.innerHTML = this.responseText;
+		else
+		    cont.innerHTML="Фигли! "+this.status;
+	    }
+	</script>
+	
+    </body>
+</html>    
+
+    

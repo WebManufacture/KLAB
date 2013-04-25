@@ -1,0 +1,404 @@
+<style type="text/css">
+  
+  body.classic {
+    background: #f8f7e5 url('20100814_iunewind_wallpapers_ru_astrobashnya_1680x1050_(142686)WP.jpg') no-repeat center top;    
+  }
+  
+  body {
+    background-repeat: no-repeat;
+    background-position: center top;    
+  }
+  
+  html
+{
+  height: 99.9%;
+  width: 99.9%;
+}
+
+body
+{
+  height: 99.9%;
+  width: 99.9%;
+  margin: 0;
+  padding: 0;
+  font-family: Verdana;
+  font-size: 12px;
+}
+
+h2
+{
+  font-weight: bold;
+  font-size: 30px;
+  color: Navy;
+}
+
+h3
+{
+  font-weight: bold;
+  font-size: 20px;
+  color: Yellow;
+}
+
+.full-cropped
+  {
+    height: 100%;
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+  }
+  
+prototypes, messages, storage, initializer, jasp, handler
+{
+  display: none;
+}
+  
+   
+
+.invisible
+{ 
+  display: none !important;
+}
+
+.layout-table
+{
+  height: 100%;
+  width: 100%;
+}
+
+.layout-table td
+{
+  background: white;
+}
+
+.ui-block
+{
+  font-family: verdana;
+  font-size: 12px;
+  position: fixed!important;
+  z-index: 20;
+  opacity: .9;
+  top: 100px;
+  right: 100px;
+  background-image: url(data:image/gif;base64,R0lGODlhAwADAIAAANve4f/7/yH5BAAAAAAALAAAAAADAAMAAAIETHAZBQA7);
+  border: solid 1px gray;
+  border-radius: 10px;
+  -moz-border-radius: 10px;
+  width: 500px;
+  height: 600px;
+  padding-top: 60px;
+  display: none;
+  padding-bottom: 30px;
+  overflow: visible;
+}
+ 
+.ui-block.top
+{
+  z-index: 200;
+} 
+
+.ui-block .status-box
+{
+  background-color: none;
+  opacity: 0.7;
+  border-top: solid 1px gray;
+  width: 100%;
+  height: 25px;
+  text-align: center;
+  cursor: default;
+  padding-top: 4px;
+  position: absolute;
+  bottom: 0px;
+  left: 0px;
+  color: navy;
+}
+
+
+
+.ui-block .header
+{
+  background-color: none;
+  border: solid 1px darkorange;
+  border-radius: 10px;
+  -moz-border-radius: 10px;
+  font-size: 16px;
+  width: 90%;
+  height: 55px;
+  margin-left: 1%;
+  margin-right: 1%;
+  top: 6px;
+  text-align: center;
+  cursor: default;
+  padding-left: 8%;
+  position: absolute;
+  overflow: visible;
+}
+
+.ui-block .header.command-wait
+{
+  background-color: #FFFF99;
+}
+
+
+.ui-block .header.command-accept
+{
+  background-color: orange;
+}
+  
+.ui-block.top .header
+{
+background-color:#CCFFCC
+}
+  
+.ui-block.ui-draggable-dragging
+{
+     background-image: none;
+   background-color: rgba(255,255,255, 0.6); 
+}
+  
+.ui-block.ui-draggable-dragging *:not(.header)
+{
+    display:none;
+    
+}
+  
+     
+  
+.ui-item.ui-draggable-dragging
+{
+    position: fixed;
+    z-index: 1000;
+}
+
+
+#content-block
+{
+  height: 99%;
+  width: 99%;
+  position: absolute;
+  z-index: 5;
+  top: 0;
+  left: 0;
+}
+
+#html-block
+{
+  border: solid;
+  background-repeat: no-repeat;
+  vertical-align: top;
+}
+
+.text-editor-block
+{
+  margin-left: 60px;
+  border: solid 1px gray;
+}
+
+#Notify-container
+{
+  border: solid 1px black;
+  width: 300px;
+  height: 300px;
+  position: fixed;
+  bottom: 0;
+  right: 0;
+  opacity: .9;
+  background-color: navy;
+  text-align: center;
+  color: white;
+  z-index: 200;
+}
+
+
+#Error-container
+{
+  border: solid 1px black;
+  width: 300px;
+  height: 300px;
+  position: fixed;
+  top: 0;
+  right: 0;
+  opacity: .9;
+  background-color: red;
+  text-align: center;
+  color: black;
+  z-index: 201;
+}
+
+.ui-button
+{
+  width: 50px;
+  height: 50px;
+  border-radius: 10px;
+  -moz-border-radius: 10px;
+  border: solid 1px black;
+  background-color: none;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.ui-button:hover
+{
+  background-color: rgba(255,255,255, 0.7);
+}
+
+.dialog
+{
+  display: none;
+  position: absolute;
+  z-index: 1000;
+  background: gray;
+  width: 100%;
+  height: 100%;
+  opacity: 1;
+  top: 0px;
+  left: 0px;
+}
+
+.dialog-inner
+{
+  position: absolute;
+  z-index: 1001;
+  background: white;
+  border: solid 1px black;
+  top: 50%;
+  left: 50%;
+  opacity: 1;
+}
+
+
+  
+</style>
+
+<div id="Notify-container" style="display: none;" onclick="HideNotifications();">
+  <span class="message"></span>
+</div>
+
+<div id="Error-container" style="display: none;" onclick="HideNotifications();">
+  <span class="message"></span>
+</div>
+
+<ajax id="msg_MENUS_LOADING" class='jasp-message' urlbase="proxy" url='System.Menu.htm' append="#MRT_IS_SiteFabric-MainDiv"></ajax>
+
+<ajax id="msg_MINIMENU_LOADING" class='jasp-message' urlbase="proxy" url='System.MiniMenu.htm' append="#MRT_IS_SiteFabric-MainDiv" event-id="msg_MENUS_LOADING"></ajax>
+
+<ajax id="msg_MAINMENU_LOADING" class='jasp-message' urlbase="proxy" url='System.MainMenu.htm' append="#MRT_IS_SiteFabric-MainDiv" event-id="msg_MENUS_LOADING"></ajax>
+  
+<ajax id="msg_Files_LOADING" class='jasp-message' urlbase="proxy" url='System.Files.htm' append="#MRT_IS_SiteFabric-MainDiv" event-id="msg_MENUS_LOADING"></ajax>
+
+<ajax id="msg_Text_LOADING" class='jasp-message' urlbase='proxy' url='System.TextEditor.htm' append='#MRT_IS_SiteFabric-MainDiv' event-id="msg_MENUS_LOADING"></ajax>
+
+<ajax id="msg_Designer_LOADING" class='jasp-message' urlbase="proxy" url='System.Designer.htm' append="#MRT_IS_SiteFabric-MainDiv" event-id="msg_MENUS_LOADING"></ajax>
+
+<ajax class='jasp-message' urlbase="proxy" url='System.CssInfo.htm' append="#MRT_IS_SiteFabric-MainDiv" event-id="msg_MENUS_LOADING"></ajax>
+
+<ajax class='jasp-message' urlbase="proxy" url='System.ColorPalette.htm' append="#MRT_IS_SiteFabric-MainDiv" event-id="msg_MENUS_LOADING"></ajax>
+
+<ajax id="msg_FILESMENU_LOADING" class='jasp-message' urlbase="proxy" url='System.FilesMenu.htm' append="#MRT_IS_SiteFabric-MainDiv" event-id="msg_Designer_LOADING"></ajax>
+
+<ajax id='msg_XEditor_LOADING' class='jasp-message' urlbase='proxy' url='System.XEditor.htm' append='#MRT_IS_SiteFabric-MainDiv' event-id='msg_XEditor_Load' permanent='true'></ajax>";
+
+<eval event-id="msg_Designer_LOADING" class='jasp-message'>
+  ShowNotify("<h2>Load complete!</h2>");
+</eval>
+
+<event class="jasp-message" event-id="msg_Designer_LOADING" target-id="msg_BaseUI_INITIALIZED">
+</event>
+
+<set class="jasp-message" selector=".current-edited" type="inner"/><get type="attribute" subselect="url" selector="#content-block">content-block</get></set>
+
+<script>
+
+  $$.ReloadContent = function(id, msg_id)
+  {
+    var url = $(id).attr("url");
+    var message = $$.CreateMessage("ajax");
+    message.setAttribute("target", id);
+    message.setAttribute("url", url);
+    message.setAttribute("urlbase", "system");
+    message.setAttribute("cache", "nocache");
+    if (msg_id != undefined)
+  {
+    message.setAttribute("id", msg_id);
+  }
+    $$.ProcessMessage(message);
+  }
+
+  function HideUIBlock() {
+    $(this).parent().hide();
+  }
+
+  function TopUIBlock() {
+    $(".ui-block.top").removeClass("top");
+    $(this).parent().addClass("top");
+  }
+
+  
+function HandleUICommand(event, ui) {
+    var dst = $(this);
+    if (!dst.hasClass("system-block")) {
+        dst = $(this).parent();
+    }
+    if (!dst.hasClass("system-block")) {
+       return;
+    }
+    if (ui.draggable.hasClass("hide")) {
+        dst.hide();
+    }
+    if (ui.draggable.hasClass("size")) {
+        dst.resizable();
+    }
+    if (ui.draggable.hasClass("drag")) {
+        dst.draggble();
+    }
+    if (ui.draggable.hasClass("remove")) {
+        dst.remove();
+    }
+}
+
+function HandleUIDesktopCommand(event, ui) {
+    var dst = $(this).parent();
+    if (ui.draggable.hasClass("hide")) {
+        dst.hide();
+    }
+}
+
+function HandleUIhandler(event, ui) {
+    var dst = $(this);
+
+}
+
+function DescendandAndSelf(context, filter) {
+    var desc = context.find("." + filter + ":not(.content)");
+    if (context.hasClass(filter))
+        desc = desc.andSelf();
+    return desc;
+}
+
+  
+</script>
+
+<prototypes>
+  <handler class='jasp-message jasp-handler ui-block-handler' subitems='.ui-block' selector="message" type='link' function="ParseInternal" parent="#jasp-parser">
+    $$.Element = $($$.Element);
+    $$.Element.draggable({ handle: ".header", cancel: ".menuitem"});
+    $$.Element.resizable();
+    var header = $$.Element.find(".header");
+    header.dblclick(HideUIBlock);
+    header.mousedown(TopUIBlock);
+    header.droppable({ accept: ".ui-command", activeClass: "command-wait", hoverClass: "command-accept", drop: HandleUICommand });
+  </handler>
+  
+  <handler class='jasp-message jasp-handler ui-command-handler' subitems='.ui-command' selector="message" type='link' function="ParseInternal" parent="#jasp-parser">
+    $($$.Element).draggable({ helper: "clone", stop: HandleUICommand });
+  </handler>
+</prototypes>
+<storage>
+  <div class="current-file">
+    <span class="file-name"></span>
+    <span class="file-type">htm</span>
+  </div>
+  <div class="current-path">UserFiles</div>
+  <div class="current-edited"></div>
+</storage>
+

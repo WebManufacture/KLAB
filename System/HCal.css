@@ -1,0 +1,116 @@
+
+.hcal {
+    border: solid 1px #ccc;
+}
+
+.hcal .header {
+    padding: 4px 10px;
+    text-align: center;
+    font-weight: bold;
+    border-bottom: solid 1px #ccc;
+    color: navy;
+}
+
+.hcal .calendar 
+{
+    border: solid 1px #eee;
+}
+
+.hcal .calendar .cal-btn
+{
+    width: 18px;
+    height: 25px;
+}
+
+.hcal .calendar .left-btn
+{
+    float: left;
+    background: transparent url("../image/agleft.png") no-repeat center;
+}
+
+.hcal .calendar .right-btn
+{
+    float: right;
+    background: transparent url("../image/agright.png") no-repeat center;
+}
+
+
+.hcal .calendar .left-btn:hover
+{
+    float: left;
+    background: transparent url("../image/aleft.png") no-repeat center;
+}
+
+.hcal .calendar .right-btn:hover
+{
+    float: right;
+    background: transparent url("../image/aright.png") no-repeat center;
+}
+
+.hcal .day-names {
+    text-align: center;
+}
+
+.hcal .calendar .content
+{
+    text-align: center;
+    color: navy;
+}
+
+.hcal .hcal-day-name {
+    color: gray;
+}
+
+.hcal .hcal-day,
+.hcal .hcal-day-name
+{
+    -moz-box-sizing: border-box;
+    display: inline-block;
+    height: 25px;
+    margin-right: 1px;
+    padding-top: 4px;
+    text-align: center;
+    width: 23px;
+    cursor: pointer;
+}
+
+.hcal .hcal-day 
+{
+    border-bottom: solid 3px #AADDAA;
+}
+
+.hcal .hcal-day.holiday
+{
+    color: red;
+}
+
+.hcal .hcal-day.week-end
+{
+    border-bottom: solid 3px #fc0;
+}
+
+.hcal .hcal-day:not(.disabled):hover {
+    background-color: #ef0;
+}
+
+.hcal .hcal-day.disabled
+{
+    background-color: #ccc;
+    color: gray;
+}
+
+.hcal .hcal-day.selected
+{
+    background-color: #cf0;
+    font-weight: bold;
+}
+
+.hcal .hcal-day.marked
+{
+    background-color: #adf;
+}
+
+.hcal .hcal-day.selected:not(.disabled):hover
+{
+    background-color: #fe0;
+}

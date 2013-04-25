@@ -209,7 +209,7 @@
 				return;
 			}
 			if (event.ctrlKey) {	
-				if (location.pathName == "/"){
+				if (location.pathname == "/"){
 					window.open(location + this.name);
 				}
 				else{
@@ -258,7 +258,7 @@
 		};
 		
 		FS.FileActivate = function() {
-			if (location.pathName == "/"){
+			if (location.pathname == "/"){
 				window.open(location + this.fileName);
 			}
 			else{
@@ -269,7 +269,7 @@
 		
 		FS.LoadFile = function(file) {
 			var url = location + file.fileName;
-			if (location.pathName != "/"){
+			if (location.pathname != "/"){
 				url = location + "/" + file.fileName;
 			}
 			//if (file.is(".css") || file.is(".htm") || file.is(".html") || file.is(".js") || file.is(".cs") || file.is() {

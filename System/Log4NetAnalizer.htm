@@ -1,0 +1,103 @@
+  <!DOCTYPE HTML>
+<html>
+    <head>
+	<title>Логи</title>
+	<link type='text/css' rel='stylesheet' href="http://Services.web-manufacture.net/Styles/System.default.css"/>
+	<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Utils.js"></script>
+	<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/DOM.js"></script>
+	<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Events.js"></script>
+	<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Log.js"></script>
+	<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Url.js"></script>
+	<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Ajax.js"></script>
+	<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Jasp.js"></script>
+	<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Modules.js"></script>
+	<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+	<style type="text/css">
+	    
+	    .log-item{
+		margin-top:10px;
+	    }
+	    
+	    .log-item .DEBUG{
+	        color:blue;
+	    }
+	    
+	    .log-item.ERROR{
+		background-color: #fee;
+	    }
+	    
+	    .log-item.INFO{
+		color: black;
+	    }
+	    
+	    .log-item .inner{
+	        color:gray;
+	    }
+	    
+	    .inline{
+		display:inline-block;
+		margin-right:10px;
+	    }
+	    
+	    
+	</style>
+    </head>
+    <body>
+	<div class='log-container'>
+	    
+	</div>
+	<script type='text/javascript'>
+	    
+	    //Log.txt
+	    
+	    function Init(){	
+		if (Request.Params.File){
+		    ax.get(Request.Params.File, ResultReturned);
+		    return;
+		}
+		if (Request.Params.Url){
+		    ax.get(Request.Params.Url, ResultReturned);
+		}
+	    }
+	    
+	    function ResultReturned(data){
+		var log = DOM.get(".log-container");
+		//var item = log.div(".log-item", "hello2"); 
+		var startIndex = data.indexOf("[", 0);
+		while (startIndex >= 0){
+		    var index2 = data.indexOf ('\n', startIndex);
+		    if (index2 < 0) break;
+		    var headerStr = data.substring(startIndex, index2);		   
+		    var startstr = startIndex;
+		    startIndex = data.indexOf("[", index2);
+		    if (startIndex >= 0){
+			var item = log.div(".log-item");
+			var headerItem = item.div(".header");
+			var regex = /^\[([ 0-9,:.-]+)\]\s+\[([^\]]+)\]\s+([A-Z]+)\s+(.*)$/;
+			var hs = regex.exec(headerStr);
+			if (hs && hs.length >= 4){
+			    headerItem.div(".inline.date", hs[1]);
+			    item.add("." + hs[3]);
+			    headerItem.div(".inline.status", hs[3]);
+			    headerItem.div(".inline.function", hs[4]);
+			}
+			else{
+			    headerItem.html(headerStr);
+			}
+			var bodyStr = data.substring(index2,startIndex);
+			var fl = bodyStr.indexOf('\n', 1);
+			if (fl > 0){
+			    item.div(".message", bodyStr.substring(0, fl.length));
+			}
+			item.div(".inner", bodyStr);
+		    }
+		    else{
+			var item = log.div(".log-item", headerStr);
+		    }
+		}
+	    }
+	    
+	    WS.DOMload(Init);
+	</script>	
+    </body>
+</html>

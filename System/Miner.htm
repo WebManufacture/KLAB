@@ -1,0 +1,367 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+	<title>Сапер</title>
+	<link type='text/css' rel='stylesheet' href="http://Services.web-manufacture.net/Styles/System.default.css"/>
+	<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.2/Utils.js"></script>
+	<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.2/DOM.js"></script>
+		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.2/Log.js"></script>
+	<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.2/Url.js"></script>
+	<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.2/Ajax.js"></script>
+	<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.2/Jasp.js"></script>
+	<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+	<style type="text/css">
+	    .zagolovok {
+	        color: navy;
+		font-size: 200%;
+		margin: 10px 20px;
+		font-weight: bold;
+	    }
+	    
+	    .main-menu a:hover {
+		font-weight: bold;
+	    }	    
+	    
+	    .main-menu a {
+		text-decoration: none;
+		color: white;
+	    }
+	    
+	    .main-menu {
+		width: 100%; 
+		background: gray; 
+		color: white; 
+		font-weight: bold;		
+	    }
+	    
+	    .menu-item{
+		display: inline-block;
+		padding:5px 10px; 
+	    }
+	    
+	    .sub-menu {
+		display: none; 
+		background: navy; /* Цвет фона под ссылкой */ 
+		color: white;
+		font-weight: normal;		
+		position: absolute;
+		top: 85px;
+		margin-left: -10px;
+	    }
+
+	    .menu-item .sub-menu a{
+                display: block;
+		padding: 10px 20px;
+		border-bottom: solid 1px navy;
+	    }
+	    
+	    .menu-item .sub-menu a:hover{
+		border-bottom: solid 1px white;
+	    }
+	        
+	    .menu-item:hover{
+		background: navy; /* Цвет фона под ссылкой */		
+	    }
+	    
+	    .menu-item:hover>a
+	    {
+		/*color: yellow;*/
+	    }
+	    
+	    .menu-item:hover .sub-menu {
+		display: block; 
+	    }
+	    
+	    .minefield{
+		width: 99%;
+		height: 99%;
+		border: 5px solid navy;		
+	    }
+	    .minefield .cell {
+		width: 48px;
+		height: 48px;
+		color: green;
+		background-color: #eee;
+		float: left;
+		border: dotted 1px navy;
+		font-size: 16px;
+		font-weight: bold;
+		box-sizing: padding-box;
+		-moz-box-sizing: padding-box;
+		-webkit-box-sizing: padding-box;
+		padding-left: 18px;
+		padding-top: 14px;
+	    }
+	    
+	    .minefield .cell.active{
+		background-color: yellow;
+	    }
+	    	    
+	    .minefield .cell.bom {
+
+	    }	
+	    
+	    
+	    .minefield .cell[bomb-count='1'] {
+		color: black;
+	    }
+	    
+	    
+	    .minefield .cell[bomb-count='2'] {
+		color: #90A;
+	    }
+	    
+	    .minefield .cell[bomb-count='3'] {
+		color: #A00;
+	    }
+	    
+	    .minefield .cell[bomb-count='4'],
+		.minefield .cell[bomb-count='5'],
+		.minefield .cell[bomb-count='6'],
+		.minefield .cell[bomb-count='7'],
+		.minefield .cell[bomb-count='8']{
+		color: red;
+	    }
+	    
+	    .minefield .processed {
+		background-color: white;
+	    }
+
+	    
+	</style>
+    </head>
+    <body>
+	<div class='main-menu'>
+	    <div class='menu-item'>
+		<a href='#'>Главная</a>
+		<div class='sub-menu'>
+		    <a href='#'>Новая игра</a>
+		</div>
+	    </div>
+	</div>
+	<div class='minefield'>
+	
+	</div>
+	<script type='text/javascript'>
+	     function sumTo(n) {
+		return (n != 0) ? n+sumTo(n-1) : n;
+	    }
+	    //var n = prompt('input N', '');
+	    //alert( sumTo(n) );
+	    
+	    var user = {
+		name: 'Tanya',
+		age: 25,
+		size: {
+		    top: 90,
+		    middle: 60,
+		    bottom: 90
+		}
+	    }
+		
+		function getKeysCount(user) {
+		    var counter = 0;
+		    for (var key in user) {
+			counter++;
+		    }
+		    return counter;
+		}
+	    
+	    //alert(getKeyCount(user));
+	    
+
+	    function Init(){
+		
+		InitMinefield();
+		
+		return;
+		    
+		    var elem = DOM.get(".minefield"); //Извлечь из документа ссылку на первый элемент с классом .minefield
+		
+		elem.set(".mynotename");  //задать класс mynotename (т.е. className = "mynotename");
+		elem.set("@mynotename", "197");//задает аттрибуту mynotename значение
+		elem.add("@mynotename", "45"); //Добавить в mynotename аттрибут текст 45
+		var mnn = elem.get("@mynotename"); //Вернуть значение аттрибута		
+		
+		elem.set("Привет!");// Записать текст Привет внутрь
+   		
+		elem.set(null, mnn);// Записать текст Привет внутрь безопасная форма                
+		
+		elem.add(null, "@.#2");// Добавить текст Привет внутрь безопасная форма                
+		
+		var otherElem = DOM.div(".inner-element", "Другой див"); //Создает новый Div в памяти (не на странице)
+		
+		elem.add(otherElem); //add добавляет элемент внутрь elem	
+		
+		var zagol = elem.add(DOM.get(".zagolovok")); //add добавляет элемент внутрь elem
+		
+		elem.add(".new-class.ascmaosckajscnkajscnkajscnkajscn");
+		
+		elem.del(".minefield");	//Удалить класc minefield у elem	
+		
+        	
+		var newDiv = zagol.div(".inner-element"); //Создать DIV с классом inner-element внутри elem
+		var newDiv2 = elem.get(".inner-element");//Находит первый inner-element внутри
+		var newDivs = elem.all(".inner-element");//Находит все inner-element внутри. Возвращает массив
+		
+   		newDiv2.del(); //Удалить элемент newDiv2
+		
+		var img = newDiv.add(null, "<img src='http://yandex.st/www/1.213/yaru/i/logo.png'/>");
+		
+		img.set('@src', "sdjvnskjdvn");
+		
+		var img3 = DOM.add("<div></div>");
+		img3.set('#736mjckjnac');
+		
+		
+		
+		return;
+		    }
+	   
+	    function InitMinefield() {
+				
+		var minefield = DOM.get(".minefield");
+		
+		
+		var width = Math.floor(minefield.clientWidth / 50);
+		var height = Math.floor(minefield.clientHeight / 50);
+		
+		minefield.fieldWidth = width;
+		minefield.fieldHeigth = height;
+		
+		var cellCount = width * height;
+		//minefield.add('@width', width + '');
+		//minefield.add('@height', height + '');
+		
+		for (var j = 0; j < height; j++) {
+		    for (var i = 0; i < width; i++) {		    					     
+			
+			var newDiv = minefield.div('.cell');
+			//newDiv.add(null, i);
+			newDiv.add('@id', ('d' + (j*width + i + 1)));
+			newDiv.set('@y', j + "");
+			newDiv.set('@x', i + "");
+			newDiv.onclick = bombClick;
+		    }}
+		;
+		
+		var bombCellNumb = 0;
+		
+		for (var i = 0; i < cellCount / 10; ) {
+		    bombCellNumb = Math.ceil(Math.random() * cellCount);
+		    var cellForBomb = minefield.get('#d'+ bombCellNumb);
+		    if (cellForBomb.is('.bom')) {
+			continue;
+			    }
+		    else {
+			cellForBomb.add('.bom');
+			i++;
+		    };
+		};
+	    };
+	    
+	      
+	    
+	    
+	    function bombClick(event22){
+		
+		
+		/*this.add(".clicked");
+		if (this.is(".active"){
+		    
+                }*/
+		var active = this.get("@isactive");
+		if (this.is('.bom')) {
+		    alert('пиздец');
+		    };
+		/*
+		if (active == 'clicked'){
+		    this.set("@isactive", 'none-clicked');
+		    this.del(".active");
+		}
+		else{
+    		    this.set("@isactive", 'clicked');
+		    this.add(".active");
+		}
+*/
+		var x = parseInt( this.get('@x') );
+		var y = parseInt( this.get('@y') );
+		
+		//this.set(null, bombCounting(x, y) + '');
+		bombCounting(x, y);
+		
+		
+		/*
+                alert(x + ' ' + y);
+		var colored = DOM.get('[x=3"][y=5]');
+                colored.add('.colored');
+                */
+
+		
+	    };
+	    
+	    function bombCounting(x, y) {
+		var thisCell = DOM.get('[x="' + x + '"][y="' + y + '"]');
+		if (!thisCell || thisCell.is('.processed')) {
+		    return;
+		}
+		
+		var minefield = DOM.get('.minefield');
+		//var width = minefield.get('@width');
+		//var height = minefield.get('@height');
+		
+		var width = minefield.fieldWidth;
+		var height = minefield.fieldHeigth;
+		
+		if ((x < 0) || (x > width - 1) || (y < 0) || (y > height - 1) ) {
+		    return;
+		};
+		
+		var result = 0;
+		
+		for (var i = (x-1); i <= (x+1); i++) {
+		    					     
+		    for (var j = (y-1); j <= (y+1); j++) {
+			var selector = '[x="' + i + '"][y="' + j + '"]';
+			var cell = DOM.get(selector);
+			if ( cell && cell.is('.bom') ) {
+		   
+			    result += 1;
+			};
+		    };
+		};
+		thisCell.set('@bomb-count', result);
+		thisCell.add('.processed');	
+		if ( result == 0 ) {
+		    thisCell.add(".empty");
+		    
+		    for (var i = (x-1); i <= (x+1); i++) {
+			for (var j = (y-1); j <= (y+1); j++) {
+			    bombCounting(i, j);
+			};
+		    };	
+		}
+		else{
+		    thisCell.set(null, result);
+		}
+		return;
+	    };
+		    
+		    // function parameters(x, y) {
+		    
+		    //  for (var i = (x-1); i < (x+2); i++) {
+		    					     
+		    //for (var j = (y-1); j < (y+2); j++) {
+			    
+		    //   
+		    //	};
+				
+	
+	    WS.DOMload(Init);
+	</script>
+	
+	
+	
+	
+    </body>
+</html>

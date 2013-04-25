@@ -179,7 +179,7 @@ Server.RouteProxy = function(req, res){
 		if (rr.Location){
 			host = rr.Location;	
 		}
-		console.log((url.hostname + " redirected to " + rr.Port).data);
+		//console.log((url.hostname + " redirected to " + rr.Port).data);
 		proxy.proxyRequest(req, res, { host: "127.0.0.1", port: rr.Port });
 		return true;
 	}	

@@ -1,0 +1,236 @@
+<div id="menu-block" class="content" url="System.Menu.htm">
+<handler class='jasp-message jasp-handler ui-menu-handler' subitems='.menuitem' selector="message" type='link' function="ParseInternal" parent="#jasp-parser">
+    var menu = $($$.Element);
+    var icon = menu.attr("icon");
+    if (icon != null) {
+      menu.css("background-image", "url('" + GetServerRoot() + icon + "')");
+    }
+</handler>
+
+<handler class='jasp-message jasp-handler ui-menu-handler' subitems='.dialog' selector="message" type='link' function="ParseInternal" parent="#jasp-parser">
+  var dialog = $($$.Element);
+  dialog.find(".dialog-apply").click(OnApplyDialog);
+  dialog.find(".dialog-close").click(OnCloseDialog);
+</handler>
+
+
+<script type="text/javascript">
+
+
+function HideAdvanced(type) {
+   $(".menu .menuitem.advanced." + type).hide();
+}
+
+function ShowAdvanced(type) {
+   $(".menu .menuitem.advanced." + type).show();
+}
+
+
+
+function CheckOver() {
+    $(this).parent().find(">.tree-selected").removeClass("tree-selected");
+    $(this).addClass("tree-selected");
+}
+
+function SetActive(event) {
+   $(this).addClass("active");
+}
+
+function UnsetActive(event) {
+   $(this).removeClass("active");
+}
+
+function InitMenuItem(menu) {
+    var icon = menu.getAttribute("icon");
+    if (icon != null) {
+        $(menu).css("background-image", "url('" + GetServerRoot() + icon + "')");
+    }
+  if ($(menu).hasClass("tree")) $(menu).mouseover(CheckOver);
+  $(menu).mousedown(SetActive);
+  $(menu).mouseout(UnsetActive);
+}
+
+function InitMenuItems(item) {
+    var menus = $(item).find(".menuitem");
+    for (var i = 0; i < menus.length; i++) {
+        InitMenuItem(menus[i]);
+    }
+}
+
+
+function LoadUrl(elem) {
+    var url = $("#inpUrl").val();
+    if (url.length > 0) {
+        $("#content-block").load("System.ContentHandler.ashx?url=" + escape(url));
+        $("#content-block").attr("style", "");
+    }
+}
+
+function OnCloseDialog() {
+    $(this).parents(".dialog:first").hide();
+}
+
+function OnApplyDialog() {
+    var dialog = $(this).parents(".dialog:first");
+    dialog.hide();
+    if (dialog[0].OnApply != undefined && dialog[0].OnApply != null) {
+        dialog[0].OnApply();
+        dialog[0].OnApply = null;
+    }
+}
+
+var menusElems;
+var boobsClass = "";
+
+function keyhook(event)
+{
+  if (event.keyCode == 65 && boobsClass == "" && !event.shiftKey)
+  {
+    $(".mini-menu .menuitem:visible").addClass("hided");
+    $(".mini-menu .menuitem").hide();
+    $(".mini-menu .menuitem.bookmark").show();
+    $(".mini-menu .dock-indicator").addClass("boobs");
+    boobsClass = "bookmark";
+    return false;
+  }
+  if (boobsClass != "" && event.shiftKey && event.keyCode != 16)
+  {
+    $(".mini-menu .status").html(event.keyCode + "");
+    $(".mini-menu .menuitem." + boobsClass + ".boobsmode[key=" + event.keyCode + "]").click();
+  }
+}
+
+function unhook(event)
+{
+  if (boobsClass != "" && event.keyCode == 16)
+  {
+    $(".mini-menu .menuitem").hide();
+    $(".mini-menu .menuitem.hided").show();
+    $(".mini-menu .dock-indicator").removeClass("boobs");
+    $(".mini-menu .menuitem.hided").removeClass("hided");
+    boobsClass = "";
+    return false;
+  }
+}
+
+function mousehook(event)
+{
+  if (event.button == 1)
+  {
+    SetBoobsMode();
+  }
+  else
+  {
+    
+  }
+}
+
+function SetBoobsMode(){
+    boobsMode = !boobsMode;
+    if (boobsMode)
+    {
+      $("#stateNotifier .state").html("BOOBS");
+      $("#stateNotifier").addClass("state1");
+    }
+    else
+    {
+      $("#stateNotifier .state").html("");
+      $("#stateNotifier").attr("class", "");
+    }
+  
+  $(".dialog .dialog-close").click(OnCloseDialog);
+    $(".dialog .dialog-apply").click(OnApplyDialog);
+}
+</script> 
+<style type="text/css">
+.menu .menuitem
+{
+  width: 50px;
+  height: 50px;
+  display: block;
+  border-radius: 10px;
+  -moz-border-radius: 10px;
+  border: solid 1px silver;
+  margin: 2px;
+  float: left;
+  vertical-align: bottom;
+  background-repeat: no-repeat;
+  background-position: center center;
+  text-align: center;
+  cursor: pointer;
+}
+
+.menu .menuitem:hover
+{
+  background-color: yellow;
+  opacity: 1;
+  border: dotted 1px gray;
+}
+  
+.menu .menuitem.drop-ready
+{
+    background-color: orange;
+}
+  
+.menu .menuitem.drop-selected
+{
+    background-color: red;  
+}  
+  
+.menu .menuitem.round
+{
+  border-radius: 10px;
+  -moz-border-radius: 10px;
+  border: solid 1px lightgray;
+  text-align: center;
+  vertical-align: middle;
+}
+
+.menu .menuitem.round[icon]
+{
+  /*background-color: none;*/
+}
+
+.menu .menuitem.active
+{
+  box-shadow: 1px 1px 2px gray;
+  -moz-box-shadow: 1px 1px 2px gray;
+}
+
+.menu separator, .menu .separator
+{  
+  width: 55px;
+  height: 55px;
+  display: block;
+  margin: 2px;
+  vertical-align: bottom;
+}
+
+.menu .small
+{
+  width: 50px;
+  height: 50px;
+}
+
+.menu.small .menuitem
+{
+    width: 50px;
+    height: 50px;
+}
+
+.menu .large
+{
+  width: 128px;
+  height: 128px;
+}
+
+.menu.large .menuitem
+{
+  width: 128px;
+  height: 128px;
+}
+
+
+</style>
+
+</div>
