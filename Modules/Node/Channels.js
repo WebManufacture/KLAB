@@ -5,19 +5,19 @@ global.Channels = new Channel();
 module.exports = global.Channels;
 
 global.Message = function(path){
-	var matches = Message.RegExp.exec(path);
+	/*var matches = Message.RegExp.exec(path);
 	if (!matches) throw "Path " + path + " is not correct for message";
 	this.path = matches[1];
-	this.modifier = matches[2];
-	this.id = matches[3];
-	this.tags = matches[4].split(".").splice(0, 1);
+	this.id = matches[2];
+	this.tags = matches[3].split(".").splice(1);
 	if (this.path == undefined || this.path == ""){
 		this.path = "?";	
 	}
-	this.nodes = this.path.split("/");
+	this.nodes = this.path.split("/");*/
 }
 
-Message.RegExp = /^((?:(?:[a-z\d\-_])*\/?)*)?([<>])?(#[a-z\d\-_]+)?((?:\.[a-z\d\-_]+)*$)/;
+//Message.RegExp = /^((?:(?:[a-z\d\-_])*\/?)*)?(#[a-z\d\-_]+)?((?:\.[a-z\d\-_]+)*$)/;
+//Message.RegExp = /^((?:(?:[a-z\d\-_])*(?:\.[a-z\d\-_]+)*\/?)*)?$)/;
 
 Message.RegExp.compile();
 	
@@ -27,12 +27,39 @@ global.Channel = function(name){
 	this.ids = {};
 }
 
-Channel.prototype.on = Channel.prototype.for = Channel.prototype.subscribe = Channel.prototype.add = Channel.prototype.addListener = function(){
-	
+Channel.RegExp = /^((?:(?:[a-z\d\-_*])*\/?)*)?([<>])?(#[a-z\d\-_]+)?((?:\.[a-z\d\-_]+)*$)/;
+
+Channel.RegExp.compile();
+
+Channel.prototype.on = Channel.prototype.for = Channel.prototype.subscribe = Channel.prototype.add = Channel.prototype.addListener = function(path, callback){
+	var matches = Channel.RegExp.exec(path);
+	if (!matches) throw "Path " + path + " is not correct for message";
+	path = { 
+		path : matches[1],
+		modifier = matches[2],
+		id = matches[3],
+		tags = matches[4].split(".").splice(1);
+		handler : callback;
+	};
+	if (path.path == undefined || path.path == ""){
+		path.path = "*";	
+	}
+	if (path.id && path.id != ""){
+		this._addIdHandler(path.id);
+	}
+	if (path.path){
+		this._addPathHandler(path.path, path.modifier, path);
+	}
+	if (path.tags && path.tags.length > 0){
+		path.tags.each(function(item){
+			this._addTagHandler(item, path);
+		});
+	}
+	return path;
 }
 
 
-Channel.prototype.once = Channel.prototype.subscribe = Channel.prototype.add = Channel.prototype.addListener = function(){
+Channel.prototype.once = function(path, callback){
 	
 }
 
@@ -46,8 +73,26 @@ Channel.prototype.emit = Channel.prototype.send = function(message){
 	if (typeof(message) == "Message"){
 		
 	}
-}
-
+};
+		
+Channel.prototype._addPathHandler = function(path, modifier, obj){
+	if (path){
+		var nodes = path.split("/");
+		if (nodes.length > 0){
+			for (var i = 0; i < nodes.length; i++){
+				
+			}
+			var arr = this.ids[id];
+			if (!arr) arr = this.ids[id] = [];
+			arr.push(obj);
+		}
+	}
+};
+		
+Channel.prototype._addTagHandler = function(tag, obj){
+	
+};
+		
 require("./utils.js");
 
 	
