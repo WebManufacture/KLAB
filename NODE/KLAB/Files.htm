@@ -240,8 +240,8 @@
 				if (FS.CurrentDir == "/") FS.CurrentDir = "";
 				FS.CurrentDir += "/" + this.name;				
 			}	
-			history.pushState(null, FS.CurrentDir, FS.CurrentDir);
-			//location.pathname += "/" + this.name;
+			//history.pushState(null, FS.CurrentDir, FS.CurrentDir);
+			location.pathname = FS.CurrentDir;
 			FS.ReloadSystem();
 		};
 		
