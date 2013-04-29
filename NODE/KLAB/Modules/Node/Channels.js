@@ -5,22 +5,19 @@ global.Channels = new Channel();
 module.exports = global.Channels;
 
 global.Message = function(path){
-	this.path = path;
-	this.params = [];
-	this.nodes = [];
-	var index = null;
-	while (index >= 0){
-		var index2 = path.indexOf("/", index);
-		if (index2 >= index){
-			var node = path.substring(index, index2);
-			var matches = Message.RegExp.exec(node);
-			if (matches
-		}
-		index = index2;
+	var matches = Message.RegExp.exec(path);
+	if (!matches) throw "Path " + path + " is not correct for message";
+	this.path = matches[1];
+	this.modifier = matches[2];
+	this.id = matches[3];
+	this.tags = matches[4].split(".").splice(0, 1);
+	if (this.path == undefined || this.path == ""){
+		this.path = "?";	
 	}
+	this.nodes = this.path.split("/");
 }
 
-Message.RegExp = /(.*\/)*([a-z\d\-_]*)(#[a-z\d\-_]+)?((?:\.[a-z\d\-_]+)*)/;
+Message.RegExp = /^((?:(?:[a-z\d\-_])*\/?)*)?([<>])?(#[a-z\d\-_]+)?((?:\.[a-z\d\-_]+)*$)/;
 
 Message.RegExp.compile();
 	
