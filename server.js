@@ -4,6 +4,8 @@ var fs = require('fs');
 var Path = require('path');
 try{
 	require("./Modules/Node/Utils.js");
+	require("./Modules/Node/Channels.js");
+	require("./Modules/Node/ChildProcess.js");
 	var RouterModule = require("./Modules/Node/Router.js");
 	var Files = require("./Modules/Node/Files.js");
 	log = require('./Modules/Node/Logger.js').log;
@@ -13,18 +15,17 @@ try{
 
 	process.on('SIGTERM', function() {
 		for (var item in Server.Nodes){
-			console.log("EXITING: " + item.info);
 			Server.Nodes[item].Fork.stop();
 		}
 	});
 	
 	process.on('exit',function(){
 		for (var item in Server.Nodes){
-			console.log("EXITING: " + item.info);
 			Server.Nodes[item].Fork.stop();
 		}	
 		Server.HTTPServer.close();
 	});
+	
 	
 	Server = server = {};
 	

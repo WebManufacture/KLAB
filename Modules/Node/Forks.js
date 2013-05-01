@@ -1,6 +1,7 @@
 var fs = require('fs');
 var paths = require('path');
 var ChildProcess = require('child_process');
+require("./Modules/Node/ChildProcess.js");
 var emitter = require('events').EventEmitter;
 
 function Fork(path, args){
@@ -8,6 +9,7 @@ function Fork(path, args){
 	if (!args) args = [];
 	this.args = args;
 	this.code = 0;
+	this.id = "fork";
 	return this;
 };
 
@@ -46,16 +48,25 @@ Fork.prototype = {
 			args = JSON.parse(args);	
 		}
 		if (args) this.args = args;
-		var cp = this.process = ChildProcess.fork(this.path, args, { silent: false, cwd: paths.dirname(this.path) });
+		var cp = this.process = ChildProcess.fork(this.path, args, { silent: false, cwd: paths.dirname(this.path), env : { isChild : true } });
 		logger.debug("fork started " + this.path);
 		this.code = Fork.STATUS_WORKING;		
-		this.emit("status", Fork.Statuses[this.code]);
+		this._send("status", Fork.Statuses[this.code]);
 		var fork = this;
 		cp.on("exit", function(){
 			fork._exitEvent.apply(fork, arguments);
 		});
 		cp.on("message", function(){
 			fork._messageEvent.apply(fork, arguments);
+		});
+		Channels.on("#fork-input." + this.process.pid, function(message){
+			if (arguments.length > 1){
+				message.params = [];
+				for (var i = 1; i < arguments.length; i++){
+					message.params.push(arguments[i]);
+				}
+			}
+			cp.send(message);
 		});
 		return cp;
 	},
@@ -79,13 +90,19 @@ Fork.prototype = {
 	
 	_exitEvent : function(signal){
 		this.code = Fork.STATUS_EXITED;
-		this.emit("status", Fork.Statuses[this.code]);
-		this.emit("exit", signal);
+		this._send(".status", Fork.Statuses[this.code]);
+		this._send(".exit", signal);
+		Channels.removeListeners("#fork-input." + this.process.pid);
 		logger.debug("fork exited " + this.path);
 	},
 		
 	_messageEvent : function(obj){
-		this.emit("message", obj);
+		if (typeof obj == "object" && obj instanceof ChannelMessage){
+			obj.tags.push(obj.type);
+			obj.type = "#fork-output";			
+			obj.tags.push(this.process.pid);
+			Channels.emit(obj);
+		}
 		if (typeof obj == "string"){
 			logger.log(obj);
 		}
@@ -104,8 +121,12 @@ Fork.prototype = {
 	},
 	
 	_errEvent : function(message){
-		this.emit("error", message);
+		this._send(".error", message);
 		logger.error(message);
+	},
+	
+	_send : function(tags, obj){
+		Channels.emit("#fork-output." + this.process.pid + tags, obj);
 	},
 		
 	close : function(){
@@ -115,8 +136,6 @@ Fork.prototype = {
 		}
 	}
 };
-
-Fork.prototype.__proto__ = emitter.prototype;
 
 var logger = null;
 

@@ -5,6 +5,7 @@ require(path.resolve("./Modules/Node/Utils.js"));
 var RouterModule = require(path.resolve("./Modules/Node/Router.js"));
 var Forks = require(path.resolve("./Modules/Node/Forks.js"));
 var Files = require(path.resolve("./Modules/Node/Files.js"));
+require(path.resolve("./Modules/Node/Channels.js"));
 var fs = require('fs');
 var httpProxy = require('http-proxy');
 var colors = require('colors');
