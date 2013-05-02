@@ -1,23 +1,34 @@
 if (global.Channels){
-	process.on("message", function(message){
-		if (typeof message == "object" && message instanceof ChannelMessage){
-			if (message.params){
-				message.params.unshift(message);
-				Channels.emit.apply(message.params);		
+	Channels.bindToGlobal = function(pattern){
+		Channels.on(pattern, function(message){
+			process.send({ type : "channelMessage", args : arguments });
+		});
+		process.on("message", function(pmessage){
+			if (typeof pmessage == "object" && pmessage.type && pmessage.type == "channelMessage" && pmessage.args){
+				var message = pmessage.args[0];
+				pmessage.args.shift();
+				Channels.emit.apply(message, pmessage.args);		
 			}
-			else{
-				Channels.emit(message);
-			}
-		}
-	});
+		});
+		process.send({ type : "channelControl", pattern : pattern });
+	};
 	
-	Channels.on("*", function(message){
-		if (arguments.length > 1){
-			message.params = [];
-			for (var i = 1; i < arguments.length; i++){
-				message.params.push(arguments[i]);
+	Channels.subscribeToGlobal = function(pattern){
+		process.on("message", function(pmessage){
+			if (typeof pmessage == "object" && pmessage.type && pmessage.type == "channelMessage" && pmessage.args){
+				Channels.emit.apply(Channels, pmessage.args);		
 			}
-		}
-		process.send(message);	
-	});
+		});
+		process.send({ type : "channelControl", pattern : pattern });
+	};
+	
+	Channels.followToGlobal = function(pattern){
+		Channels.on(pattern, function(message){
+			process.send({ type : "channelMessage", args : arguments });
+		});
+	};
+	
+	Channels.emitToGlobal = function(message){
+		process.send({ type : "channelMessage", args : arguments });
+	};
 }

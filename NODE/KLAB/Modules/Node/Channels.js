@@ -1,4 +1,5 @@
-require("utils.js");
+var paths = require('path');
+require(paths.resolve("./Modules/Node/utils.js"));
 
 global.ChannelMessage = function(descriptor){
 	/*var matches = ChannelMessage.RegExp.exec(path);
@@ -91,19 +92,25 @@ Channel.prototype.once = Channel.prototype.single = function(path, callback){
 }
 
 Channel.prototype.emit = Channel.prototype.send = function(message){
-	if (typeof(message) == "string"){
-		message = new ChannelMessage(message);
+	if (!message || typeof(message) != "string") return;
+	var type = "?";
+	var tags = [];	
+	message = message.split(".");
+	if (message.length > 0){
+		if (message[0] != ""){
+			type = message[0];
+		}
+		message.shift();
+		tags = message;
 	}
-	if (typeof(message) == "object" && message instanceof ChannelMessage){
-		var arr = this.routes[message.type];
-		if (arr){
-			this._sendInternal(arr, message.tags, arguments);
-		}
-		arr = this.routes["*"];
-		if (arr){
-			this._sendInternal(arr, message.tags, arguments);
-		}
-	}		
+	var arr = this.routes[type];
+	if (arr){
+		this._sendInternal(arr, tags, arguments);
+	}
+	arr = this.routes["*"];
+	if (arr){
+		this._sendInternal(arr, tags, arguments);
+	}	
 	return;
 };
 
