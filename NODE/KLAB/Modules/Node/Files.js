@@ -8,7 +8,6 @@ info = require(paths.resolve('./Modules/Node/Logger.js')).info;
 debug = require(paths.resolve('./Modules/Node/Logger.js')).debug;
 
 module.exports = function(config, server){
-	log = server.Logger;
 	cfg = config;
 	if (!config) cfg = {};
 	if (!cfg.basepath){
