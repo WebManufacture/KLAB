@@ -1,6 +1,7 @@
 var fs = require('fs');
 var paths = require('path');
 var ChildProcess = require('child_process');
+require(paths.resolve("./Modules/Node/Channels.js"));
 require(paths.resolve("./Modules/Node/ChildProcess.js"));
 var emitter = require('events').EventEmitter;
 
@@ -10,10 +11,19 @@ function Fork(path, args){
 	this.args = args;
 	this.code = 0;
 	this.id = (Math.random() + "").replace("0.", "");
-	var fork = this;
+	var channelID = "/fork" + this.id;
 	if (global.Channels){
-		global.Channels.on(".fork" + this.id, function(message){
-			fork.emitToChild(arguments);
+		this.channel = new ForkChannel(this, channelID);
+		Channels.on(channelID, this.channel);
+		var fork = this;
+		this.channel._addListener("/process/control.start", function(message){
+			fork.start();
+		});
+		this.channel._addListener("/process/control.stop", function(message){
+			fork.stop();
+		});
+		this.channel._addListener("/process/control.reset", function(message){
+			fork.reset();
 		});
 	}
 	return this;
@@ -25,6 +35,32 @@ Fork.STATUS_NEW = 0;
 Fork.STATUS_STOPED = 1;
 Fork.STATUS_EXITED = 2;
 Fork.STATUS_WORKING = 7;
+
+ForkChannel = function(fork, channelID){
+	this.routes = { "*" : {}, "." : [] };
+	
+	this.on = this.for = this.subscribe = this.add = function(route, callback){
+		route = this.parsePath(route);
+		if (!route) return null;
+		if (route.nodes.length == 0) return null;
+		if (route.nodes[0].type != "process"){
+			if (!fork.subscribeToChild(route.toString())) return null;
+		}
+		return this._addListener(route, callback);
+	};
+			
+	this.emit = function(route){
+		var route = this.parsePath(route);
+		if (!route) return;
+		if (route.nodes.length == 0) return null;
+		if (route.nodes[0].type != "process"){
+			fork.emitToChild.apply(this, arguments);
+		}
+		return this._send.apply(this, arguments);
+	};			
+}
+
+ForkChannel.prototype = Channel.prototype;
 
 Fork.prototype = {
 	toString : function(){
@@ -57,7 +93,7 @@ Fork.prototype = {
 		var cp = this.process = ChildProcess.fork(this.path, args, { silent: false, cwd: paths.dirname(this.path), env : { isChild : true } });
 		logger.debug("fork started " + this.path);
 		this.code = Fork.STATUS_WORKING;		
-		this._emit("status", Fork.Statuses[this.code]);
+		this._emit("process.status", Fork.Statuses[this.code]);
 		var fork = this;
 		cp.on("exit", function(){
 			fork._exitEvent.apply(fork, arguments);
@@ -87,22 +123,21 @@ Fork.prototype = {
 	
 	_exitEvent : function(signal){
 		this.code = Fork.STATUS_EXITED;
-		this._emit(".status", Fork.Statuses[this.code]);
-		this._emit(".exit", signal);
-		Channels.removeListeners("#fork-input." + this.process.pid);
+		this._emit("process.status", Fork.Statuses[this.code]);
+		this._emit("process.exit", signal);
 		logger.debug("fork exited " + this.path);
 	},
-		
+	
 	_messageEvent : function(obj){
 		if (global.Channels && typeof obj == "object"){
-			if (obj.type == "channelControl"){
+			/*if (obj.type == "channelControl"){
 				var fork = this;
 				Channels.on(obj.pattern, function(message){
 					fork.emitToChild.apply(fork, arguments);
 				});
-			}
+			}*/
 			if (obj.type == "channelMessage"){
-				this._emit.apply(this, pmessage.args);
+				this._emit.apply(this, obj.args);
 			}
 		}
 		if (typeof obj == "string"){
@@ -123,47 +158,36 @@ Fork.prototype = {
 	},
 	
 	_errEvent : function(message){
-		this._emit(".error", message);
+		this._emit("process.error", message);
 		logger.error(message);
 	},
 	
 	_emit : function(message){
-		if (global.Channels && typeof message == "string"){
-			message += ".fork" + this.id;
-			arguments[0] = message;
+		if (this.channel){
+			this.channel.emit.apply(this.channel, arguments);
 		}		
-		Channels.emit.apply(Channels, arguments);
 	},
 	
-	
-	on : function(pattern, callback){
-		Channels.on(pattern + ".fork" + this.id, callback);
-	},
-	
-	bindToChild : function(pattern){
-		this.followToChild(pattern);
-		subscribeToChild(pattern);
+	on : function(){
+		this.channel.on.apply(this.channel, arguments);
 	},
 	
 	subscribeToChild : function(pattern){
 		if (this.process && this.code == Fork.STATUS_WORKING){
 			this.process.send({ type : "channelControl", pattern : pattern });
-		}		
-	},
-	
-	followToChild : function(pattern){
-		var fork = this;
-		Channels.on(pattern, function(message){
-			fork.emitToChild.apply(fork, arguments);
-		});
+			return true;
+		}	
+		return false;
 	},
 	
 	emitToChild : function(message){
 		if (this.process && this.code == Fork.STATUS_WORKING){
 			this.process.send({ type : "channelMessage", args : arguments });
+			return true;
 		}
-	},
-		
+		return false;
+	},	
+	
 	close : function(){
 		if (this.process){
 			logger.debug("fork close - " + this.path);

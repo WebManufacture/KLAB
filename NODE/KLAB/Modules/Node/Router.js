@@ -1,6 +1,6 @@
 require("./utils.js");
 
-	
+
 function MapNode(parentPath){
 	this["/"] = [];
 	this["<"] = [];
@@ -33,7 +33,7 @@ Router = {
 	},
 	
 	GetContext: function(req, res, rootPath){
-		return  new Context(req, res, rootPath);
+		return new Context(req, res, rootPath);
 	},
 	
 	Process: function(context){
@@ -101,10 +101,12 @@ Router = {
 
 
 module.exports = Router;
-	
+
 
 function Context(req, res, rootPath){
+	this.id = (Math.random() + "").replace("0.", "");
 	this.url = require('url').parse(req.url, true);
+	this.method = req.method;
 	this.urlString = "http://" + req.headers.host + req.url;
 	this.req = req;
 	this.res = res;
@@ -196,8 +198,7 @@ Context.prototype = {
 		}
 	},
 	
-	callPhaseChain : function(phaseNum, numSpaces){
-		
+	callPhaseChain : function(phaseNum, numSpaces){		
 		var context = this;
 		if (!numSpaces) numSpaces = 0;
 		if (numSpaces > 1000){
@@ -214,66 +215,61 @@ Context.prototype = {
 		if (!phaseNum){
 			phaseNum = 0;
 		}
-			if (phaseNum < this.phases.length){			
-				var phaseName = this.phases[phaseNum];
-				if (this.phaseProcessed){
-					this.callPlan = this.callPlans[phaseName];
-					this.phaseProcessed = false;
-					this.handlerNum = -1;
-					//Тут должно произойти собственно выполнение найденных ф-й согласно плану вызовов.
-					this.log("Phase ", phaseNum, "[", phaseName, "] Starting");
-					var result = this.continue(this);
-					this.log("Phase ", phaseNum, "[", phaseName, "] Called " + result);
+		if (phaseNum < this.phases.length){			
+			var phaseName = this.phases[phaseNum];
+			if (this.phaseProcessed){
+				this.callPlan = this.callPlans[phaseName];
+				this.phaseProcessed = false;
+				this.handlerNum = -1;
+				//Тут должно произойти собственно выполнение найденных ф-й согласно плану вызовов.
+				this.log("Phase ", phaseNum, "[", phaseName, "] Starting");
+				var result = this.continue(this);
+				this.log("Phase ", phaseNum, "[", phaseName, "] Called " + result);
+				if (result){
 					if (phaseNum + 1 < this.phases.length ){
-						if (result){
-							this.callPhaseChain(phaseNum + 1, numSpaces + 1);
-						}
-						else{
-							setTimeout(function(){					
-								context.log("New Phase ", phaseNum, " [",  context.phases[phaseNum], "] WAITING!", numSpaces);
-								context.callPhaseChain(phaseNum, numSpaces + 1);
-							}, 10);
-						}
+						this.callPhaseChain(phaseNum + 1, numSpaces + 1);
 					}
 					else{
-						if (result){
-							this.finishHandler(this);
+						if (result != "break"){
+							this.finishHandler(this);	
 						}
-						else{
-							setTimeout(function(){					
-								context.log("New Phase ", phaseNum, "[", context.phases[phaseNum], "] WAITING!", numSpaces);
-								context.callPhaseChain(phaseNum, numSpaces + 1);
-							}, 10);
-						}	
-						return;
 					}
 				}
 				else{
 					setTimeout(function(){					
-						context.log("Phase ", phaseNum, " [",  context.phases[phaseNum], "] WAITING!", numSpaces);
-						context.callPhaseChain(phaseNum, numSpaces + 1);
-					}, 10);
-					return;
-				}
-			}
-			else{
-				if (this.phaseProcessed){
-					this.finishHandler(this);
-				}
-				else{
-					setTimeout(function(){					
-						context.log("Last Phase ", phaseNum, " [", context.phases[phaseNum], "] WAITING!", numSpaces);
+						context.log("New Phase ", phaseNum, " [", context.phases[phaseNum], "] WAITING!", numSpaces);
 						context.callPhaseChain(phaseNum, numSpaces + 1);
 					}, 10);
 				}
 				return;
 			}
+			else{
+				setTimeout(function(){					
+					context.log("Phase ", phaseNum, " [", context.phases[phaseNum], "] WAITING!", numSpaces);
+					context.callPhaseChain(phaseNum, numSpaces + 1);
+				}, 10);
+				return;
+			}
+		}
+		else{
+			if (this.phaseProcessed){
+				this.finishHandler(this);
+			}
+			else{
+				setTimeout(function(){					
+					context.log("Last Phase ", phaseNum, " [", context.phases[phaseNum], "] WAITING!", numSpaces);
+					context.callPhaseChain(phaseNum, numSpaces + 1);
+				}, 10);
+			}
+			return;
+		}
 		this.log("Phase ", phaseNum, " Exited");
 	},
 	
 	"continue" : function(){
 		var context = this;
 		if (context.phaseProcessed || context.stop){return true;}
+		if (context.break) return "break";
 		context.handlerNum++;
 		if (context.handlerNum < context.callPlan.length){
 			var hobj = context.callPlan[context.handlerNum];
@@ -282,7 +278,8 @@ Context.prototype = {
 			context.pathTail = "/" + context.paths.slice(hobj.pathNum).join('');
 			context.log("Calling ", context.nodePath, ' with ', context.pathTail);
 			try{
-				if (hobj.handler(context, context.continue) == false)
+				var result = hobj.handler(context, context.continue);
+				if (result == false)
 				{
 					context.waiting = true;
 					return false;
@@ -359,9 +356,9 @@ Context.prototype = {
 			result = result + "\n\n" + this.formatLogs();		
 		}		
 		//this.res.setHeader("Content-Length", result.length);
-        if (!this.encoding){
-            this.encoding = 'utf8';
-        }
+		if (!this.encoding){
+			this.encoding = 'utf8';
+		}
 		this.res.end(result, this.encoding);
 	},
 	
