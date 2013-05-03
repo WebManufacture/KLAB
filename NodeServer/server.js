@@ -103,21 +103,21 @@ Server.SaveConfig = function(){
 };
 
 Server.InitFork = function(item, rr, num, port){
-	item.id = num + 1;
 	rr.__proto__ = NodeProto;
 	rr.cfg = item;
-	rr.id = num + 1;
+	item.id = num + 1;
 	rr.Args.Port = rr.Port = port;
 	rr.Args.Host = rr.Host = rr.Host.toLowerCase();
 	rr.Fork = Forks.Create(path.resolve(rr.File));		
+	rr.id = rr.Fork.id;
 	rr.Fork.args = [JSON.stringify(rr.Args)];
-	rr.Fork.on("status", function(state){
+	rr.Fork.on("process.status", function(message, state){
 		rr.State = state;
 		item.State = state;
 		Server.SendMessage(rr.toString());
 	});
-	rr.Fork.on("message", function(message){
-		var log = Server.Logs[rr.id];
+	rr.Fork.on("process.message", function(message, message){
+		/*var log = Server.Logs[rr.id];
 		if (!log){
 			log = Server.Logs[rr.id] = [];
 		}
@@ -126,17 +126,18 @@ Server.InitFork = function(item, rr, num, port){
 		    message.forkId = rr.id;
 			message = JSON.stringify(message);	
 		}		
-		Server.SendMessage(message);
+		Server.SendMessage(message);*/
 	});
-	rr.Fork.on("exit", function(){
+	rr.Fork.on("process.exit", function(message){
 		rr.State = "exited";
 		//rr.StatusChanged();
 		console.log(" '" + rr.File + "' - " + (rr.Host + ":" + rr.Port) + " exited".warn);
 	});
-	rr.Fork.on("error", function(){
+	rr.Fork.on("process.error", function(cmessage, error){
 		rr.State = "error";
 		//rr.StatusChanged();
 		console.log(" '" + rr.File + "' - " + (rr.Host + ":" + rr.Port) + " error".error);
+		//console.log(error);
 	});
 	if (rr.Location == "localhost" && rr.State == "working"){	
 		if (Server.RoutingTable[rr.Host] != null){
@@ -157,11 +158,41 @@ Server.InitFork = function(item, rr, num, port){
 
 Server.Utilisation = function(context){
 	if (!context.completed){
-		if (context.codeProcessed){
-			context.finish(200, context.codeResult);
+		var message = "http-request";
+		message += "." + context.method.toLowerCase();
+		message += ".id" + context.id; 
+		message += "." + context.pathName;
+		Channels.once("http-response.id" + id, function(message){
+			Server.FinishContext(context, arguments);
+		});
+		Channels.emit(message, id, context.url, context.req.headers);
+	}
+};
+
+Server.FinishContext = function(context, args){
+	var message = args[0];
+	var status = args[1];
+	var result = args[2];
+	var headers = args[3];
+	if (headers){
+		for (var header in headers){
+			context.res.setHeader(header, headers[header]);
+		}
+	}
+	if (result){
+		if (status){
+			context.finish(status, result);
 		}
 		else{
-			context.finish(404, "No handlers found for: " + context.url.pathname);
+			context.finish(200, result);
+		}	
+	}
+	else{
+		if (status){
+			context.finish(status);
+		}
+		else{
+			context.finish(404, "No processing code detected");
 		}
 	}
 };
@@ -217,11 +248,10 @@ Server.Process = function(req, res){
 		}
 	}
 	catch (e){
-		log.error(e);
 		if (context){
 			context.error(e);
 		}
-		console.error(e);
+		throw e;
 	}
 };
 
@@ -230,11 +260,11 @@ Server.Start = function(config){
 	router.map("mainMap", 
 			   {
 				   "/": { GET: function(context){
-					   var adminApp = fs.readFileSync(config.adminAppFile, 'utf8');
-					   context.res.setHeader("Content-Type", "text/html; charset=utf-8");
-					   context.finish(200, adminApp);
-					   return true;
-				   }
+							   var adminApp = fs.readFileSync(config.adminAppFile, 'utf8');
+							   context.res.setHeader("Content-Type", "text/html; charset=utf-8");
+							   context.finish(200, adminApp);
+							   return true;
+						   }	
 						},
 				   "/map": {
 					   GET : function(context){
@@ -245,7 +275,6 @@ Server.Start = function(config){
 				   "/monitoring" : Server.ProcessMonitoring,
 				   "/forks/>": Server.ForksRouter,
 				   "/nodes/>": Server.NodesRouter,
-				   "/>" : { GET: Files.GET, HEAD: Files.HEAD },
 				   "<": Server.Utilisation
 			   });
 	Files(config, Server);
@@ -494,7 +523,7 @@ Server.ForksRouter.DELETE = function(context){
 };
 
 process.on('SIGTERM', function() {
-  for (var item in Server.Nodes){
+	for (var item in Server.Nodes){
 		console.log("EXITING: " + item.info);
 		Server.Nodes[item].Fork.stop();
 	}
