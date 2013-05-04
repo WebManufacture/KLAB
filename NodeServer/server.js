@@ -2,10 +2,12 @@ var http = require('http');
 var Url = require('url');
 var path = require('path');
 require(path.resolve("./Modules/Node/Utils.js"));
+require(path.resolve("./Modules/Node/Logger.js"));
 var RouterModule = require(path.resolve("./Modules/Node/Router.js"));
 var Forks = require(path.resolve("./Modules/Node/Forks.js"));
 var Files = require(path.resolve("./Modules/Node/Files.js"));
-require(path.resolve("./Modules/Node/Channels.js"));
+require(path.resolve("./Modules/Channels.js"));
+var channelsClient = require(path.resolve("./Modules/Node/ChannelsClient.js"));
 var fs = require('fs');
 var httpProxy = require('http-proxy');
 var colors = require('colors');
@@ -99,17 +101,18 @@ Server.Init = function(){
 };
 
 Server.SaveConfig = function(){
+	console.log('config rewrite');
 	fs.writeFileSync(Server.Config.routingFile, JSON.stringify(Server.ConfigTable), 'utf8');
 };
 
 Server.InitFork = function(item, rr, num, port){
 	rr.__proto__ = NodeProto;
 	rr.cfg = item;
-	item.id = num + 1;
 	rr.Args.Port = rr.Port = port;
 	rr.Args.Host = rr.Host = rr.Host.toLowerCase();
-	rr.Fork = Forks.Create(path.resolve(rr.File));		
+	rr.Fork = Forks.Create(path.resolve(rr.File), null, item.id);		
 	rr.id = rr.Fork.id;
+	item.id = rr.id;
 	rr.Fork.args = [JSON.stringify(rr.Args)];
 	rr.Fork.on("process.status", function(message, state){
 		rr.State = state;
@@ -260,22 +263,28 @@ Server.Start = function(config){
 	router.map("mainMap", 
 			   {
 				   "/": { GET: function(context){
-							   var adminApp = fs.readFileSync(config.adminAppFile, 'utf8');
-							   context.res.setHeader("Content-Type", "text/html; charset=utf-8");
-							   context.finish(200, adminApp);
-							   return true;
-						   }	
+					   var adminApp = fs.readFileSync(config.adminAppFile, 'utf8');
+					   context.res.setHeader("Content-Type", "text/html; charset=utf-8");
+					   context.finish(200, adminApp);
+					   return true;
+				   }	
 						},
 				   "/map": {
 					   GET : function(context){
 						   context.res.setHeader("Content-Type", "application/json; charset=utf-8");
 						   context.finish(200, JSON.stringify(Server.CreateMap(router.Handlers.mainMap)));
 					   }
-				   },				   
+				   },	
+				   "/routes": {
+					   GET : function(context){
+						   context.res.setHeader("Content-Type", "application/json; charset=utf-8");
+						   context.finish(200, JSON.stringify(Server.CreateChannelMap(Channels.routes)));
+					   }
+				   },
 				   "/monitoring" : Server.ProcessMonitoring,
 				   "/forks/>": Server.ForksRouter,
 				   "/nodes/>": Server.NodesRouter,
-				   "<": Server.Utilisation
+				   "/<":  channelsClient
 			   });
 	Files(config, Server);
 	//console.log(router.Handlers.processMap)
@@ -303,7 +312,6 @@ Server.Start = function(config){
 		Server.AdminUrl = config.adminHost + ":" + config.adminPort + "";
 	}
 };
-
 
 Server.CreateMap = function(routerMapNode){
 	if (!routerMapNode) return;
@@ -364,6 +372,37 @@ Server.CreateMap = function(routerMapNode){
 					if (!mapObj) mapObj = {};
 					mapObj[item] = value;
 				}
+			}
+		}
+	}
+	return mapObj;
+};
+
+
+Server.CreateChannelMap = function(channel){
+	if (!channel) return;
+	var mapObj = null;
+	for (var item in channel){
+		var node = channel[item];
+		if (Array.isArray(node)){
+			if (!mapObj) mapObj = {};
+			mapObj[item] = [];
+			if (node.length > 0) {				
+				for (var i = 0; i < node.length; i++){
+					if (typeof(node[i]) == "function"){
+						mapObj[item].push("func");
+					}
+					if (typeof(node[i]) == "object" && node[i].routes){
+						mapObj[item].push(Server.CreateChannelMap(node[i].routes));
+					}
+				}
+			}
+		}
+		else{
+			var value = Server.CreateChannelMap(node);
+			if (value){			
+				if (!mapObj) mapObj = {};
+				mapObj[item] = value;
 			}
 		}
 	}
@@ -480,8 +519,9 @@ Server.ForksRouter.POST = function(context){
 	}
 	if (cf){		
 		if (cf.State != "broken" && cf.State != "working" && Server.CheckHosts(cf)) {
-			cf.Fork.start();
-			Server.SaveConfig();
+			cf.Fork.start(function(){
+				Server.SaveConfig();
+			});
 		}
 		context.res.setHeader("Content-Type", "application/json; charset=utf-8");
 		context.finish(200);
@@ -513,8 +553,9 @@ Server.ForksRouter.DELETE = function(context){
 	}
 	if (cf){		
 		if (cf.State == "working") {
-			cf.Fork.stop();
-			Server.SaveConfig();
+			cf.Fork.stop(function(){
+				Server.SaveConfig();
+			});
 		}
 		context.res.setHeader("Content-Type", "application/json; charset=utf-8");
 		context.finish(200);

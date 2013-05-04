@@ -242,21 +242,22 @@
 			ConfManager = {};
 			
 			ConfManager.Init = function(){
-				Server = new KLabTunnel(null, true);			
-				Tunnel = Server.serverTunnel;
-				Tunnel.OnMessage.subscribe(ConfManager.OnServerMessage);
+				Server = new KLabTunnel(null, false);			
+				//Tunnel = Server.serverTunnel;
+				//Tunnel.OnMessage.subscribe(ConfManager.OnServerMessage);
 				Server.Start = function(key){
-					Server.add("/forks/?key=" + key, null, ConfManager.stateChanged)
+					Server.add("/forks?key=" + key, null, ConfManager.stateChanged)
 				}
 				Server.Stop = function(key){
-					Server.del("/forks/?key=" + key, ConfManager.stateChanged)
+					Server.del("/forks?key=" + key, ConfManager.stateChanged)
 				}
 				Server.Reset = function(key){
-					Server.set("/forks/?key=" + key, null, ConfManager.stateChanged)
+					Server.set("/forks?key=" + key, null, ConfManager.stateChanged)
 				}				
 				Server.Remove = function(key){
-					Server.del("/nodes/?key=" + key, ConfManager.stateChanged)
+					Server.del("/nodes?key=" + key, ConfManager.stateChanged)
 				}
+				Server.Nodes = {};
 			};
 			
 			ConfManager.stateChanged = function(result){
@@ -274,7 +275,7 @@
 			}
 			
 			ConfManager.UpdateItem = function(item, data){
-				item.set("@data-state", data.state);
+				item.set("@data-state", data);
 			}
 			
 			ConfManager.InitTable = function(){
@@ -290,6 +291,18 @@
 			
 			ConfManager.FormatNodeItem = function(item){
 				item.add("." + item.get("@data-location").toLowerCase());
+				item.key = item.get("@key");
+				item.channel = new HttpChannel("/fork" + item.key + "/process", true);
+				Server.Nodes[item.key] = item.channel;
+				item.channel.onRead.subscribe(function(messages){
+					if (messages.length >= 2){
+						var message = messages[0];
+						var arg = messages[1];
+						if (message.id && message.node && message.node.source.contains(".status") && arg){
+							ConfManager.UpdateItem(DOM("#obj" + message.id), arg);				
+						}
+					}
+				});
 			};
 			
 			ConfManager.LogsLoaded = function(result, status){
