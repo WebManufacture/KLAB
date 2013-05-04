@@ -1,4 +1,4 @@
-﻿if (!UsingDOM("KLabNet")){
+if (!UsingDOM("KLabNet")){
 	KLabNet = {
 		Tunnels : {}
 	};
@@ -8,6 +8,59 @@
 			return new KLabTunnel(serverUrl);	
 		}	
 	};
+	
+	function HttpChannel(url, read){
+		this.url = url;
+		if (read){
+			this.connectRead();
+		}
+		EV.CreateEvent("onRead", this);
+	};
+	
+	HttpChannel.prototype = {
+		connectRead : function() {
+			var url = new Url(this.url);
+			url.addParam("rnd", Math.random());
+			var rq = _klabNetInternal.GET(url);
+			rq.lastStateChar = 0;
+			rq.channel = this;
+			rq.onreadystatechange = this.readStateChanged;
+			rq.send();
+		},
+		
+		write : function(messages){
+			var url = new Url(this.url);
+			url.addParam("rnd", Math.random());
+			var rq = _klabNetInternal.POST(url, messages);
+			rq.send(messages);
+		},
+		
+		readStateChanged: function() {
+			var channel = this.channel;
+			if (this.readyState == 3){
+				var result = this.responseText.substr(this.lastStateChar);
+				this.lastStateChar = this.responseText.length;				
+				if (result && result.length > 0 && this.status == 200) {
+					result = JSON.parse(result);
+					channel.processMessages(result);
+				}
+			}
+			if (this.readyState == 4){
+				if (this.status == 200){
+					setTimeout(function(){ channel.connectRead(); }, 500);	
+				}
+				else{
+					setTimeout(function(){ channel.connectRead(); }, 5000);	
+				}
+			}
+		},
+		
+		processMessages : function(messages){
+			this.onRead.fire(messages);
+		}
+	};	
+	
+	
 	
 	function ServerTunnel(url, isFullDuplex){
 		this.url = url;

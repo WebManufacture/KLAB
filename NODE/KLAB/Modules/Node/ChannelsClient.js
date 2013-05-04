@@ -1,45 +1,66 @@
 var paths = require('path');
-require(paths.resolve('./Modules/Node/Channels.js'));
+require(paths.resolve('./Modules/Channels.js'));
 log = require(paths.resolve('./Modules/Node/Logger.js')).log;
 error = require(paths.resolve('./Modules/Node/Logger.js')).error;
 info = require(paths.resolve('./Modules/Node/Logger.js')).info;
 debug = require(paths.resolve('./Modules/Node/Logger.js')).debug;
 
-module.exports = {
-	
+HttpChannelsClient = {	
 	GET :  function(context){
-		context.request.on("close", function(){
-			Channels.(
+		if (context.completed){
+			return true;	
+		}
+		var path = context.pathname;
+		var response = context.res;
+		var request = context.req;
+		var handler = function(){
+			try{
+				var params = [];
+				for (var i = 0; i < arguments.length; i++){
+					params.push(arguments[i]);
+				}
+				response.write(JSON.stringify(params));
+			}
+			catch(e){
+				response.write(JSON.stringify(e));
+			}
+		}
+		request.on("close", function(){
+			Channels.clear(path, handler);
 		});
-		res.setHeader("Content-Type", "application/json; charset=utf-8");
-		
+		Channels.on(path, handler);
+		response.setHeader("Content-Type", "application/json; charset=utf-8");		
 		context.break = true;
 		return false;
 	},
 
 	POST : function(context){
-		context.request.on("close", function(){
-			//Channels.(
+		if (context.completed){
+			return true;	
+		}
+		var path = context.pathName;
+		var response = context.res;
+		var request = context.req;
+		var fullData = "";		
+		response.setHeader("Content-Type", "application/json; charset=utf-8");
+		request.on("data", function(data){
+			fullData += data;		
 		});
-		res.setHeader("Content-Type", "application/json; charset=utf-8");
-		
-		context.break = true;
+		request.on("end", function(){
+			Channels.emit(path, fullData);
+			context.finish(200);
+			context.continue();
+		});		
 		return false;
 	},
 
-Server.SendMessage = function(message){
-	for (var i = 0; i < Server.Monitors.length; i++){
-		var c = Server.Monitors[i];
-		if (c && c.req){
-			console.log("send: " + c.req.url);
-			c.res.write(message);
-		}
-	}	
-};
-
-	},
-
 	SEARCH :  function(context){
-	
+		if (context.completed){
+			return true;	
+		}
 	},
 }
+
+
+module.exports = HttpChannelsClient;
+	

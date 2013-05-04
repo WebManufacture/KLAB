@@ -2,10 +2,9 @@ var fs = require('fs');
 var paths = require('path');
 var ChildProcess = require('child_process');
 var crypto = require('crypto');
-log = require(paths.resolve('./Modules/Node/Logger.js')).log;
-error = require(paths.resolve('./Modules/Node/Logger.js')).error;
-info = require(paths.resolve('./Modules/Node/Logger.js')).info;
-debug = require(paths.resolve('./Modules/Node/Logger.js')).debug;
+require(paths.resolve('./Modules/Channels.js'));
+require(paths.resolve('./Modules/Node/Logger.js'));
+
 
 module.exports = function(config, server){
 	cfg = config;
@@ -34,6 +33,8 @@ Files.MimeTypes = {
 	jpg : "images/jpeg",
 	bmp : "images/bmp",
 };
+
+Files.channel = Channels.on("/file-system", new Channel("/file-system"));
 
 FilesRouter = {};
 
@@ -117,7 +118,15 @@ FilesRouter.DELETE = function(context){
 			context.finish(404, "file " + fpath + " not found");
 			return;
 		}
-		fs.unlink(fpath, function(){
+		info("Deleting " + fpath);
+		fs.unlink(fpath, function(err, result){
+			if (err){
+				Files.channel.emit("action.delete.error", fpath, err);
+				context.finish(500, "Delete error " + fpath + " " + err);	
+				context.continue();
+				return;
+			}			
+			Files.channel.emit("action.delete", fpath);
 			context.finish(200, "Deleted " + fpath);			
 			context.continue();
 		});
@@ -137,8 +146,10 @@ FilesRouter.POST = FilesRouter.PUT = function(context){
 		fs.writeFile(fpath, fullData, 'utf8', function(err, result){
 			if (err){
 				context.finish(500, "File " + fpath + " write error " + err);
+				Files.channel.emit("action.write.error", fpath, err);
 				return;
 			}
+			Files.channel.emit("action.write", fpath);
 			context.finish(200);
 			context.continue();
 		});

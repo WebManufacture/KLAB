@@ -113,6 +113,7 @@ function Context(req, res, rootPath){
 	this.query = this.url.query;
 	this.debugMode = req.headers["debug-mode"];
 	this.logs = [];
+	this.pathname = this.url.pathname;
 	if (!this.url.pathname.end("/")) this.url.pathname += "/";
 	//console.log(this.url.pathname);
 	this.pathName = this.url.pathname;
@@ -215,9 +216,10 @@ Context.prototype = {
 		if (!phaseNum){
 			phaseNum = 0;
 		}
-		if (phaseNum < this.phases.length){			
-			var phaseName = this.phases[phaseNum];
-			if (this.phaseProcessed){
+		if (this.phaseProcessed){
+			if (phaseNum < this.phases.length){			
+				var phaseName = this.phases[phaseNum];
+				
 				this.callPlan = this.callPlans[phaseName];
 				this.phaseProcessed = false;
 				this.handlerNum = -1;
@@ -230,38 +232,28 @@ Context.prototype = {
 						this.callPhaseChain(phaseNum + 1, numSpaces + 1);
 					}
 					else{
-						if (result != "break"){
-							this.finishHandler(this);	
-						}
+						this.finishHandler(this);	
 					}
 				}
 				else{
-					setTimeout(function(){					
-						context.log("New Phase ", phaseNum, " [", context.phases[phaseNum], "] WAITING!", numSpaces);
-						context.callPhaseChain(phaseNum, numSpaces + 1);
-					}, 10);
+					if (!this.break){
+						setTimeout(function(){					
+							context.log("New Phase ", phaseNum, " [", context.phases[phaseNum], "] WAITING!", numSpaces);
+							context.callPhaseChain(phaseNum, numSpaces + 1);
+						}, 10);
+					}
 				}
-				return;
 			}
 			else{
-				setTimeout(function(){					
-					context.log("Phase ", phaseNum, " [", context.phases[phaseNum], "] WAITING!", numSpaces);
-					context.callPhaseChain(phaseNum, numSpaces + 1);
-				}, 10);
-				return;
-			}
-		}
-		else{
-			if (this.phaseProcessed){
 				this.finishHandler(this);
 			}
-			else{
-				setTimeout(function(){					
-					context.log("Last Phase ", phaseNum, " [", context.phases[phaseNum], "] WAITING!", numSpaces);
-					context.callPhaseChain(phaseNum, numSpaces + 1);
-				}, 10);
-			}
-			return;
+		}
+		else
+		{
+			setTimeout(function(){					
+				context.log("Last Phase ", phaseNum, " [", context.phases[phaseNum], "] WAITING!", numSpaces);
+				context.callPhaseChain(phaseNum, numSpaces + 1);
+			}, 10);
 		}
 		this.log("Phase ", phaseNum, " Exited");
 	},
@@ -269,7 +261,6 @@ Context.prototype = {
 	"continue" : function(){
 		var context = this;
 		if (context.phaseProcessed || context.stop){return true;}
-		if (context.break) return "break";
 		context.handlerNum++;
 		if (context.handlerNum < context.callPlan.length){
 			var hobj = context.callPlan[context.handlerNum];

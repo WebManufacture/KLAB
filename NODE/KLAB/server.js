@@ -4,14 +4,11 @@ var fs = require('fs');
 var Path = require('path');
 try{
 	require("./Modules/Node/Utils.js");
-	require("./Modules/Node/Channels.js");
+	require("./Modules/Channels.js");
 	require("./Modules/Node/ChildProcess.js");
 	var RouterModule = require("./Modules/Node/Router.js");
 	var Files = require("./Modules/Node/Files.js");
-	log = require('./Modules/Node/Logger.js').log;
-	error = require('./Modules/Node/Logger.js').error;
-	info = require('./Modules/Node/Logger.js').info;
-	debug = require('./Modules/Node/Logger.js').debug;
+	require('./Modules/Node/Logger.js');
 
 	process.on('SIGTERM', function() {
 		for (var item in Server.Nodes){
