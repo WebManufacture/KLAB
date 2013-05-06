@@ -188,9 +188,9 @@
 				<div class='node-file' field='file'>
 				</div>
 				<div class='node-controls'>
-					<div class='mini-btn start' onclick='Server.Start(this.get("^.object-item").get("@key"))'></div>
-					<div class='mini-btn stop' onclick='Server.Stop(this.get("^.object-item").get("@key"))'></div>
-					<div class='mini-btn remove' onclick='Server.Del(this.get("^.object-item").get("@key"))'></div>
+					<div class='mini-btn start' onclick='Server.Start(this.get("^.object-item"))'></div>
+					<div class='mini-btn stop' onclick='Server.Stop(this.get("^.object-item"))'></div>
+					<div class='mini-btn remove' onclick='Server.Del(this.get("^.object-item"))'></div>
 				</div>
 			</div>
 		</div>
@@ -207,6 +207,14 @@
 			Notify = {};
 			
 			Notify.Show = function (message) {
+				var nf = DOM("#Notify");
+				var ev = nf.div(".event.first", (new Date()).formatTime() + " " + message);
+				nf.show();
+				nf.ins(ev);
+				Notify.setTimeout();
+			};
+			
+			Notify.ShowMessage = function (message) {
 				var nf = DOM("#Notify");
 				var ev = nf.div(".event.first", (new Date()).formatTime() + " " + message);
 				nf.show();
@@ -242,19 +250,32 @@
 			ConfManager = {};
 			
 			ConfManager.Init = function(){
-				Server = new KLabTunnel(null, false);			
+				Server = new KLabTunnel(null, false);
+				Server.channel = new HttpChannel("/*", true);
+				Server.channel.onRead.subscribe(function(messages, arg){
+					Notify.ShowMessage(messages);
+				});
 				//Tunnel = Server.serverTunnel;
 				//Tunnel.OnMessage.subscribe(ConfManager.OnServerMessage);
-				Server.Start = function(key){
-					Server.add("/forks?key=" + key, null, ConfManager.stateChanged)
+				Server.Start = function(item){
+					if (item && item.channel){
+						item.channel.send("/control.start");
+					}
+					//Server.add("/forks?key=" + key, null, ConfManager.stateChanged)
 				}
-				Server.Stop = function(key){
-					Server.del("/forks?key=" + key, ConfManager.stateChanged)
+				Server.Stop = function(item){
+					if (item && item.channel){
+						item.channel.send("/control.stop");
+					}
+					//Server.del("/forks?key=" + key, ConfManager.stateChanged)
 				}
-				Server.Reset = function(key){
-					Server.set("/forks?key=" + key, null, ConfManager.stateChanged)
+				Server.Reset = function(item){
+					if (item && item.channel){
+						item.channel.send("/control.reset");
+					}
+					//Server.set("/forks?key=" + key, null, ConfManager.stateChanged)
 				}				
-				Server.Remove = function(key){
+				Server.Remove = function(item){
 					Server.del("/nodes?key=" + key, ConfManager.stateChanged)
 				}
 				Server.Nodes = {};
