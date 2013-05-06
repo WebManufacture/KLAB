@@ -28,7 +28,7 @@ global.Fork = function(path, args, id, channelTags){
 			}		
 			return true;
 		});
-		Channels.tonnelTo(this.channelID, function(route){
+		Channels.tunnelTo(this.channelID, function(route){
 			if (!route) return true;
 			if (!route.clone().is("/*/process")){
 				if (!fork.subscribeToChild(route.toString())) return false;
@@ -36,13 +36,13 @@ global.Fork = function(path, args, id, channelTags){
 			return true;
 		});
 		var fork = this;
-		this.channel._addListener("/process/control.start", function(message){
+		this.on("/process/control.start", function(message){
 			fork.start();
 		});
-		this.channel._addListener("/process/control.stop", function(message){
+		this.on("/process/control.stop", function(message){
 			fork.stop();
 		});
-		this.channel._addListener("/process/control.reset", function(message){
+		this.on("/process/control.reset", function(message){
 			fork.reset();
 		});
 	}

@@ -116,7 +116,7 @@ Channel.prototype.on = Channel.prototype.for = Channel.prototype.subscribe = Cha
 	if (!callback) return null;
 	callback.id = (Math.random() + "").replace("0.", "handler");
 	var path = [];
-	var root = this._getRoute(this.routes, route.clone(), path);
+	var root = this._getRoute(this.routes, route.clone(), true, path);
 	var result = true;
 	for (var i = 0; i < path.length; i++){
 		var tunnels = path["$tunnels"];
@@ -158,20 +158,21 @@ Channel.prototype._addRouteHandler = function(root, callback){
 	return null;
 };
 
-Channel.prototype._getRoute = function(root, route, path){
+Channel.prototype._getRoute = function(root, route, createPath, path){
 	if (!root) return null;
 	if (!route) return null;
 	var node = route.nodes.shift();
 	if (!node){
 		return null;
 	}
-	root = this._createRoute(root, node, path);
+	root = this._createRoute(root, node, createPath, path);
 	if (root){
 		if (route.nodes.length > 0){
 			if (!root[">"]){
+				if (!createPath) return null;
 				root[">"] = { };
 			}
-			return this._getRoute(root[">"], route, path);
+			return this._getRoute(root[">"], route, createPath, path);
 		}
 		else{
 			return root;
@@ -180,7 +181,7 @@ Channel.prototype._getRoute = function(root, route, path){
 	return null;
 };		
 
-Channel.prototype._createRoute = function(root, node, path){
+Channel.prototype._createRoute = function(root, node, createPath, path){
 	if (!root) return null;
 	if (!node) return null;
 	if (node.components.length == 0) {
@@ -189,6 +190,7 @@ Channel.prototype._createRoute = function(root, node, path){
 	var component = node.components.shift();
 	var inner = root[component];
 	if (!inner){
+		if (!createPath) return null;
 		inner = root[component] = { };
 	}
 	if (path) path.push(inner);
@@ -200,31 +202,55 @@ Channel.prototype.tunnelTo = function(route, callback){
 	route = Channel.ParsePath(route);
 	if (!route) return null;
 	if (!callback) return null;
-	var root = this._getRoute(this.routes, route)
+	var root = this._getRoute(this.routes, route, true)
 	if (root){
-		var tunnels = root['$tunnels'];
-		if (tunnels){
-			tunnels = root['$tunnels'] = [];
+		if (!root['$tunnels']){
+			root['$tunnels'] = [];
 		}
-		tunnels.push(callback);
+		root['$tunnels'].push(callback);
 		return root;
 	}
 	return null;
 };
 
-		
-Channel.prototype.removeRoute = function(route){
-	route = this.parsePath(route);
+Channel.prototype.clear = Channel.prototype._removeListeners = function(route, handler){
+	route = Channel.ParsePath(route);
 	if (!route) return null;
 	if (route.nodes.length == 0) return null;
-	var node = route.nodes.shift();
-	if (route.nodes.length > 0){
-		
-	}
-	else{
-		return this._removeRoute(this.routes, node.components);
+	var path = [];
+	this._getRoute(this.routes, route, false, path);
+	if (path.length > 0){
+		return this._removeHandler(path[path.length-1], node.components, handler);
 	}	
 	return false;
+};
+
+Channel.prototype._removeHandler = function(root, handler){
+	if (!root) return null;
+	if (!root["."]) return false;
+	var i = 0;
+	if (handler){
+		var handlers = root["."];
+		while (i < handlers.length){
+			if (typeof handler == "function"){
+				if (handlers[i] == handler){
+					handlers.splice(i, 1);
+					continue;
+				}		
+			}
+			if (typeof handler == "string"){
+				if (handlers[i].id == handler){
+					handlers.splice(i, 1);
+					continue;
+				}	
+			}
+			i++;	
+		}		
+	}
+	else{
+		root["."] = [];
+	}
+	return true;
 };
 
 
@@ -243,55 +269,6 @@ Channel.prototype._removeRoute = function(root, nodes){
 		}
 	}
 	return false;
-};
-
-Channel.prototype.clear = Channel.prototype._removeListeners = function(route, handler){
-	route = Channel.ParsePath(route);
-	if (!route) return null;
-	if (route.nodes.length == 0) return null;
-	var node = route.nodes.shift();
-	if (route.nodes.length > 0){
-		return this._removeTunnel(this.routes, node.components, route, handler);
-	}
-	else{
-		return this._removeHandler(this.routes, node.components, handler);
-	}	
-	return false;
-};
-
-Channel.prototype._removeHandler = function(root, nodes, handler){
-	if (!root) return null;
-	if (!nodes) return null;
-	if (nodes.length == 0) {
-		if (!root["."]) return false;
-		var i = 0;
-		if (handler){
-			var handlers = root["."];
-			while (i < handlers.length){
-				if (typeof handler == "function"){
-					if (handlers[i] == handler){
-						handlers.splice(i, 1);
-						continue;
-					}		
-				}
-				if (typeof handler == "string"){
-					if (handlers[i].id == handler){
-						handlers.splice(i, 1);
-						continue;
-					}	
-				}
-				i++;	
-			}		
-		}
-		else{
-			root["."] = [];
-		}
-		return true;
-	}
-	var tag = nodes.shift();
-	var inner = root[tag];
-	if (!inner) return false;
-	return this._removeHandler(inner, nodes, handler);
 };
 
 Channel.prototype.once = Channel.prototype._single = function(path, callback){
