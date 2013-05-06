@@ -29,10 +29,19 @@ if (!UsingDOM("KLabNet")){
 		},
 		
 		write : function(messages){
-			var url = new Url(this.url);
+			var url = new Url(this.url + url);
 			url.addParam("rnd", Math.random());
 			var rq = _klabNetInternal.POST(url, messages);
 			rq.send(messages);
+		},
+		
+		send : function(url, data){
+			if (!url) url = "";
+			if (!data) data = null;
+			url = new Url(this.url + url);
+			url.addParam("rnd", Math.random());
+			var rq = _klabNetInternal.POST(url, data);
+			rq.send(data);
 		},
 		
 		readStateChanged: function() {
