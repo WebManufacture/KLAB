@@ -1,6 +1,6 @@
 global.Channel = function(route){
 	this.name = route;
-	this.routes = { "*" : {}, "." : [] };
+	this.routes = { $path : "/" };
 }
 
 //Channel.RegExp = /^((?:(?:[a-z\d\-_*])*\/?)*)?([<>])?(#[a-z\d\-_]+)?((?:\.[a-z\d\-_]+)*$)/;
@@ -35,11 +35,19 @@ Channel.RouteNode = function(route){
 		}
 	}
 	this.is = function(other){
-		other = Channel.ParsePath(other);
-		if (other.type != "*" && other.type != this.type) return false;
-		for (var i = 0; i < other.tags.length; i++){
-			if (this.source.indexOf("." + other.tag[i]) < 0) return false;
+		if (other.type != "*" && other.type != this.type) {
+			return false;
 		}
+		for (var i = 0; i < other.tags.length; i++){
+			if (this.source.indexOf("." + other.tags[i]) < 0){
+				return false;
+			}
+		}
+		return true;
+	};
+	this.setType = function(otherType){
+		this.type = otherType;
+		if (this.components.length > 0) this.components[0] = otherType;
 	};
 };
 
@@ -53,10 +61,8 @@ Channel.RouteNode.prototype.toString = function(){
 
 Channel.Route = function(route){
 	if (!route || route == "") return null;
-	if (typeof route == "object" && route instanceof Channel.RouteNode){
-		this.source = route.source;
-		this.push(route);	
-		return;
+	if (typeof route != "string"){
+		route.push(0);
 	}
 	if (route.indexOf("/") != 0){
 		route = "/" + route;	
@@ -64,28 +70,47 @@ Channel.Route = function(route){
 	this.source = route;
 	this.nodes = route.split("/");
 	this.nodes.shift();
+	this.components = [];
 	for (var i = 0; i < this.nodes.length; i++){
 		if (this.nodes[i] == "") this.nodes[i] = "*";
 		this.nodes[i] = new Channel.RouteNode(this.nodes[i]);
+		this.components = this.components.concat(this.nodes[i].components);
 	}
-	this.clone = function(){
-		return new Channel.Route(this.source);
-	}
-	this.is = function(other){
-		other = Channel.ParsePath(other);
-		if (this.nodes.length < other.nodes.length) return false;
-		for (var i = 0; i < other.nodes.length; i++){
-			if (!this.nodes[i].is(other.nodes[i])) return false;
-		}
-		return true;
-	};
+	
 };
 
+Channel.Route.prototype = {
+	clone : function(){
+		var newRoute = new Channel.Route(this.source);
+		for (var item in this){
+			if (item != "source" && item != "nodes" && item != "components" && !Channel.Route.prototype[item]){
+				newRoute[item] = this[item];
+			}
+		}
+		return newRoute;
+	},
+	
+	is : function(other){
+		other = Channel.ParsePath(other);
+		thisRoute = Channel.ParsePath(this.source);
+		if (thisRoute.nodes.length < other.nodes.length) {
+			return false;
+		}
+		for (var i = 0; i < other.nodes.length; i++){
+			if (!thisRoute.nodes[i].is(other.nodes[i])) return false;
+		}
+		return true;
+	}
+}
 
-Channel.Route.prototype.toString = function(){
+
+Channel.Route.prototype.toString = function(index){
 	var str = "";
-	for (var i = 0; i < this.nodes.length; i++){
-		str += "/" + this.nodes[i].toString();
+	index = parseInt(index);
+	if (!isNaN(index) && index >= 0 && index < this.nodes.length){
+		for (var i = index; i < this.nodes.length; i++){
+			str += "/" + this.nodes[i].toString();
+		}
 	}
 	return str;
 };
@@ -110,37 +135,45 @@ Channel.ParsePath = function(route){
 	return null;
 }
 
+Channel.prototype.once = Channel.prototype._single = function(path, callback){
+	callback.callMode = "single";
+	return this.on(path, callback);
+}
+
 Channel.prototype.on = Channel.prototype.for = Channel.prototype.subscribe = Channel.prototype.add = Channel.prototype._addListener = function(route, callback){
 	route = Channel.ParsePath(route);
 	if (!route) return null;
 	if (!callback) return null;
 	callback.id = (Math.random() + "").replace("0.", "handler");
 	var path = [];
-	var root = this._getRoute(this.routes, route.clone(), true, path);
-	var result = true;
-	for (var i = 0; i < path.length; i++){
-		var tunnels = path["$tunnels"];
-		if (tunnels){
-			var j = 0;
-			while (j < tunnels.length){
-				var res = tunnels[j].call(this, route, path[i]);
-				if (res == null){
-					tunnels.splice(j, 1);
-				}
-				else
-				{
-					if (res == false){
-						result = false;
-						break;
+	var root = this._createRoute(this.routes, route, path);
+	if (root && path.length > 0){
+		var result = true;
+		for (var i = 0; i < path.length; i++){
+			var tunnels = path[i]["$tunnels"];
+			if (tunnels){
+				var j = 0;
+				var param = { source: route.source, path : path[i].$path, current : route.source.replace(path[i].$path, "") };
+				while (j < tunnels.length){
+					var res = tunnels[j].call(route, param);
+					if (res == null){
+						tunnels.splice(j, 1);
 					}
+					else
+					{
+						if (res == false){
+							result = false;
+							break;
+						}
+					}
+					j++;
 				}
-				j++;
+				if (result == false) break;
 			}
-			if (result == false) break;
 		}
-	}
-	if (root && result){
-		return this._addRouteHandler(root, callback);
+		if (result){
+			return this._addRouteHandler(root, callback);
+		}
 	}
 	return null;
 };
@@ -154,47 +187,47 @@ Channel.prototype._addRouteHandler = function(root, callback){
 		}
 		root["."].push(callback);
 		return callback;
-	}
+	}	
 	return null;
 };
 
-Channel.prototype._getRoute = function(root, route, createPath, path){
+Channel.prototype._getRoute = function(root, route, path){
 	if (!root) return null;
-	if (!route) return null;
-	var node = route.nodes.shift();
-	if (!node){
-		return null;
+	if (!route) return null;	
+	var nodes = route.components;
+	for (var i = 0; i < nodes.length; i++){
+		var inner = root[nodes[i]];
+		if (!inner){
+		    return null;
+		}	
+		if (path) path.push(inner);
+		root = inner;
 	}
-	root = this._createRoute(root, node, createPath, path);
-	if (root){
-		if (route.nodes.length > 0){
-			if (!root[">"]){
-				if (!createPath) return null;
-				root[">"] = { };
-			}
-			return this._getRoute(root[">"], route, createPath, path);
-		}
-		else{
-			return root;
-		}
-	}
-	return null;
+	return root;
 };		
 
-Channel.prototype._createRoute = function(root, node, createPath, path){
+Channel.prototype._createRoute = function(root, route, path){
 	if (!root) return null;
-	if (!node) return null;
-	if (node.components.length == 0) {
-		return root;
+	if (!route) return null;
+	var nodes = route.components;
+	var itemsPath = "";
+	for (var i = 0; i < nodes.length; i++){
+		if (nodes[i].length == 0) continue;
+		if (nodes[i][0] == "."){
+				itemsPath += nodes[i];
+			}
+			else{
+				itemsPath += "/" + nodes[i];
+			}
+		var inner = root[nodes[i]];
+		if (!inner){
+			inner = root[nodes[i]] = {  };
+			inner.$path = itemsPath;
+		}	
+		if (path) path.push(inner);
+		root = inner;
 	}
-	var component = node.components.shift();
-	var inner = root[component];
-	if (!inner){
-		if (!createPath) return null;
-		inner = root[component] = { };
-	}
-	if (path) path.push(inner);
-	return this._createRoute(inner, node);
+	return root;
 };
 
 
@@ -202,7 +235,7 @@ Channel.prototype.tunnelTo = function(route, callback){
 	route = Channel.ParsePath(route);
 	if (!route) return null;
 	if (!callback) return null;
-	var root = this._getRoute(this.routes, route, true)
+	var root = this._createRoute(this.routes, route)
 	if (root){
 		if (!root['$tunnels']){
 			root['$tunnels'] = [];
@@ -217,12 +250,7 @@ Channel.prototype.clear = Channel.prototype._removeListeners = function(route, h
 	route = Channel.ParsePath(route);
 	if (!route) return null;
 	if (route.nodes.length == 0) return null;
-	var path = [];
-	this._getRoute(this.routes, route, false, path);
-	if (path.length > 0){
-		return this._removeHandler(path[path.length-1], node.components, handler);
-	}	
-	return false;
+	return this._removeHandler(this._getRoute(this.routes, route), handler);
 };
 
 Channel.prototype._removeHandler = function(root, handler){
@@ -271,49 +299,60 @@ Channel.prototype._removeRoute = function(root, nodes){
 	return false;
 };
 
-Channel.prototype.once = Channel.prototype._single = function(path, callback){
-	callback.callMode = "single";
-	callback = this.on(path, callback);
-	return callback;
-}
 
-Channel.prototype.emit = Channel.prototype._send = function(route){
+Channel.prototype.emit = function(route){
 	var route = Channel.ParsePath(route);
 	if (!route) return;
 	if (route.nodes.length == 0) return null;
-	var node = route.nodes[0];
-	return this._sendInternal(this.routes, route.clone(), route.nodes, node.components, arguments);
+	var root = this.routes;
+	var count = this._sendMessage(root, route, 0, arguments);
+	//console.log(" END: ".warn + count);
+	return count;
+}; 
+
+Channel.prototype._sendMessage = function(root, route, nodeIndex, args){
+	if (!root) return null;
+	if (!route) return null;	
+	var counter = 0;
+	if (nodeIndex < route.nodes.length){
+		var node = route.nodes[nodeIndex];
+		counter += this._sendInternal(root[node.type],  nodeIndex, route, node.tags, args);
+		counter += this._sendInternal(root["*"],  nodeIndex, route, node.tags, args);
+	}
+	return counter;
 };
 
-Channel.prototype._sendInternal = function(root, route, nodes, tags, args){
+Channel.prototype._sendInternal = function(root, nodeIndex, route, tags, args){
 	if (!root) return null;
-	var component = tags.shift();
-	if (root["*"]){
-		this._sendInternal(root["*"], route, nodes, tags.slice(1), args);
+	if (!tags) return null;
+	var param = { source: route.source, path : root.$path, current : route.toString(nodeIndex + 1) };
+	//console.log(param);
+	var counter = this._callHandlers(root["."], route, param, args);
+	if (counter > 0){
+		//console.log(root.$path.warn);
 	}
-	if (root[">"] && nodes.length > 0){
-		var nodes = nodes.slice(1);
-		if (nodes && nodes.length > 0){
-			this._sendIternal(root[">"], route, nodes, nodes[0], args);
-		}
+	else{	
+		//console.log(root.$path);
 	}
 	for (var i = 0; i < tags.length; i++){
 		if (tags[i] == "") continue;
-		var inner = root[tags[i]];
+		var inner = root["." + tags[i]];
 		if (inner) {
-			this._callHandlers(inner["."], route, args);
-			this._sendInternal(inner, route, nodes, tags[i].slice(0, i).concat(tags[i].slice(i+1)), args);
+			counter += this._sendInternal(inner, nodeIndex, route, tags.slice(0, i).concat(tags.slice(i+1)), args);
 		}
-	}
-	return null;
+	}	
+	counter += this._sendMessage(root, route, nodeIndex + 1, args);
+	return counter;
 };
 
-Channel.prototype._callHandlers = function(handlers, route, args){
+Channel.prototype._callHandlers = function(handlers, route, param, args){
+	var counter = 0;
 	if (handlers){
 		var i = 0;
 		while (i < handlers.length){
 			if (handlers[i] != null){
-				this._callHandlerAsync(route, handlers[i], args);
+				counter++;
+				this._callHandlerAsync(route, handlers[i], param, args);
 				if (handlers[i].callMode && handlers[i].callMode == "single"){
 					handlers[i] = null;
 					handlers.splice(i, 1);
@@ -324,13 +363,19 @@ Channel.prototype._callHandlers = function(handlers, route, args){
 			}
 		}
 	}
+	return counter;
 }
 
-Channel.prototype._callHandlerAsync = function(route, callback, args){
-	var channel = this;
+Channel.prototype._callHandlerAsync = function(route, callback, param, args){
+	var channel = this;	
+	var param1 = args[1];
+	var param2 = args[2];
+	var param3 = args[3];	
+	var param4 = args[4];
+	var param5 = args[5];
 	setTimeout(function(){
-		callback.apply(channel, args);
-	}, 10);
+		callback.call(route, param, param1, param2, param3, param4, param5);
+	}, 4);
 }
 
 
