@@ -13,25 +13,31 @@ HttpChannelsClient = {
 		var path = context.pathname;
 		var response = context.res;
 		var request = context.req;
-		var handler = function(){
+		var handler = function(message){
+			//console.log("SENDING event ".info + message);
 			try{
 				var params = [];
 				for (var i = 0; i < arguments.length; i++){
 					params.push(arguments[i]);
 				}
-				response.write(JSON.stringify(params));
+				response.write(JSON.stringify(params) + "\n");
 			}
 			catch(e){
-				response.write(JSON.stringify(e));
+				response.write(JSON.stringify(e) + "\n");
 			}
 		}
 		request.on("close", function(){
 			Channels.clear(path, handler);
 		});
-		Channels.on(path, handler);
-		response.setHeader("Content-Type", "application/json; charset=utf-8");		
-		context.break = true;
-		return false;
+		if (Channels.on(path, handler)){
+			response.setHeader("Content-Type", "application/json; charset=utf-8");		
+			context.break = true;
+			return false;
+		}
+		else{
+			context.finish(403, "handler not registered");
+			return true;
+		}
 	},
 
 	POST : function(context){
@@ -39,6 +45,9 @@ HttpChannelsClient = {
 			return true;	
 		}
 		var path = context.pathName;
+		if (path.indexOf("/") == path.length - 1){
+			path = path.substring(0, path.length - 1);
+		}
 		var response = context.res;
 		var request = context.req;
 		var fullData = "";		
@@ -47,6 +56,7 @@ HttpChannelsClient = {
 			fullData += data;		
 		});
 		request.on("end", function(){
+			console.log(path);
 			Channels.emit(path, fullData);
 			context.finish(200);
 			context.continue();

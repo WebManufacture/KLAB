@@ -11,15 +11,10 @@ try{
 	require('./Modules/Node/Logger.js');
 
 	process.on('SIGTERM', function() {
-		for (var item in Server.Nodes){
-			Server.Nodes[item].Fork.stop();
-		}
+
 	});
 	
-	process.on('exit',function(){
-		for (var item in Server.Nodes){
-			Server.Nodes[item].Fork.stop();
-		}	
+	process.on('exit',function(){	
 		Server.HTTPServer.close();
 	});
 	
@@ -116,33 +111,6 @@ try{
 		console.log("Listening " +  config.Host + ":" + config.Port + "");
 		Server.HTTPServer = http.createServer(Server.Process);
 		Server.HTTPServer.listen(config.Port);
-	};
-	
-	Server.AddMonitoring = function(req, res, url){
-		Server.Monitors.push({req : req, res : res});
-		var index = Server.Monitors.length - 1;
-		req.on("close", function(){
-			if (Server.Monitors[index] && Server.Monitors[index].req){
-				console.log("Request closed: " + Server.Monitors[index].req.url);
-			}
-			delete Server.Monitors[index];
-			Server.Monitors.splice(index, 1);
-		});
-		res.setHeader("Content-Type", "application/json; charset=utf-8");
-		console.log("Admin console entered ".warn + req.url);
-		return false;
-	};
-	
-	Server.Monitors = [];
-	
-	Server.SendMessage = function(message){
-		for (var i = 0; i < Server.Monitors.length; i++){
-			var c = Server.Monitors[i];
-			if (c && c.req){
-				console.log("send: " + c.req.url);
-				c.res.write(message);
-			}
-		}	
 	};
 	
 	Server.Init();

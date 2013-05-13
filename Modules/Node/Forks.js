@@ -2,9 +2,9 @@ var fs = require('fs');
 var paths = require('path');
 var ChildProcess = require('child_process');
 require(paths.resolve("./Modules/Node/Utils.js"));
-var logger = require(paths.resolve("./Modules/Node/Logger.js"))("/forks-log");
 require(paths.resolve("./Modules/Channels.js"));
 require(paths.resolve("./Modules/Node/ChildProcess.js"));
+var logModule = require(paths.resolve("./Modules/Node/Logger.js"));
 var emitter = require('events').EventEmitter;
 
 global.Fork = function(path, args, id, channelTags){
@@ -14,36 +14,52 @@ global.Fork = function(path, args, id, channelTags){
 	this.code = 0;
 	this.id = id;	
 	if (!this.id) {
-		this.id = (Math.random() + "").replace("0.", "");
+		this.id = "fork" + (Math.random() + "").replace("0.", "");
 	}	
 	if (!channelTags) channelTags = "";
-	this.channelID = "/fork" + this.id + channelTags;
+	this.channelId = "/" + this.id + channelTags;
+	this.logger = logModule(this.channelId + "/log");
 	var fork = this;
-	if (global.Channels){		
-		Channels.on(this.channelID, function(route){
+	if (global.Channels){
+		this.on("", function(route){
 			if (!route) return true;
+			this.forkId = fork.id;	
 			route.forkId = fork.id;
-			if (!route.clone().is("/*/process")){
-				fork.emitToChild.apply(this, arguments);
-			}		
 			return true;
-		});
-		Channels.tunnelTo(this.channelID, function(route){
+		});	
+		this.on("/process", function(route){
 			if (!route) return true;
-			if (!route.clone().is("/*/process")){
-				if (!fork.subscribeToChild(route.toString())) return false;
-			}		
+			//console.log("internal message detected: " + route.current);
+			if (this.is("/*/process.internal")){
+				return false;
+			};
+			if (fork.process && fork.code == Fork.STATUS_WORKING){
+				//console.log(this); 
+				var params = [];
+				params.push(route.current);
+				for (var i = 1; i < arguments.length; i++){
+					params.push(arguments[i]);
+				}
+				fork.process.send({ type : "channelMessage", route : route.current, args : params, date : new Date() });
+				return true;
+			}
 			return true;
-		});
-		var fork = this;
-		this.on("/process/control.start", function(message){
+		});		
+		this.on("/control.start", function(message){
 			fork.start();
 		});
-		this.on("/process/control.stop", function(message){
+		this.on("/control.stop", function(message){
 			fork.stop();
 		});
-		this.on("/process/control.reset", function(message){
+		this.on("/control.reset", function(message){
 			fork.reset();
+		});
+		Channels.tunnelTo(this.channelId + "/process", function(path){
+			if (!path) return true;
+			//console.log("SUBSCRIBE DETECTED:".warn );
+			//console.log(path);
+			if (!fork.subscribeToChild(path.current)) return false;
+			return true;
 		});
 	}
 	return this;
@@ -62,7 +78,7 @@ Fork.prototype = {
 	},
 	
 	reset : function(args){		
-		logger.debug("fork resetting " + this.path);
+		this.logger.debug("fork resetting " + this.path);
 		if (this.code < Fork.STATUS_WORKING){
 			return this.start();
 		};	
@@ -89,15 +105,15 @@ Fork.prototype = {
 		}
 		if (args) this.args = args;
 		var cp = this.process = ChildProcess.fork(this.path, args, { silent: false, cwd: paths.dirname(this.path), env : { isChild : true } });
-		logger.debug("fork started " + this.path);
+		this.logger.debug("fork started " + this.path);
 		this.code = Fork.STATUS_WORKING;	
 		if (callback){
 			var fork = this;
-			this.once("process.status", function(){
+			this.once(".status", function(){
 				callback.call(fork, Fork.Statuses[fork.code]);	
 			});
 		}
-		this._emit("process.status." + Fork.Statuses[this.code], Fork.Statuses[this.code]);
+		this.emit(".status." + Fork.Statuses[this.code], Fork.Statuses[this.code]);
 		var fork = this;
 		cp.on("exit", function(){
 			fork._exitEvent.apply(fork, arguments);
@@ -115,12 +131,12 @@ Fork.prototype = {
 		}
 		if (callback){
 			var fork = this;
-			this.once("process.status", function(){
+			this.once(".status", function(){
 				callback.call(fork, Fork.Statuses[fork.code]);	
 			});
 		}
 		this.process.kill();
-		logger.debug("fork stoped " + this.path);
+		this.logger.debug("fork stoped " + this.path);
 		return this.process;
 	},
 	
@@ -134,9 +150,9 @@ Fork.prototype = {
 	
 	_exitEvent : function(signal){
 		this.code = Fork.STATUS_EXITED;
-		this._emit("process.status." + Fork.Statuses[this.code], Fork.Statuses[this.code]);
-		this._emit("process.exit", signal);
-		logger.debug("fork exited " + this.path);
+		this.emit(".status." + Fork.Statuses[this.code], Fork.Statuses[this.code]);
+		this.emit(".exit", signal);
+		this.logger.debug("fork exited " + this.path);
 	},
 	
 	_messageEvent : function(obj){
@@ -148,36 +164,38 @@ Fork.prototype = {
 				});
 			}*/
 			if (obj.type == "channelMessage"){
-				this._emit.apply(this, obj.args);
+				obj.args[0] = "/process.internal" + obj.args[0] + "";
+				//console.log("<< " + (new Date()).formatTime(true));
+				this.emit.apply(this, obj.args);
 			}
 		}
 		if (typeof obj == "string"){
-			logger.log(obj);
+			this.logger.log(obj);
 		}
 	},
 	
 	_errEvent : function(message){
-		this._emit("process.error", message);
-		logger.error(message);
+		this.emit(".error", message);
+		this.logger.error(message);
 	},
 	
 	
-	_emit : function(message){
+	emit : function(message){
 		if (global.Channels){
-			message = this.channelId + "/" + message;
+			message = this.channelId + message;
 			global.Channels.emit.apply(Channels, arguments);
 		}		
 	},
 	
 	on : function(message){
-		message = this.channelId + "/" + message;
+		message = this.channelId + message;
 		Channels.on.apply(Channels, arguments);
 	},
 	
 	once : function(message){
 		if (global.Channels){
-			message = this.channelId + "/" + message;
-			global.Channels.once.apply(Channels, arguments);
+			message = this.channelId + message;
+			Channels.once.apply(Channels, arguments);
 		}		
 	},
 	
@@ -188,18 +206,10 @@ Fork.prototype = {
 		}	
 		return false;
 	},
-	
-	emitToChild : function(message){
-		if (this.process && this.code == Fork.STATUS_WORKING){
-			this.process.send({ type : "channelMessage", args : arguments });
-			return true;
-		}
-		return false;
-	},	
-	
+		
 	close : function(){
 		if (this.process){
-			logger.debug("fork close - " + this.path);
+			this.logger.debug("fork close - " + this.path);
 			this.process.kill();
 		}
 	},

@@ -39,11 +39,11 @@ NodeProto = {
 			fork : this.Fork.toString(),
 			args : this.Args,
 			state : this.State,
-			file : this.cfg.File,
-			host : this.Args.Host,
-			port : this.Args.port,
-			location : this.cfg.Location,
-			name : this.cfg.NodeName
+			file : this.File,
+			host : this.Host,
+			port : this.Port,
+			location : this.Location,
+			name : this.NodeName
 		}
 	},	
 	
@@ -86,13 +86,22 @@ Server.Init = function(){
 		var port = cfg.portStart;
 		for (var i = 0; i < rtable.length; i++){
 			var item = Server.ConfigTable[i];
-			if (item.Location == "server") continue;
-			var rr = rtable[i];
-			if (Server.InitFork(item, rr, i, port)){
-				Server.RoutingTable[rr.Host] = rr;	
+			if (item.Location != "server"){
+				var rr = Server.InitFork(rtable[i], port);
+				if (rr){
+					if (item.Location == "localhost"){
+						if (Server.RoutingTable[rr.Host] != null){
+							console.log("duplicate host ".warn + rr.Host);
+							rr.State = "idle";
+						}	
+						else{
+							Server.RoutingTable[rr.Host] = rr;	
+						}				
+						port++;
+					}					
+					Server.Nodes[rr.id] = rr;
+				}			
 			}
-			port++;				
-			Server.Nodes[rr.id] = rr;
 		}
 	}
 	setTimeout(function(){
@@ -105,127 +114,134 @@ Server.SaveConfig = function(){
 	fs.writeFileSync(Server.Config.routingFile, JSON.stringify(Server.ConfigTable), 'utf8');
 };
 
-Server.InitFork = function(item, rr, num, port){
+Server.InitFork = function(rr, port){
 	rr.__proto__ = NodeProto;
-	rr.cfg = item;
-	rr.Args.Port = rr.Port = port;
-	rr.Args.Host = rr.Host = rr.Host.toLowerCase();
-	rr.Fork = Forks.Create(path.resolve(rr.File), null, item.id);		
-	rr.id = rr.Fork.id;
-	item.id = rr.id;
+	//console.log(rr);
+	if (!rr.Args) rr.Args = {};
+	if (rr.Host){
+		rr.Args.Host = rr.Host = rr.Host.toLowerCase();
+	}
+	if (port){
+		if (!rr.Port) rr.Port = port;
+		rr.Args.Port = port;
+	}
+	rr.Fork = Forks.Create(path.resolve(rr.File), null, rr.id);
+	if (!rr.id){
+		rr.id = rr.Fork.id;
+	}
+	rr.id = (rr.id + "").toLowerCase();
 	rr.Fork.args = [JSON.stringify(rr.Args)];
-	rr.Fork.on("process.status", function(message, state){
+	rr.Fork.on(".status", function(message, state){
 		rr.State = state;
-		item.State = state;
-		Server.SendMessage(rr.toString());
 	});
-	rr.Fork.on("process.message", function(message, message){
-		/*var log = Server.Logs[rr.id];
-		if (!log){
-			log = Server.Logs[rr.id] = [];
-		}
-		log.push(message);
-		if (typeof message != "string"){
-		    message.forkId = rr.id;
-			message = JSON.stringify(message);	
-		}		
-		Server.SendMessage(message);*/
-	});
-	rr.Fork.on("process.exit", function(message){
+	rr.Fork.on(".exit", function(message){
 		rr.State = "exited";
 		//rr.StatusChanged();
 		console.log(" '" + rr.File + "' - " + (rr.Host + ":" + rr.Port) + " exited".warn);
 	});
-	rr.Fork.on("process.error", function(cmessage, error){
+	rr.Fork.on(".error", function(cmessage, error){
 		rr.State = "error";
 		//rr.StatusChanged();
 		console.log(" '" + rr.File + "' - " + (rr.Host + ":" + rr.Port) + " error".error);
 		//console.log(error);
-	});
-	if (rr.Location == "localhost" && rr.State == "working"){	
-		if (Server.RoutingTable[rr.Host] != null){
-			console.log("duplicate host ".warn + rr.Host);
-			rr.State = "idle";
-			return false;
-		}	
+	})	
+	if (rr.State == "working"){	
 		rr.Fork.start();
 		rr.State = "working";
 		console.log(rr.NodeName.info + " '" + rr.File + "' - " + (rr.Host + ":" + rr.Port).info);
-		return true;
 	}
 	else{
 		rr.State = "idle";	
-		return false;
 	}
+	rr.Fork.on("/process/http-response", Server.ForkResponse);
+	return rr;
 };
 
-Server.Utilisation = function(context){
-	if (!context.completed){
-		var message = "http-request";
-		message += "." + context.method.toLowerCase();
-		message += ".id" + context.id; 
-		message += "." + context.pathName;
-		Channels.once("http-response.id" + id, function(message){
-			Server.FinishContext(context, arguments);
-		});
-		Channels.emit(message, id, context.url, context.req.headers);
-	}
+Server.WaitingRequests = {};
+
+Server.RouteChannel = function(fork, req, res, url){
+	var id = (Math.random() + "").replace("0.", "");
+	var path = url.pathname;
+	if (path.indexOf("/") == path.length - 1){
+			path = path.substring(0, path.length - 1);
+		}
+	//console.log((new Date).formatTime(true) + " " + req.url.info);
+	var message = "/process/http-request";
+	message += "." + req.method.toLowerCase();
+	message += ".id" + id;
+	message += path;
+	res.startTime = new Date();
+	Server.WaitingRequests[id] = res;
+	if (Server.Config.ResponseTimeout){
+		res.timeout = setTimeout(function(){
+			console.log("Timeout: ".error + req.url);
+			delete Server.WaitingRequests[id];
+			res.finished == true;
+			res.end(500, "Server timeout");			
+		}, Server.Config.ResponseTimeout);
+	};
+	var fullData = "";
+	req.on("data", function(data){
+		fullData += data;		
+	});
+	req.on("end", function(){
+		fork.emit(message, id, url, req.headers, fullData);
+	});
 };
 
-Server.FinishContext = function(context, args){
+Server.ForkResponse = function(message){	
+	var id = arguments[1];
+	//console.log(id);
+	if (!id) return null;
+	var res = Server.WaitingRequests[id];
+	if (!res) return;
+	if (res.timeout){
+		clearTimeout(res.timeout);
+	}
+	Server.FinishResponse(res, arguments);
+	delete Server.WaitingRequests[id];
+};
+
+Server.FinishResponse = function(res, args){
+	if (!res || res.finished) return false;
 	var message = args[0];
-	var status = args[1];
-	var result = args[2];
-	var headers = args[3];
+	var id = args[1];
+	var status = args[2];
+	var result = args[3];
+	var headers = args[4];
+	res.setHeader("Start", res.startTime.valueOf());
+	res.setHeader("Finish", new Date().valueOf());
+	var load = (new Date() - res.startTime);
+	res.setHeader("Load", load + " ms");
 	if (headers){
 		for (var header in headers){
-			context.res.setHeader(header, headers[header]);
+			res.setHeader(header, headers[header]);
 		}
 	}
-	if (result){
-		if (status){
-			context.finish(status, result);
-		}
-		else{
-			context.finish(200, result);
-		}	
+	//console.log(result.length);
+	if (status){
+		res.statusCode = status;
 	}
 	else{
-		if (status){
-			context.finish(status);
+		if (result){
+			status = 200;
 		}
 		else{
-			context.finish(404, "No processing code detected");
+			res.statusCode = 404;
+			result = "No processing code detected";
 		}
 	}
+	if (headers && headers.encoding){
+		res.end(result, headers.encoding);
+	}
+	else{
+		res.end(result, 'utf8');
+	}	
+	console.log(">> ".verbose + (new Date).formatTime(true) + " load: " + load + " " + res.url);
+	return true;
 };
 
 Server.RouteProxy = function(req, res){
-	var url = "http://" + req.headers.host  + req.url;
-	console.log("URL: ".debug + url.toLowerCase())
-	url = Url.parse(url.toLowerCase());
-	if (url.hostname == Server.Config.adminHost){
-		Server.Process(req, res);
-		return;
-	}
-	var rr = Server.RoutingTable[url.hostname];
-	if (rr){	
-		var host = "127.0.0.1";
-		if (rr.Location){
-			host = rr.Location;	
-		}
-		//console.log((url.hostname + " redirected to " + rr.Port).data);
-		proxy.proxyRequest(req, res, { host: "127.0.0.1", port: rr.Port });
-		return true;
-	}	
-	res.statusCode = 404;
-	res.end(url.hostname + " not found");
-	console.log(url.hostname + " not found".warn);
-	return false;
-};
-
-
-Server.Process = function(req, res){
 	res.setHeader("Access-Control-Allow-Origin", "*");
 	res.setHeader("Access-Control-Allow-Methods", "GET, DELETE, PUT, POST, HEAD, OPTIONS, SEARCH");
 	res.setHeader("Access-Control-Allow-Headers", "debug-mode,origin,content-type");
@@ -240,15 +256,43 @@ Server.Process = function(req, res){
 		res.end("OK");	
 		return;
 	}
+	var url = "http://" + req.headers.host  + req.url;
+	var urlStr = url;
+	res.url = urlStr;
+	url = Url.parse(url.toLowerCase(), true);
+	if (url.hostname == Server.Config.adminHost){
+		return Server.Process(req, res, url);
+	}
+	var route = Channel.ParsePath(url.pathname);
+	if (route.nodes.length > 0){
+		var nodeId = route.nodes[0].type;
+		var rr = Server.Nodes[nodeId];
+		console.log("node ".debug + nodeId);
+	}
+	if (!rr){
+		rr = Server.RoutingTable[url.hostname];
+	}
+	if (rr){	
+		if (rr.Location == "localhost"){
+			proxy.proxyRequest(req, res, { host: "127.0.0.1", port: rr.Port });
+			return true;
+		}
+		if (rr.Location == "managed"){
+			return Server.RouteChannel(rr.Fork, req, res, url);
+		}
+	}
+	res.statusCode = 404;
+	res.end(urlStr + " not found");
+	console.log("not found: ".warn + urlStr);
+	return false;
+};
+
+
+Server.Process = function(req, res){
 	var url = Url.parse(req.url);
 	try{
-		if (req.method == "POST" && url.pathname == "/"){
-			Server.AddMonitoring(req, res, url);
-		}
-		else{
-			var context = Server.Router.GetContext(req, res, "");
-			Server.Router.Process(context);	
-		}
+		var context = Server.Router.GetContext(req, res, "");
+		Server.Router.Process(context);	
 	}
 	catch (e){
 		if (context){
@@ -281,13 +325,12 @@ Server.Start = function(config){
 						   context.finish(200, JSON.stringify(Server.CreateChannelMap(Channels.routes)));
 					   }
 				   },
-				   "/monitoring" : Server.ProcessMonitoring,
-				   "/forks/>": Server.ForksRouter,
 				   "/nodes/>": Server.NodesRouter,
 				   "/<":  channelsClient
 			   });
 	Files(config, Server);
 	//console.log(router.Handlers.processMap)
+	if (!config.Port) config.Port = 80;
 	if (!config.adminPort) config.adminPort = config.Port;
 	console.log("ILAB server v "  + Server.Config.ver);
 	console.log("Listening " +  config.Host + ":" + config.Port + "");
@@ -379,63 +422,31 @@ Server.CreateMap = function(routerMapNode){
 };
 
 
-Server.CreateChannelMap = function(channel){
+Server.CreateChannelMap = function(channel, count){
+	if (!count) count = 1;
+	//if (count > 10) return null;
 	if (!channel) return;
 	var mapObj = null;
 	for (var item in channel){
 		var node = channel[item];
+		if (!mapObj) mapObj = {};
 		if (Array.isArray(node)){
-			if (!mapObj) mapObj = {};
-			mapObj[item] = [];
-			if (node.length > 0) {				
-				for (var i = 0; i < node.length; i++){
-					if (typeof(node[i]) == "function"){
-						mapObj[item].push("func");
-					}
-					if (typeof(node[i]) == "object" && node[i].routes){
-						mapObj[item].push(Server.CreateChannelMap(node[i].routes));
-					}
-				}
-			}
+			mapObj[item] = "[" + node.length + "]";
 		}
 		else{
-			var value = Server.CreateChannelMap(node);
-			if (value){			
-				if (!mapObj) mapObj = {};
-				mapObj[item] = value;
+			if (typeof(node) == "object"){
+				var value = Server.CreateChannelMap(node, count + 1);
+				if (value){			
+					mapObj[item] = value;
+				}
+			}
+			else{
+				mapObj[item] = node;
 			}
 		}
 	}
 	return mapObj;
 };
-
-Server.AddMonitoring = function(req, res, url){
-	Server.Monitors.push({req : req, res : res});
-	var index = Server.Monitors.length - 1;
-	req.on("close", function(){
-		if (Server.Monitors[index] && Server.Monitors[index].req){
-			console.log("Request closed: " + Server.Monitors[index].req.url);
-		}
-		delete Server.Monitors[index];
-		Server.Monitors.splice(index, 1);
-	});
-	res.setHeader("Content-Type", "application/json; charset=utf-8");
-	console.log("Admin console entered ".warn + req.url);
-	return false;
-};
-
-Server.Monitors = [];
-
-Server.SendMessage = function(message){
-	for (var i = 0; i < Server.Monitors.length; i++){
-		var c = Server.Monitors[i];
-		if (c && c.req){
-			console.log("send: " + c.req.url);
-			c.res.write(message);
-		}
-	}	
-};
-
 
 Server.NodesRouter = {
 	GET : function(context){
@@ -482,7 +493,7 @@ Server.NodesRouter = {
 
 Server.ForksRouter = {};
 
-
+/*
 
 Server.CheckHosts = function(item){
 	console.log("checking ".info + item.Host);
@@ -495,10 +506,9 @@ Server.CheckHosts = function(item){
 	Server.RoutingTable[item.Host] = item;
 	return true;
 };
-
 Server.ForksRouter.GET = Server.ForksRouter.HEAD = function(context){	
 	var fpath = context.pathTail.replace("/", "\\");
-	var cf = Server.RoutingTable[fpath];
+	var cf = Server.Nodes[fpath];
 	if (!cf && context.url.query["key"]){
 		cf = Server.Nodes[context.url.query["key"]];	
 	}
@@ -513,11 +523,11 @@ Server.ForksRouter.GET = Server.ForksRouter.HEAD = function(context){
 
 Server.ForksRouter.POST = function(context){
 	var fpath = context.pathTail.replace("/", "\\");
-	var cf = Server.RoutingTable[fpath];
+	var cf = Server.Nodes[fpath];
 	if (!cf && context.url.query["key"]){
 		cf = Server.Nodes[context.url.query["key"]];	
 	}
-	if (cf){		
+	if (cf){	
 		if (cf.State != "broken" && cf.State != "working" && Server.CheckHosts(cf)) {
 			cf.Fork.start(function(){
 				Server.SaveConfig();
@@ -531,7 +541,7 @@ Server.ForksRouter.POST = function(context){
 
 Server.ForksRouter.PUT = function(context){
 	var fpath = context.pathTail.replace("/", "\\");
-	var cf = Server.RoutingTable[fpath];
+	var cf = Server.Nodes[fpath];
 	if (!cf && context.url.query["key"]){
 		cf = Server.Nodes[context.url.query["key"]];	
 	}
@@ -547,7 +557,7 @@ Server.ForksRouter.PUT = function(context){
 
 Server.ForksRouter.DELETE = function(context){
 	var fpath = context.pathTail.replace("/", "\\");
-	var cf = Server.RoutingTable[fpath];
+	var cf = Server.Nodes[fpath];
 	if (!cf && context.url.query["key"]){
 		cf = Server.Nodes[context.url.query["key"]];	
 	}
@@ -561,7 +571,7 @@ Server.ForksRouter.DELETE = function(context){
 		context.finish(200);
 	}
 	return true;
-};
+};*/
 
 process.on('SIGTERM', function() {
 	for (var item in Server.Nodes){

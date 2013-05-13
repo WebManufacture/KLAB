@@ -50,8 +50,18 @@ if (!UsingDOM("KLabNet")){
 				var result = this.responseText.substr(this.lastStateChar);
 				this.lastStateChar = this.responseText.length;				
 				if (result && result.length > 0 && this.status == 200) {
-					result = JSON.parse(result);
-					channel.processMessages(result);
+					result = result.split("\n");
+					for (var i = 0; i < result.length; i++){
+						if (result[i] == "") continue;
+						try{
+							var value = JSON.parse(result[i]);
+						}
+						catch(e){
+							console.log(result[i]);
+							continue;
+						}
+						channel.processMessages(value);
+					}
 				}
 			}
 			if (this.readyState == 4){

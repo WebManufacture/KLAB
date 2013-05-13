@@ -42,11 +42,8 @@
 				border-radius: 10px 10px 10px 10px;
 				cursor: default;
 				font-size: 16px;
-				height: 300px;
 				text-align: left;
-				width: 8%;
 				opacity: 0.5;
-				position: fixed;
 				top: 1%;
 				right: 1%;
 				z-index: 20;
@@ -177,8 +174,6 @@
 		<include url='http://services.web-manufacture.net/UI/UiUtils.htm'></include>
 		<include url='http://services.web-manufacture.net/UI/HtmlElements.htm'></include>
 		<include url="http://services.web-manufacture.net/ui/Toolbars.htm"></include>
-		<div id="Notify">
-		</div>
 		<div id='serverVer'></div>
 		<div class="simple-grid block" url='/nodes' id="NodesBlock" oninit="ConfManager.InitTable();">
 			<div class='object-template prototype'>
@@ -194,7 +189,8 @@
 				</div>
 			</div>
 		</div>
-		
+		<div id="Notify">
+		</div>
 		<div class="header toolbar" id="Toolbar">
 			<div onclick="ConfManager.ShowLogs();" icon="http://cdn1.iconfinder.com/data/icons/fatcow/32/file_extension_log.png" tooltip="Логи" class="menuitem save">
 			</div>
@@ -216,7 +212,7 @@
 			
 			Notify.ShowMessage = function (message) {
 				var nf = DOM("#Notify");
-				var ev = nf.div(".event.first", (new Date()).formatTime() + " " + message);
+				var ev = nf.div(".event.first", (new Date()).formatTime() + " " + JSON.stringify(message));
 				nf.show();
 				nf.ins(ev);
 				Notify.setTimeout();
@@ -258,20 +254,20 @@
 				//Tunnel = Server.serverTunnel;
 				//Tunnel.OnMessage.subscribe(ConfManager.OnServerMessage);
 				Server.Start = function(item){
-					if (item && item.channel){
-						item.channel.send("/control.start");
+					if (item && item.writeChannel){
+						item.writeChannel.send(".start");
 					}
 					//Server.add("/forks?key=" + key, null, ConfManager.stateChanged)
 				}
 				Server.Stop = function(item){
-					if (item && item.channel){
-						item.channel.send("/control.stop");
+					if (item && item.writeChannel){
+						item.writeChannel.send(".stop");
 					}
 					//Server.del("/forks?key=" + key, ConfManager.stateChanged)
 				}
 				Server.Reset = function(item){
-					if (item && item.channel){
-						item.channel.send("/control.reset");
+					if (item && item.writeChannel){
+						item.writeChannel.send(".reset");
 					}
 					//Server.set("/forks?key=" + key, null, ConfManager.stateChanged)
 				}				
@@ -313,14 +309,17 @@
 			ConfManager.FormatNodeItem = function(item){
 				item.add("." + item.get("@data-location").toLowerCase());
 				item.key = item.get("@key");
-				item.channel = new HttpChannel("/fork" + item.key + "/process", true);
+				item.readChannel = new HttpChannel("/" + item.key + ".status", true);
+				item.writeChannel = new HttpChannel("/" + item.key + "/control", false);
 				Server.Nodes[item.key] = item.channel;
-				item.channel.onRead.subscribe(function(messages){
-					if (messages.length >= 2){
+				item.readChannel.onRead.subscribe(function(messages){
+					if (messages.length >= 2 ){
 						var message = messages[0];
-						var arg = messages[1];
-						if (message.id && message.node && message.node.source.contains(".status") && arg){
-							ConfManager.UpdateItem(DOM("#obj" + message.id), arg);				
+						if (message.source.indexOf("/" + item.key + ".status") == 0){
+							var arg = messages[1];
+							if (arg){
+								ConfManager.UpdateItem(item, arg);				
+							}
 						}
 					}
 				});
