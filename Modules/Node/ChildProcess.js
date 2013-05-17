@@ -2,6 +2,22 @@ require(require("path").resolve("./Modules/Node/Utils.js"));
 if (global.Channels){
 	process.on("message", function(pmessage){
 		if (typeof pmessage == "object" && pmessage.type && pmessage.type == "channelControl" && pmessage.pattern){
+			if (pmessage.clientId){
+				var client = Channels.followed[pmessage.clientId];
+				if (client){
+					if (client[pmessage.pattern]){
+						console.log("REFOLLOWING PATTERN DETECTED: " + pmessage.pattern);
+						return;
+					}
+				}
+				else{
+					client = Channels.followed[pmessage.clientId] = {};
+				}
+				client[pmessage.pattern] = 1;
+			}
+			else{
+				console.log("Anonymous client DETECTED");				
+			}
 			Channels.followToGlobal(pmessage.pattern);
 		}
 		if (typeof pmessage == "object" && pmessage.type && pmessage.type == "channelMessage"){
@@ -21,6 +37,8 @@ if (global.Channels){
 		process.send({ type : "channelControl", pattern : pattern });
 	};
 	
+	Channels.followed = {};
+	
 	Channels.followToGlobal = function(pattern){
 		Channels.on(pattern, function(message){
 			var params = [];
@@ -28,6 +46,7 @@ if (global.Channels){
 			for (var i = 1; i < arguments.length; i++){
 				params.push(arguments[i]);
 			}
+			console.log("<- " + pattern);
 			process.send({ type : "channelMessage", args : params });
 		});
 	};

@@ -19,6 +19,7 @@ global.Fork = function(path, args, id, channelTags){
 	if (!channelTags) channelTags = "";
 	this.channelId = "/" + this.id + channelTags;
 	this.logger = logModule(this.channelId + "/log");
+	this.subscribers = {};
 	var fork = this;
 	if (global.Channels){
 		this.on("", function(route){
@@ -104,7 +105,7 @@ Fork.prototype = {
 			args = JSON.parse(args);	
 		}
 		if (args) this.args = args;
-		var cp = this.process = ChildProcess.fork(this.path, args, { silent: false, cwd: paths.dirname(this.path), env : { isChild : true } });
+		var cp = this.process = ChildProcess.fork(this.path, args, { silent: false, cwd: process.cwd(), env : { workDir: paths.dirname(this.path), isChild : true } });
 		this.logger.debug("fork started " + this.path);
 		this.code = Fork.STATUS_WORKING;	
 		if (callback){
@@ -120,8 +121,11 @@ Fork.prototype = {
 		});
 		cp.on("message", function(){
 			fork._messageEvent.apply(fork, arguments);
-		});
-		
+		});		
+		for (var pattern in this.subscribers){
+			this.subscribeToChild(pattern);
+			console.log("STCH: " + pattern);
+		}
 		return cp;
 	},
 	
@@ -201,7 +205,13 @@ Fork.prototype = {
 	
 	subscribeToChild : function(pattern){
 		if (this.process && this.code == Fork.STATUS_WORKING){
-			this.process.send({ type : "channelControl", pattern : pattern });
+			if (this.subscribers[pattern]) {
+				this.subscribers[pattern]++;
+			}
+			else{
+				this.subscribers[pattern] = 1;
+			}
+			this.process.send({ type : "channelControl", pattern : pattern, clientId : this.id });
 			return true;
 		}	
 		return false;

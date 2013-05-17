@@ -310,8 +310,7 @@
 			};
 			
 			ConfManager.FormatNodeItem = function(item){
-				item.location = item.get("@data-location").toLowerCase(); 
-				item.add("." + item.location);
+				item.add("." + item.get("@data-location").toLowerCase());
 				item.key = item.get("@key");
 				item.readChannel = new HttpChannel("/monitoring/" + item.key + ".status", true);
 				item.writeChannel = new HttpChannel("/monitoring/" + item.key + "/control", false);

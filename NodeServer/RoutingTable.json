@@ -3,5 +3,5 @@
  {"NodeName":"Services","Host":"services.web-manufacture.net","Location":"localhost","File":"server.js","Args":{"basepath":"./services"},"id":3,"State":"working"},
  {"NodeName":"System","Host":"system.web-manufacture.net","Location":"localhost","File":"server.js","Args":{"basepath":"./system"},"id":4,"State":"working"},
  {"NodeName":"IPC","id" : "tmp","Location":"managed","File":"ServerIPC.js","Args":{"value":2},"State":"working"},
- {"NodeName":"FClient","id" : "Test2","Location":"remote","File":"TestRemote.js","Args":{"value":3},"State":"idle"}
+ {"NodeName":"Identification","id" : "identification","Location":"managed","File":"identification/identification.js","Args":{"value":3},"State":"working"}
 ]

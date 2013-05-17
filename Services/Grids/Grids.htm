@@ -1,16 +1,106 @@
+<include url='http://services.web-manufacture.net/UI/Dragging.htm'></include>
+<include url='http://services.web-manufacture.net/UI/UiUtils.htm'></include>
+<include url='http://services.web-manufacture.net/UI/HtmlElements.htm'></include>
+
+
 <style type='text/css'>
-  
+	
 </style>
 
-<script type='text/javascript' src='Grids.js'></script>
+<script type='text/javascript' src='http://services.web-manufacture.net/Base/v1.3/Storage.js'></script>
+<script type='text/javascript' src='http://services.web-manufacture.net/Grids/Grids.js'></script>
+<link type='text/css' rel='stylesheet' href="http://services.web-manufacture.net/Grids/Grids.css"/>
 
 <script type='text/javascript' class='deffered'>
-    var grids = DOM.all(".grid");
-    
-    for (var i = 0; i <= grids.length; i++){
-	var table = Grids.InitTable(grids[i]);
-	table.Load();
-    }
+	
 </script>
 
-    
+
+<context selector=".grid" condition="ui-processing">
+	 Grids.InitGrid(element);
+</context>
+
+<div id='GridsSupport' class='prototype'>
+	
+	<div class='content'>
+		
+		<div class='table-header' >						
+			<input class='search-input hintable' style='width:400px; align:center;'>
+			<div class='selection-box'>
+				<div class="select-some select-btn" onclick='this.Get("^.grid").SelectAnyAction()'>Выбраных: {<span class='selected-items-text'></span>}</div>
+				<div class="select-all select-btn" onclick='this.Get("^.grid").SelectAllAction()'>Выбрать всех</div>
+				<div class='clear-selection select-btn invisible' onclick='this.Get("^.grid").ClearSelectionAction()'>Снять выделение</div>
+			</div>
+			<div class='search-params'>				
+				<a class="search-item" href="#">Искать все что содержит</a>				
+				<a class="search-item" href="#">Искать в поле</a>				
+				<a class="search-item" href="#">Искать </a>				
+			</div>
+			
+			<div class='table-controls' >	
+				<div class='connection-indicator online' title="Online" onclick="this.Get('^.grid').GoOffline()">подключен</div>
+				<div class='connection-indicator offline' title="Offline" onclick="this.Get('^.grid').GoOnline()">отключен</div>
+				<div class='add-button small-object-button' title="Add new record" onclick="this.Get('^.grid').AddObjectAction()">	</div>
+				<div class='mass-switcher small-object-button' title="Mass Mode" onclick="var ut = this.Get('^.grid'); ut._eventCheck('OnMassMode', null, WS.ToggleClass(ut, 'mass-mode')); ">	</div>
+			</div>
+		</div>
+		
+		<div class="tabs-panel">
+			<div class='tab-container prototype' onclick="this.Get('^.grid').ShowTab(this);">
+				<div class='tab-name'>
+					Таб
+				</div>
+			</div>	
+		</div>
+		<div class='objects-container'>
+			
+		</div>
+	</div>	
+	
+	<div class="prototype table-object" id='GridsGeneralObjectPrototype' extend='Grids.TableObject'>
+		<div class='object-header'>
+			
+		</div>
+		<div class='object-content'>
+			<div class='left-panel'>
+				<div class='panel control-panel'>
+					<div class='select-indicator indicator'></div>
+					<div class="edit-button small-object-button" onclick="this.Get('^.table-object').EditAction();" title="Edit"></div>
+					<div class="delete-button small-object-button" onclick="this.Get('^.table-object').DeleteAction();" title="Delete"></div>
+					<div class='add-button small-object-button' title="Add new" onclick="this.Get('^.table-object').AddAction();">	</div>
+				</div>
+			</div>					
+			<div class='content-panel'>
+				<div class="content-line">
+					
+				</div>
+			</div>
+			<div class='right-panel'>
+				
+			</div>
+		</div>
+		<div class="object-footer">
+			
+		</div>			
+	</div>
+	
+	<div id='GridsGeneralEditPrototype' class='edit-object-form prototype' extend='Grids.EditFormActions'>
+		<div class='object-header'>
+			
+		</div>
+		<div class='object-content'>
+			<div class='left-panel'>
+			</div>					
+			<div class='content-panel'>
+			</div>
+			<div class='right-panel'>
+			</div>
+		</div>
+		<div class='object-footer controls-panel'>
+			<div class='btn-ira ok ' title='OK' onclick = 'this.Get("^.edit-object-form").Save();'> OK </div>
+			<div class='btn-ira clear ' onclick = 'this.Get("^.edit-object-form").Clear();' title='Clear'> Clear </div>
+			<div class='btn-ira cancel ' onclick = 'this.Get("^.edit-object-form").Cancel();' title='Cancel' > Cancel </div>
+		</div>
+		
+	</div>	
+</div>

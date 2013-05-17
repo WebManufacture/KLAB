@@ -44,12 +44,14 @@ function FormatPath(fpath){
 	
 	fpath = cfg.basepath + fpath;
 	if (fpath.end("\\")) fpath = fpath.substr(0, fpath.length - 1);
-	return fpath;
+	return fpath.toLowerCase();
 }
 
 FilesRouter.GET = FilesRouter.HEAD = function(context){	
+	if (context.completed) return true;
 	var fpath = FormatPath(context.pathTail);
 	var inm = context.req.headers["if-none-match"];
+	//console.log("Cache: " + inm + " " +  LastFiles[fpath]);
 	if (inm && LastFiles[fpath] == inm){
 	    context.finish(304, null);
 	    return;
@@ -73,16 +75,16 @@ FilesRouter.GET = FilesRouter.HEAD = function(context){
 		if (result.length < 1000000){
 		    context.res.setHeader("Content-Length", result.length);
 		}	
-		var dnow = new Date();	
-		if (!LastFiles[fpath]){
-            var fileHash = crypto.createHash('sha1');
-            var str = dnow.toString();
-		    fileHash.update(str);
-		    LastFiles[fpath] = fileHash.digest('hex');
+		var dnow = new Date();
+		var etag = LastFiles[fpath];
+		if (!etag){
+            var etag = (Math.random() + "").replace("0.", "");
+		   	LastFiles[fpath] = etag;
+			//console.log(etag);
 		}		
 		context.res.setHeader("Expires", new Date(dnow.valueOf() + 1000 * 3600).toString());
 		context.res.setHeader("Cache-Control", "max-age=3600");
-		context.res.setHeader("etag", LastFiles[fpath]);
+		context.res.setHeader("ETag", etag);
 		//context.res.write(buf);
 		context.finish(200, result, ext);
 		context.continue();
@@ -91,6 +93,7 @@ FilesRouter.GET = FilesRouter.HEAD = function(context){
 };
 
 FilesRouter.SEARCH = function(context){
+	if (context.completed) return true;
 	var fpath = FormatPath(context.pathTail);
 	fs.readdir(fpath, function(err, files){
 		if (err){
@@ -111,8 +114,9 @@ FilesRouter.SEARCH = function(context){
 };
 
 FilesRouter.DELETE = function(context){
+	if (context.completed) return true;
 	var fpath = FormatPath(context.pathTail);
-	LastFiles[fpath] = null;
+	delete LastFiles[fpath];
 	fs.exists(fpath, function(exists){
 		if (!exists){
 			context.finish(404, "file " + fpath + " not found");
@@ -135,9 +139,11 @@ FilesRouter.DELETE = function(context){
 };
 
 FilesRouter.POST = FilesRouter.PUT = function(context){
+	if (context.completed) return true;
 	var fpath = FormatPath(context.pathTail);
 	var fullData = "";
-	LastFiles[fpath] = null;
+	//console.log("updating cache: " + fpath + " " + LastFiles[fpath]);
+	delete LastFiles[fpath];
 	context.req.on("data", function(data){
 		fullData += data;		
 	});

@@ -1,4 +1,4 @@
-﻿function IsEmpty(elem) {
+function IsEmpty(elem) {
 	if (elem == undefined || elem == null || elem.length == 0) return true;
 	if (elem instanceof HTMLElement) {
 		return elem.innerHTML == "";
@@ -465,10 +465,18 @@ return wrapper.firstChild;*/
 		return elem;
 	}
 		
-		
-		BOM.Show = BOM.show = function(element) {
-			this._Del(".invisible");
-		};
+	BOM.Show = BOM.show = function(toggle) {
+		if (toggle){
+			if (this.is(".invisible")){
+				this._Del(".invisible");
+			}
+			else{
+				this._Add(".invisible");	
+			}
+			return;
+		}
+		this._Del(".invisible");
+	};
 	
 	BOM.Hide = BOM.hide = function(element) {
 		this._Add(".invisible");

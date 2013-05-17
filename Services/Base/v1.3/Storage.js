@@ -1,5 +1,66 @@
 if (!UsingDOM("KLabStorage")){
 	
+	SimpleStorage = function(url){
+		this.url = url;	
+		this.tunnel = new KLabTunnel(url, false);
+		if (window.Channel){
+			this.channel = new Channel();	
+		}
+	};
+	
+	SimpleStorage.prototype = {
+		on : function(){
+			return this.channel.on.apply(this.channel, arguments);
+		},
+		
+		once : function(){
+			return this.channel.once.apply(this.channel, arguments);
+		},
+		
+		emit : function(){
+			return this.channel.emit.apply(this.channel, arguments);
+		},
+		
+		_sendRequest : function(type, data, callback){
+			var storage = this;
+			return this.tunnel.PUT("?action=" + type, JSON.stringify(data), function(result){
+				if (callback){
+					callback.call(this, result, storage);
+				}
+				if (storage.channel){
+					storage.channel.emit(type + "." + this.id, result);	
+				}
+			});
+		},
+		
+		all : function(searchobj, callback) {
+			if (!callback && typeof(searchobj) == "function") {
+				callback = searchobj;	
+				searchobj = null;
+			}
+			return this._sendRequest("all", searchobj, callback);
+		},
+		
+		get : function(searchobj, callback) {
+			return this._sendRequest("get", searchobj, callback);
+		},
+		
+		add : function(dataobj, callback) {
+			return this._sendRequest("add", dataobj, callback);
+		},
+		
+		
+		set : function(dataobj, callback) {
+			return this._sendRequest("set", dataobj, callback);
+		},
+		
+		del : function(dataobj, callback) {
+			return this._sendRequest("del", dataobj, callback);
+		}
+	};
+	
+	SimpleStorage.prototype.load = SimpleStorage.prototype.all;
+	
 	KLabStorage = {};
 	
 	KLabStorage.Init = function(){
