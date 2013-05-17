@@ -1,4 +1,4 @@
-﻿SGrid = {};
+SGrid = {};
 
 SGrid.Init = function() {
 	
@@ -39,7 +39,7 @@ SGrid._umGridMixin.LoadData = function(){
 	//.Page(0, table.pageSize)
 	table.add(".loading");
 	table.tunnel.All(function (result) {
-		table.ShowObjects(JSON.parse(result));
+		table.ShowObjects(result);
 		table.del(".loading");
 		table.add(".loaded");
 		table.onLoaded.fire();

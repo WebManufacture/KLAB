@@ -53,7 +53,8 @@ NodeProto = {
 }
 
 Server.Init = function(){
-	var cfg = { ver:"0.1.4", routingFile: "./NodeServer/RoutingTable.json", adminAppFile : "./NodeServer/Config.htm" };
+	console.log(process.cwd().prompt);
+	var cfg = { ver:"0.1.4", routingFile: "./NodeServer/RoutingTable.json", adminAppFile : "./Config.htm" };
 	
 	for (var i = 2; i < process.argv.length; i++){
 		var arg = process.argv[i];
@@ -160,8 +161,16 @@ Server.InitFork = function(rr, port){
 Server.WaitingRequests = {};
 
 Server.RouteChannel = function(fork, req, res, url){
+	if (fork.State != "working"){
+		//res.finished = true;
+		res.statusCode = 401
+		res.end("Fork not started");
+		return false;
+	}	
+	fork = fork.Fork;
 	var id = (Math.random() + "").replace("0.", "");
 	var path = url.pathname;
+	url.method = req.method.toLowerCase();
 	if (path.indexOf("/") == path.length - 1){
 			path = path.substring(0, path.length - 1);
 		}
@@ -176,7 +185,7 @@ Server.RouteChannel = function(fork, req, res, url){
 		res.timeout = setTimeout(function(){
 			console.log("Timeout: ".error + req.url);
 			delete Server.WaitingRequests[id];
-			res.finished == true;
+			res.finished = true;
 			res.end(500, "Server timeout");			
 		}, Server.Config.ResponseTimeout);
 	};
@@ -185,16 +194,24 @@ Server.RouteChannel = function(fork, req, res, url){
 		fullData += data;		
 	});
 	req.on("end", function(){
+		console.log((">> " + id).verbose + " " + req.method + ": " + res.url);
 		fork.emit(message, id, url, req.headers, fullData);
 	});
 };
 
 Server.ForkResponse = function(message){	
 	var id = arguments[1];
-	//console.log(id);
-	if (!id) return null;
+	console.log(("<< " + id + " ").verbose + (new Date).formatTime(true));
+	if (!id) {
+		console.log("ID NULL".error);
+		return null;
+	}
 	var res = Server.WaitingRequests[id];
-	if (!res) return;
+	if (!res) {
+		console.log("RESPONSE NULL".error + " ID: " + id);
+		return;
+	};
+	//console.log("RESPONSE FOUND".debug + " ID: " + id);
 	if (res.timeout){
 		clearTimeout(res.timeout);
 	}
@@ -203,7 +220,10 @@ Server.ForkResponse = function(message){
 };
 
 Server.FinishResponse = function(res, args){
-	if (!res || res.finished) return false;
+	if (!res || res.finished){
+		console.log("RESPONSE IS FINISHED".error);
+		return false;
+	}
 	var message = args[0];
 	var id = args[1];
 	var status = args[2];
@@ -231,13 +251,22 @@ Server.FinishResponse = function(res, args){
 			result = "No processing code detected";
 		}
 	}
-	if (headers && headers.encoding){
-		res.end(result, headers.encoding);
-	}
-	else{
-		res.end(result, 'utf8');
+	if (result){
+		if (headers && headers.encoding){
+			result = new Buffer(result, headers.encoding);
+			res.setHeader("content-length", result.length);
+			res.end(result, headers.encoding);
+		}
+		else{		
+			result = new Buffer(result, 'utf8');
+			res.setHeader("content-length", result.length);
+			res.end(result, 'utf8');
+		}
 	}	
-	console.log(">> ".verbose + (new Date).formatTime(true) + " load: " + load + " " + res.url);
+	else{
+		res.end();
+	}
+	console.log(("<< " + id + " ").verbose + (new Date).formatTime(true) + " load: " + load);
 	return true;
 };
 
@@ -246,7 +275,7 @@ Server.RouteProxy = function(req, res){
 	res.setHeader("Access-Control-Allow-Methods", "GET, DELETE, PUT, POST, HEAD, OPTIONS, SEARCH");
 	res.setHeader("Access-Control-Allow-Headers", "debug-mode,origin,content-type");
 	res.setHeader("Access-Control-Max-Age", "12000");
-	res.setHeader("Access-Control-Expose-Headers", "content-type,debug-mode,Content-Type,ETag,Finish,ServerUrl,ManageUrl,Date,Start,Load");
+	res.setHeader("Access-Control-Expose-Headers", "content-type,debug-mode,Content-Type,ETag,Finish,ServerUrl,ManageUrl,Date,Start,Load,NodeId, NodeType");
 	
 	res.setHeader("Content-Type", "text/plain; charset=utf-8");
 	res.setHeader("ManageUrl", Server.Config.adminHost);
@@ -264,22 +293,27 @@ Server.RouteProxy = function(req, res){
 		return Server.Process(req, res, url);
 	}
 	var route = Channel.ParsePath(url.pathname);
-	if (route.nodes.length > 0){
+	rr = Server.RoutingTable[url.hostname];
+	if (!rr && route.nodes.length > 0){
 		var nodeId = route.nodes[0].type;
 		var rr = Server.Nodes[nodeId];
-		console.log("node ".debug + nodeId);
-	}
-	if (!rr){
-		rr = Server.RoutingTable[url.hostname];
+		if (rr){
+			//console.log("Managed node: ".verbose + nodeId);
+		}
 	}
 	if (rr){	
+		res.setHeader("NodeId", nodeId);			
+		res.setHeader("NodeType", rr.Location);
 		if (rr.Location == "localhost"){
 			proxy.proxyRequest(req, res, { host: "127.0.0.1", port: rr.Port });
 			return true;
 		}
 		if (rr.Location == "managed"){
-			return Server.RouteChannel(rr.Fork, req, res, url);
+			return Server.RouteChannel(rr, req, res, url);
 		}
+	}
+	if (Server.Process(req, res, url)){
+		return true;
 	}
 	res.statusCode = 404;
 	res.end(urlStr + " not found");
@@ -300,18 +334,61 @@ Server.Process = function(req, res){
 		}
 		throw e;
 	}
+	return true;
 };
 
 Server.Start = function(config){
 	var router = Server.Router = RouterModule;
+	var filesRouter = Files(config, Server);
 	router.map("mainMap", 
 			   {
-				   "/": { GET: function(context){
-					   var adminApp = fs.readFileSync(config.adminAppFile, 'utf8');
-					   context.res.setHeader("Content-Type", "text/html; charset=utf-8");
-					   context.finish(200, adminApp);
-					   return true;
-				   }	
+				   "/": { 
+						   GET: function(context){
+							   console.log(context.url.hostname);
+							   if (context.url.hostname == Server.Config.adminHost){
+								   var adminApp = fs.readFileSync(config.adminAppFile, 'utf8');
+								   context.res.setHeader("Content-Type", "text/html; charset=utf-8");
+								   context.finish(200, adminApp, 'utf8');
+								   return true;
+							   }
+							   var localPath = context.pathName;
+							   if (localPath.indexOf(".") != 0){
+									localPath = "." + localPath;   
+							   }
+							   localPath = path.resolve(localPath);
+							   fs.stat(localPath, function(err, stat){
+								   if (err){
+									   context.continue();   
+									   return;
+								   }
+								   if (stat.isDirectory()){
+								   	   context.res.setHeader("Content-Type", "text/html; charset=utf-8");
+									   fs.readFile("./files.htm", "utf8", function(err, result){   
+										   if (err){
+											   context.finish(500, "Not found files view page " + err);
+											   return;
+										   }		
+										   context.finish(200, result);
+									   });
+									   return;
+								   }
+								   if (stat.isFile() && context.query["action"] == "edit"){
+									   context.res.setHeader("Content-Type", "text/html; charset=utf-8");
+									   fs.readFile("./TextEditor.htm", "utf8", function(err, result){   
+										   if (err){
+											   context.finish(500, "Not found files view page " + err);
+											   return;
+										   }		
+										   context.finish(200, result);
+									   });
+									   return;
+								   }
+								   context.continue();
+							   });
+							   return false;
+						   },
+						   SEARCH: filesRouter.SEARCH,
+						   POST: filesRouter.POST
 						},
 				   "/map": {
 					   GET : function(context){
@@ -325,10 +402,10 @@ Server.Start = function(config){
 						   context.finish(200, JSON.stringify(Server.CreateChannelMap(Channels.routes)));
 					   }
 				   },
-				   "/nodes/>": Server.NodesRouter,
-				   "/<":  channelsClient
+				   "/nodes/>": Server.NodesRouter,				   
+				   "/monitoring/>": channelsClient,
+				   "/<":  filesRouter
 			   });
-	Files(config, Server);
 	//console.log(router.Handlers.processMap)
 	if (!config.Port) config.Port = 80;
 	if (!config.adminPort) config.adminPort = config.Port;
@@ -450,12 +527,23 @@ Server.CreateChannelMap = function(channel, count){
 
 Server.NodesRouter = {
 	GET : function(context){
-		context.res.setHeader("Content-Type", "application/json; charset=utf-8");
-		context.finish(200, JSON.stringify(Server.Config));
+		var nodeId = context.pathTail.trim();
+		if (nodeId.lastIndexOf("/") == nodeId.length - 1){
+			nodeId = nodeId.substring(0, nodeId.length - 1);
+		}
+		if (nodeId.start("/")) nodeId = nodeId.substring(1);
+		var node = Server.Nodes[nodeId];
+		if (node){
+			context.res.setHeader("Content-Type", "text/json; charset=utf-8");
+			context.finish(200, JSON.stringify(node.serialize()));
+		}
+		else{
+			context.finish(404, "node " + nodeId + " not found");
+		}
 		return true;
 	},
 	SEARCH : function(context){
-		context.res.setHeader("Content-Type", "application/json; charset=utf-8");
+		context.res.setHeader("Content-Type", "text/json; charset=utf-8");
 		var items = [];
 		for (var item in Server.Nodes){
 			items.push(Server.Nodes[item].serialize());

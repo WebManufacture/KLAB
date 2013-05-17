@@ -10,16 +10,21 @@ HttpChannelsClient = {
 		if (context.completed){
 			return true;	
 		}
-		var path = context.pathname;
+		var path = context.pathTail.trim();
 		var response = context.res;
 		var request = context.req;
+		if (path.lastIndexOf("/") == path.length - 1){
+			path = path.substring(0, path.length - 1);
+		}
+		//console.log("SENDING event ".info + path);
 		var handler = function(message){
-			//console.log("SENDING event ".info + message);
 			try{
 				var params = [];
 				for (var i = 0; i < arguments.length; i++){
+					//if (arguments[i].length && arguments[i].length > 100) params.push("Long param: " + arguments[i].length);
 					params.push(arguments[i]);
 				}
+				//console.log("--->" + message);
 				response.write(JSON.stringify(params) + "\n");
 			}
 			catch(e){
@@ -44,8 +49,8 @@ HttpChannelsClient = {
 		if (context.completed){
 			return true;	
 		}
-		var path = context.pathName;
-		if (path.indexOf("/") == path.length - 1){
+		var path = context.pathTail.trim();
+		if (path.lastIndexOf("/") == path.length - 1){
 			path = path.substring(0, path.length - 1);
 		}
 		var response = context.res;

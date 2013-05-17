@@ -304,9 +304,13 @@ Channel.prototype.emit = function(route){
 	var route = Channel.ParsePath(route);
 	if (!route) return;
 	if (route.nodes.length == 0) return null;
+	route.id = (Math.random() + "").replace("0.", "");
 	var root = this.routes;
+	route.callplan = [];
 	var count = this._sendMessage(root, route, 0, arguments);
-	//console.log(" END: ".warn + count);
+	for (var i = route.callplan.length - 1; i >= 0; i--){
+		route.callplan[i]();
+	}
 	return count;
 }; 
 
@@ -325,7 +329,7 @@ Channel.prototype._sendMessage = function(root, route, nodeIndex, args){
 Channel.prototype._sendInternal = function(root, nodeIndex, route, tags, args){
 	if (!root) return null;
 	if (!tags) return null;
-	var param = { source: route.source, path : root.$path, current : route.toString(nodeIndex + 1) };
+	var param = { source: route.source, path : root.$path, current : route.toString(nodeIndex + 1), timestamp: (new Date()).valueOf(), id : route.id };
 	//console.log(param);
 	var counter = this._callHandlers(root["."], route, param, args);
 	if (counter > 0){
@@ -373,9 +377,16 @@ Channel.prototype._callHandlerAsync = function(route, callback, param, args){
 	var param3 = args[3];	
 	var param4 = args[4];
 	var param5 = args[5];
-	setTimeout(function(){
-		callback.call(route, param, param1, param2, param3, param4, param5);
-	}, 4);
+	if (route.callplan){
+		route.callplan.push(function(){
+			return callback.call(route, param, param1, param2, param3, param4, param5);
+		});
+	}
+	else{
+		setTimeout(function(){
+			return callback.call(route, param, param1, param2, param3, param4, param5);
+		}, 4);
+	}
 }
 
 

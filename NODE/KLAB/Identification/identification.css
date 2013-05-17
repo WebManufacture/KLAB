@@ -1,0 +1,126 @@
+#InputFileBlock{
+	width: 100%;
+	height: 80px;
+	border: dashed 3px #aca;
+	border-radius: 10px;
+	text-align : center;
+	padding-top : 15px;
+	font-size: 15px;
+	color: gray;
+}
+
+#InputFileBlock.feedback{
+	background-color: #ffc;	
+	color: #ffc;
+}
+
+body{
+	width : 99%;
+}
+
+#ParsedGrid{
+}
+
+#RegionsGrid{
+}
+
+.grid .table-object{
+	background-color: #CFC;	
+}
+
+.grid .table-object:hover{
+	background-color: #CFF;	
+}
+
+.grid .table-object.draft{
+	background-color: white;	
+}
+
+.grid .table-object.draft:hover{
+	background-color: #FFC;	
+}
+
+.grid .table-object .ids{
+	color: darkgreen;	
+	font-weight: bold;
+}
+
+.grid .table-object .field.source{
+	color: gray;
+	display: none;	
+}
+
+.grid .table-object .field[field='INN']{
+	color: #A5F;	
+}
+
+
+.grid .table-object:hover .field.source{
+	display: inline-block;	
+}
+
+.grid .small-object-button:hover
+{
+	background-color: yellow;
+}
+
+.grid .small-object-button:active
+{
+	background-color:orange;
+}
+
+.grid .table-object .select-indicator{
+	background-size: cover;
+	cursor: pointer;
+	display: inline-block;
+	height: 22px;
+	margin: 2px;
+	width: 22px;
+	background-image:url('http://cdn4.iconfinder.com/data/icons/cc_mono_icon_set/blacks/48x48/checkbox_checked.png');
+}
+
+.grid .table-object.pined .select-indicator{
+	background-image:url('http://cdn4.iconfinder.com/data/icons/cc_mono_icon_set/blacks/48x48/checkbox_unchecked.png');
+}
+
+.grid .mass-switcher{
+	background-image:url('http://www.iconsearch.ru/uploads/icons/fatcow/32x32/page_white_stack.png');
+}
+
+.grid.mass-mode .mass-switcher{
+	background-image:url('http://www.iconsearch.ru/uploads/icons/fatcow/32x32/page.png');
+}
+
+.grid .add-button{
+	background-image:url('http://cdn2.iconfinder.com/data/icons/onebit/PNG/onebit_31.png');
+}
+
+.grid .delete-button{
+	background-image:url('http://cdn3.iconfinder.com/data/icons/softwaredemo/PNG/128x128/DeleteRed.png');
+}
+
+.grid .edit-button{
+	background-image:url('http://cdn3.iconfinder.com/data/icons/prettyoffice/128/edit.png');
+}
+
+.grid .table-object .round-indicator,
+.grid .table-object .small-indicator{
+	height: 16px;
+	width: 16px;
+	border-radius: 10px 10px 10px 10px;
+	border: 1px solid grey;
+	margin: 2px;
+	padding: 2px;
+	background-color: #F0FFFF;
+	text-align:center;	
+	font-weight: bold;
+	font-size: 15px;
+}
+
+.grid .objects-container .table-object.deleted{
+	background-color: #FFA07A;
+}
+
+.grid .objects-container .table-object.deleted:hover{
+	background-color: Gainsboro;
+}

@@ -1,400 +1,265 @@
-.simple-grid
-{
-	font-family: Verdana,Arial;
-       font-size: 13px;
-	border-collapse: collapse;
-	border: 1px solid #9C9AB7;
-	position: relative;
-	margin: 0;
-    overflow.hidden;
+.grid{
+	position:relative;	
 }
 
-.simple-grid .ajax_shadow
-{
-	position: absolute;
-	width: 100%;
-	height: 100%;
-	z-index: 10;
-	background-color: rgba(0, 50, 60, 0.5);
-	background-position: center center;
-	background-repeat: no-repeat;
-	text-align: center;	
+.grid.default-theme{
+	background-color: #FF893B;
 }
 
-.simple-grid .source,
-.simple-grid .support{
-    display: none; 
+.grid .selection-box {
+	float:right;
+	display:inline-block;
+	margin-top:3px;
 }
 
-
-
-.simple-grid .title
-{
-	background-color: #D6E7A5;
-	border-top: solid 5px #9CC525;
-	padding: 15px 10px 10px 10px;
-	font-size: 14px;
+.grid .selection-box .ssort{
+	display:block;
+}
+.grid .selection-box .select-btn{
+	
+	text-decoration:none;
+	color:#fff;
+	width:104px;
+	height:20px;
+	text-align:center;
+	border:1px solid #fff;
+	cursor:pointer;
+	line-height:20px;
+	font-size:11px;
+	overflow:hidden;
+	padding:1px;
+	margin:0;
 }
 
-.simple-grid .table-btn
-{
-	width: 32px;
-	height: 32px;
-	border: solid 1px gray;
-	float: left;
+.grid .selection-box .select-btn:hover{
+	color:#fff;
+	background:#36f;
+}
+
+.grid .selection-box .ca:hover,
+.grid .selection-box .cb:hover{
+	background-color: #6fc;		
+}
+
+.grid .selection-box .ca, .cb{
+	background:#ddd;
+	color:#000;
+	
+}
+.grid .selection-box .cab{
+	display:none;
+}
+
+.grid .selection-box:hover .cab{
+	display:block;
+	list-style:none;
+	width:104px;
+	height:20px;
+	position:absolute;
+}
+
+.grid .small-object-button
+{	
+	display: inline-block;
+	cursor: pointer;
+	background-size:cover;
+	height: 22px;
+	width: 22px;
 	margin: 2px;
 }
-.simple-grid .table-btn:hover
-{
-	box-shadow: 2px 2px 1px silver;
-}
 
-.table-btn.save
-{
-    background-image: url("save.png");
-}
-
-.table-btn.close
-{
-    background-image: url("close.png");
-}
-
-.simple-grid .row
-{
-	box-sizing: border-box; /*для Оперы*/
-	-moz-box-sizing: border-box; /*для мозилы*/
-	width: 100%;
-    display: inline-block;
-}
-
-.simple-grid .cell.nopadding
-{
-	padding: 0!important;
-}
-
-.simple-grid .cell
-{
-	float: left;
-	height: 26px;	
-	-moz-box-sizing: border-box;
-	box-sizing: border-box;
-}
-
-.simple-grid .row .cell
-{
-	border-right: 1px solid #9C9AB7;
-	border-bottom: 1px solid #9C9AB7;
-	border-left: none;
-	border-top: none;
-	padding: 5px;
-	background-color: #EEE;
-	text-align: center;
-}
-
-.simple-grid .row.single_row .cell
-{
-	border-bottom: none;
-}
-
-.simple-grid .row .cell.no_border
-{
-	border: none;
-}
-
-.simple-grid .cell.left
-{
-	text-align: left;
-}
-
-.simple-grid .cell.input, .simple-grid .cell.form
-{
-	padding: 2px;
-}
-
-.simple-grid .cell.select
-{
-	padding: 2px 2px;
-}
-
-.simple-grid .row .cell.last
-{
-	border-right: none;
-}
-
-.simple-grid .fullrow
-{
-	width: 100%;
-}
-
-
-.simple-grid .control
-{
-	display: block;	
-	height: 26px;
-	background-position: center;
-	background-repeat: no-repeat;
-	background-attachment: inherit;
+.grid .connection-indicator{
+	color: white;
 	cursor: pointer;
-	opacity: 0.5;
+	font-size: 16px;
+	height: 22px;
+	margin: 2px;
+	padding: 0 8px;
+	text-align: center;
+	width: 80px;
+	float: right;
 }
 
-.simple-grid .control:hover
-{
-	opacity: 1;
+.grid:not(.online):not(.offline) .connection-indicator{
+	display: none;	
 }
 
-
-.simple-grid .ID
-{
+.grid.online .connection-indicator.offline,
+.grid.offline .connection-indicator.online{
 	display: none;
 }
 
-.simple-grid .table-btn
+.grid.default-theme .connection-indicator.online{
+	background-color: green;
+}
+
+.grid.default-theme .connection-indicator.offline{
+	background-color: orange;
+}
+
+.grid.default-theme  .small-object-button:hover
 {
+	background-color: yellow;
+}
+
+.grid.default-theme .small-object-button:active
+{
+	background-color:orange;
+}
+
+.grid.default-theme .table-object .select-indicator{
+	background-size: cover;
 	cursor: pointer;
+	display: inline-block;
+	height: 22px;
+	margin: 2px;
+	width: 22px;
+	background-image:url('http://cdn4.iconfinder.com/data/icons/cc_mono_icon_set/blacks/48x48/checkbox_checked.png');
 }
 
-.simple-grid .table-btn.zoomed:hover
-{
-	width: 64px!important;
-	height: 64px!important;
+.grid.default-theme .table-object.pined .select-indicator{
+	background-image:url('http://cdn4.iconfinder.com/data/icons/cc_mono_icon_set/blacks/48x48/checkbox_unchecked.png');
 }
 
-.simple-grid .table-btn.solid
-{
-	border: silid 1px gray;
-	background-color: White;
-	opacity: 1;
+.grid.default-theme .mass-switcher{
+	background-image:url('http://www.iconsearch.ru/uploads/icons/fatcow/32x32/page_white_stack.png');
 }
 
-.simple-grid .control.disabled
-{
-	opacity: 0.1!important;
+.grid.default-theme.mass-mode .mass-switcher{
+	background-image:url('http://www.iconsearch.ru/uploads/icons/fatcow/32x32/page.png');
 }
 
-.simple-grid .control.save.zoomed:hover
-{
-	background-image: url("../Image/save64.png");
+.grid.default-theme .add-button{
+	background-image:url('http://cdn2.iconfinder.com/data/icons/onebit/PNG/onebit_31.png');
 }
 
-.simple-grid .control.save
-{
-	background-image: url("../Image/save.png");
+.grid.default-theme .delete-button{
+	background-image:url('http://cdn3.iconfinder.com/data/icons/softwaredemo/PNG/128x128/DeleteRed.png');
 }
 
-.simple-grid .control.add
-{
-	background-image: url("../image/edit_add.png");
+.grid.default-theme .edit-button{
+	background-image:url('http://cdn3.iconfinder.com/data/icons/prettyoffice/128/edit.png');
 }
 
-.simple-grid .control.scroll_down
-{
-	background-image: url("../image/arrow_down.png");
-}
-
-.simple-grid .control.scroll_up
-{
-	background-image: url("../image/arrow_up.png");
+.grid .table-object .left-panel{
+	display: inline-block;
+	vertical-align: top;
 }
 
 
-.simple-grid .control.move_down
-{
-	background-image: url("../image/arrow_down.png");
+.grid .table-object .right-panel{
+	display: inline-block;
+	vertical-align: top;
 }
 
-.simple-grid .control.move_up
-{
-	background-image: url("../image/arrow_up.png");
-}
-
-.simple-grid .control.remove
-{
-	background-image: url("../image/remove.png");
-}
-
-.simple-grid .control.comment
-{
-	background-image: url("../image/comment_blue.png");
-	position: relative;
-}
-
-.simple-grid .comment.active .control.comment
-{
-	background-image: url("../image/comment_active.png");
-}
-
-
-.simple-grid .header
-{
-}
-
-.simple-grid .top, .simple-grid .bottom
-{
-	/*background: url("image/gvGradient.gif") repeat-x scroll center top #9C9AB7;*/
-	background-color: #EEE;
-	cursor: pointer;
-	font-weight: normal;
-	overflow: hidden;
-	text-align: center;
-}
-
-.simple-grid .top.absolute
-{
-	position: absolute;
-	top: 0px;
-	left: 0px;
+.grid .table-object .bottom-panel{
+	display: inline-block;
 	width: 100%;
-	z-index: 1;	
-	border-bottom: solid 1px #9C9AB7;
+	height:10px;
 }
 
-.simple-grid .bottom.absolute
-{
-	position: absolute;
-	bottom: 0px;
-	left: 0px;
-	width: 100%;
-	z-index: 1;	
-	border-top: solid 1px #9C9AB7;
+.grid .table-object .content-panel{
+	display: inline-block;
 }
 
-.simple-grid .title
-{
-	background: url("../image/gvTitleBack.gif") repeat-x center top #787797;
-	color: White;
+.grid .table-object .content-line{
+	margin:0;
+	padding:0;
+}
+
+.grid .table-object .panel{
+	display: inline-block;
+	padding: 5px 5px;
+}
+
+.grid.default-theme .table-object .round-indicator,
+.grid.default-theme .table-object .small-indicator{
+	height: 16px;
+	width: 16px;
+	border-radius: 10px 10px 10px 10px;
+	border: 1px solid grey;
+	margin: 2px;
+	padding: 2px;
+	background-color: #F0FFFF;
+	text-align:center;	
 	font-weight: bold;
-	font-size: 14px;
-	padding: 5px;
-	text-align: center;
+	font-size: 15px;
 }
 
-.simple-grid .header .cell
+
+.grid .table-object
+{	
+	background-color: white;
+	border-radius: 5px 5px 5px 5px;
+	border: 1px solid black;
+	margin: 2px;
+}
+
+
+.grid.default-theme .table-object:hover{
+	background-color: #FFE886;
+}			
+
+.grid.default-theme .table-object.deleted{
+	background-color: #FFA07A;
+}
+
+.grid.default-theme .table-object.deleted:hover{
+	background-color: Gainsboro;
+}
+
+
+.grid .field
 {
-	background: url("../image/gvGradient.gif") repeat-x scroll center top #9C9AB7;
-	cursor: pointer;
-	font-weight: normal;
-	overflow: hidden;
-	padding: 5px;
-	text-align: left;
-	white-space: nowrap;
+	display: inline-block;
+	margin: 2px;
+	padding: 1px;
 }
 
-.simple-grid .items
+.grid .field.highlight
 {
-	width: 100%;
-	height: 100%;
+	background-color: rgba(255, 255, 0, 0.4);
 }
 
 
-.simple-grid .vr_input
-{
-	height: 18px;
+.grid .edit-object-form{	
+	width: auto;
+	background-color: white;
+	border-radius: 5px 5px 5px 5px;
+	border: 1px solid black;
+	margin: 2px;
 }
 
-.simple-grid .vr_input.cell
-{
-	width: 100%;
-	border: none;
-}
-
-
-.simple-grid .select .vr_select
-{
-	height: 18px;
-	width: 100%;
-	border: none;
-	background-color: White;
-	color: Black;
-}
-
-.simple-grid .vr_input
-{
-	border: solid 1px gray;
-	float: left;
-}
-.simple-grid .vr_input.mini
-{
-	width: 40px;
-}
-.simple-grid .vr_input.small
-{
-	width: 80px;
-}
-
-.simple-grid .popupComment
-{
-    background-color: rgba(204, 204, 204, 0.5);
-    height: 80px;
-    margin-left: 27px;
-    margin-top: -103px;
-    padding: 10px;
-    position: absolute;
-    width: 180px;
-}
-
-.simple-grid .new_item .item-details {
-    display: none;
-}
-
-.simple-grid .item-details {
-    width: 100%;
-    float: left;
-    height: inherit;
-    padding-left: 26px;
-    background-color: #EEEEEE;
-    padding-bottom: 10px;
-    padding-top: 5px;
-}
-
-.simple-grid .item-details .details {
-    display: none;
-}
-
-.simple-grid .item-details .dtitle {
-    cursor: pointer;
-    color: gray;
-    text-decoration: underline;
-}
-
-.simple-grid textarea
-{
-	border: solid 1px gray;
-	background-color: rgba(204, 204, 204, 0.5);
-	height: 60px;
-	width: 180px;	
+.grid.default-theme .edit-object-form{	
+	background-color: #FFE886;
 }
 
 
-.progress-bar
-{
-	position: absolute;
-	left: 30%;
-	top: 48%;
-	width: 40%;
-	height: 4%;
-	z-index: 11;
-	background-image: url("../image/progressback.png");
-	background-position: 0px 0px;
-	background-repeat: repeat-x;
-	text-align: center;
+.grid .edit-object-form .buttons{
+	text-align:center;
 }
 
-.progress-bar .progress
-{
-	float: left;
-	height: 100%;
-	background-color: #57CBF9;
-	background-image: url("../image/progressvalue.png");
-	background-position: 0px 0px;
-	background-repeat: repeat-x;
+
+
+.grid .edit-object-form .input{
+	text-align:center;
+	height:20px;
+	margin: 5px;
+	width: 95%;
 }
 
-.progress-bar .value
-{
-    font-size: 16px;
-	font-weight: bold;
-    left: 42%;
-    position: absolute;
-    top: 7%;
+.grid.default-theme .edit-object-form.input.main{
+	background-color: #D0F18F;
 }
+
+.grid.default-theme .edit-object-form.input{
+	
+}
+/*http://kuler.adobe.com/#themeID/2046286*/
+
+
+.grid.default-theme .edit-object-form .input.empty{
+	color: #8B8989;	
+	background-color: #FFE886;
+}
+

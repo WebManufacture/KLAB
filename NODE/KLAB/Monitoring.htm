@@ -11,28 +11,48 @@
 		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Events.js"></script>
 		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Log.js"></script>
 		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Url.js"></script>
-		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Ajax.js"></script>
+		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Net.js"></script>
 		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Jasp.js"></script>
 		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Modules.js"></script>
 		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/ui.js"></script>
 		
-		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Node.js"></script>
-		
 		<script>
+			Notify = {};
 			
+			Notify.Show = function (message) {
+				var nf = DOM("#Notify");
+				var ev = nf.div(".event.first", (new Date()).formatTime() + " " + message);
+				nf.show();
+				nf.ins(ev);
+				Notify.setTimeout();
+			};
 			
+			Notify.ShowMessage = function (message) {
+				var nf = DOM("#Notify");
+				var ev = nf.div(".event.first", (new Date()).formatTime() + " " + JSON.stringify(message));
+				nf.show();
+				nf.ins(ev);
+				Notify.setTimeout();
+			};
 			
-			//var startedServerUrl = Request.Params.url;
-			//var startedServerUrlObj = new Url(startedServerUrl);
+			Notify.Error = function (error) {
+				var nf = DOM("#Notify");
+				var ev = nf.div(".event.error.first", (new Date()).formatTime() + " " + error);
+				nf.show();
+				nf.ins(ev);
+				Notify.setTimeout();
+			};
 			
-			//var urlToNodesFile = startedServerUrlObj.protocol + '//' + 'nodes.' + startedServerUrlObj.host + startedServerUrlObj.pathname;
-			//var urlToLogFile = startedServerUrlObj.protocol + '//' + 'logs.' + startedServerUrlObj.host + '/_' + startedServerUrlObj.path + '.log';
+			Notify.setTimeout = function () {
+				if (Notify.timeout) {
+					window.clearTimeout(Notify.timeout);
+				}
+				Notify.timeout = window.setTimeout(Notify.clearFirst, 3000);
+			};
 			
-			//alert(urlToLogFile);
-			
-			
-			
-			
+			Notify.clearFirst = function () {
+				DOM.all("#Notify .event.first").del(".first");
+			};
 			
 			Monitor = {}; 
 			
@@ -40,161 +60,85 @@
 				Monitor.startDate = new Date();
 				Monitor.lastLogDate == null;
 				//Monitor.startDate = Monitor.startDate.getTime();
-				Monitor.urlParse();
-				DOM("#urlBar").set(null, Request.Params.url);
-				Monitor.Server = new NodeServer(Monitor.urlToLogFile);
-				Monitor.requestLog();
-				Monitor.GetServerStatus();
-				window.setInterval(Monitor.GetServerStatus, 3000);
-				setInterval(Monitor.requestLog, 10000);
-			};
-			
-			//Monitor.urlToLogFile;
-			//Monitor.Server;
-			Monitor.logLength = 1;
-			
-			Notify = {};
-			
-			Notify.Show = function (status, pid) {
-				var nf = DOM("#statusMonitor");
-				nf.set((new Date()).formatTime() + " " + status +': ' + pid);
-				if (status == 'working'){
-					nf.set('.server-work');
-				};
-				if (status == 'exited'){
-					nf.set('.server-stop');
-				};
-				return;
-			};
-			Notify.Error = function (error) {
-				var nf = DOM("#statusMonitor");
-				nf.set((new Date()).formatTime() + " " + error);
-				nf.set('.error');
-				return;
-			};
-			
-			
-			Monitor.ServerRun = function () {
-				if (Request.Params.url && Monitor.Server) {
-					WS.Body.set("@status", "starting");
-					WS.Body.add(".loading");
-					Monitor.Server.run(Request.Params.url, Monitor.ServerStatus);
-					Monitor.requestLog();
-					return;
+				//Monitor.Url = (this.location + "").replace(this.location.search, "").toLowerCase();
+				//Monitor.Url = Monitor.Url.replace("/monitoring.htm", "");
+				Monitor.ForkId = Request.Params.fork;
+				if (!Monitor.ForkId.start("/")) Monitor.ForkId = "/" + Monitor.ForkId;
+				DOM("#urlBar").set(Monitor.ForkId);
+				Monitor.Url = "/monitoring" + Monitor.ForkId;
+				
+				Server = new HttpChannel(Monitor.Url + "/control", false);
+				Server.Start = function(item){
+					this.send(".start");
 				}
-			};
-			Monitor.ServerStop = function () {
-				if (Request.Params.url && Monitor.Server) {
-					WS.Body.set("@status", "stopping");
-					WS.Body.add(".loading");
-					Monitor.Server.stop(Request.Params.url, Monitor.ServerStatus);
-					Monitor.requestLog();
-					return;
+				Server.Stop = function(item){
+					this.send(".stop");
 				}
-			};
-			Monitor.ServerRestart = function () {
-				if (Request.Params.url && Monitor.Server) {
-					WS.Body.set("@status", "restarting");
-					WS.Body.add(".loading");
-					Monitor.Server.reset(Request.Params.url, Monitor.ServerStatus);
-					Monitor.requestLog();
-					return;
-				}
-			};
-			Monitor.GetServerStatus = function () {
-				if (Request.Params.url && Monitor.Server) {
-					Monitor.Server.status(Request.Params.url, Monitor.ServerStatus);
-				}
-			}; 
-			
-			Monitor.ServerStatus = function (result, status) {
-				WS.Body.del(".loading");
-				if (status == 200){
-					result = JSON.parse(result);
-					if (Monitor.Status != result.status){
-						Monitor.Status = result.status;
-						Notify.Show(result.status, result.pid);
-						//window.setTimeout(Monitor.requestLog, 1000);
-						//window.setTimeout(Monitor.requestLog, 2000);
-						//window.setTimeout(Monitor.requestLog, 3000);
-						WS.Body.set("@status", result.status);
+				Server.Reset = function(item){
+					this.send(".reset");
+				}				
+				
+				StatusChannel = new HttpChannel(Monitor.Url + ".status", true);
+				StatusChannel.onRead.subscribe(function(message){
+					if (message.length >= 2 ){
+						var arg = message[1];
+						var message = message[0];						
+						if (arg){
+							Monitor.ServerStatus(arg);				
+						}
 					}
-				}else{
-					Notify.Error("HTTP status: " + status);
-				}
-			}; 
-			
-			Monitor.StatusMonitor = function(message){
+				});
+				LogsChannel = new HttpChannel(Monitor.Url + "/process/log", true);
+				LogsChannel.onRead.subscribe(Monitor.LogMessage);
 				
-			};
-			
-			Monitor.GoUrl = function(url){
-				if (url){
-					window.location = "Monitoring.htm?url=" + encodeURIComponent(url);
-				}
-			}; 
-			
-			Monitor.urlParse = function(){
-				var startedServerUrl = Request.Params.url;
-				var startedServerUrlObj = new Url(startedServerUrl);
-				Monitor.urlToLogFile = startedServerUrlObj.protocol + '//' + 'logs.' + startedServerUrlObj.host + '/_' + startedServerUrlObj.path + '.log';
-			};
-			
-			//Monitor.responseConverter = function()
-			
-			Monitor.requestLog = function(){
-				//Monitor.LogTimeout = setTimeout(Monitor.requestLog, 3000);
-				Monitor.Server.get(Monitor.urlToLogFile, Monitor.showLog);
-			};
-			
-			Monitor.showLog = function(){
-				
-				if (Monitor.logStrLength == this.responseText.length) return;
-				
-				var logArry = JSON.parse('[' + this.responseText + '[]]');
-				
-				var logDiv = DOM.get('#logsMonitor');
-				
-				var lastLogItem = logDiv.get(".log-item"); //берем первый сначала
-				
-				for (var i = (logArry.length - 2); i > 0; i--) {
-					var item = logArry[i];
-					var dateOfLog = new Date(item[0]);
-					if (Monitor.lastLogDate && dateOfLog <= Monitor.lastLogDate) break;
-					var logType = item[1];
-					var logMassage = '';
-					for (var j = 2; j < item.length; j++) {
-						logMassage += item[j] + ' ';
-					};
-					var newLogDiv = DOM.div('.log-item.' + logType);
-					if (dateOfLog < Monitor.startDate) newLogDiv.add(".old");
-					newLogDiv.div(".datetime", dateOfLog.formatTime());
-					if (logType == "error"){
-						logMassage = Monitor.FormatError(logMassage);	
-					}
-					newLogDiv.div(".message", logMassage);
-					if (lastLogItem){
-						logDiv.insertBefore(newLogDiv, lastLogItem);
+				Net.get("/nodes" + Monitor.ForkId, function (result, status){
+					if (status == 200){
+						Monitor.ServerStatus(result.state);	
 					}
 					else{
-						logDiv.add(newLogDiv);
-					}
-				};
-				
-				Monitor.lastLogDate = new Date(logArry[logArry.length - 2][0]);
-				Monitor.logLength = logArry.length;
-				Monitor.logStrLength = this.responseText.length;		
+						Monitor.ServerStatus("error");	
+					}					
+				});
+			};
+						
+			
+			Monitor.ServerStatus = function (status) {
+				WS.Body.del(".loading");
+				if (Monitor.Status != status){
+					Monitor.Status = status;
+					Notify.Show(status);
+					WS.Body.set("@status", status);
+				}
+			}; 		
+						
+			Monitor.LogMessage = function(args){
+				var message = args[0];		
+				var log = args[1];		
+				args.splice(2);
+				var logDiv = DOM.get('#logsMonitor');
+				var proto = logDiv.get(".prototype." + log.type);
+				if (!proto){
+					proto = logDiv.get(".prototype.log");	
+				}
+				proto = proto.clone();
+				log.datetime = new Date(log.datetime);
+				proto.get(".datetime").set(log.datetime.formatTime(true));
+				if (log.type == "error"){
+					proto.get(".text").set(log.content.message);	
+					proto.add(Monitor.ParseStack(log.content));	
+				}
+				else{
+					proto.get(".text").set(log.content);	
+				}
+				logDiv.ins(proto);
+				setTimeout(function(){
+					proto.add(".old");	
+				}, 60000 * 3)
 			};
 			
-			Monitor.FormatError = function(error){
+			Monitor.ParseStack = function(error){
 				try{
-					if (typeof (error) != "object") {
-						
-						error = JSON.parse(error);
-					}
-					
-					
-					var errorDiv = DOM.div();
+					var errorDiv = DOM.div(".stack");
 					var stack = error.stack.split('\n');
 					for (var i = 0; i < stack.length; i++){
 						var line = stack[i];
@@ -206,11 +150,15 @@
 							line = line.replace(/\((\w):\\/, "($1\\");
 							var mod = /\(([^:]+):(\d+):(\d+)\)/.exec(line);
 							line = line.substr(0, iofaddr);
-							sl.div(".module-name.stack-part.stack-part-prefix", mod[1] + " : " + mod[2] + "(" + mod[3] + ")");
+							//sl.div(".module-name.stack-part.stack-part-prefix", mod[1] + " : " + mod[2] + "(" + mod[3] + ")");
 							//sl.div(".row.stack-part.stack-part-prefix", mod[2] + "(" + mod[3] + ")");
 							//sl.div(".col.stack-part.stack-part-prefix", mod[3]);
 							sl.div(".function.stack-part", line);
-							
+							if (mod){
+								sl.div(".module-name.stack-part", mod[1]);
+								sl.div(".line.stack-part", " : " + mod[2]);
+								sl.div(".column.stack-part", "(" + mod[3] + ")");							
+							}
 						}
 						else{
 							sl.set(null, line);	
@@ -220,13 +168,9 @@
 				catch (ex){
 					return "Error parsing object: " + error;
 				}
-				return errorDiv.innerHTML;
+				return errorDiv;
 			};
 			
-			Monitor.repeater = function(){ //по идее не нужно делать функцию.
-				
-				return;
-			};	
 			
 			
 			WS.DOMload(Monitor.Init);	
@@ -243,33 +187,6 @@
 			body.loading .header.toolbar .menuitem.server-control {
 				display: none;	
 			}
-			/*
-			.server-button {
-			border: 1px solid silver;
-			border-radius: 10px 10px 10px 10px;
-			cursor: pointer;
-			display: block;
-			float: left;
-			font-size: 10px;
-			height: 50px;
-			margin: 2px;
-			text-align: center;
-			vertical-align: middle;
-			width: 50px;	
-		}
-			*/
-			#statusMonitor {
-				border: 1px solid silver;
-				border-radius: 10px 10px 10px 10px;
-				display: block;
-				float: left;
-				font-size: 12px;
-				height: 50px;
-				margin: 2px;
-				text-align: center;
-				vertical-align: middle;
-				width: 150px;		
-			}
 			
 			#logsMonitor {
 				display: block;
@@ -277,10 +194,13 @@
 				padding: 2px;
 				text-align: left;
 				font-family: monospace;
+				width:80%;
 			}
 			
 			#logsMonitor .log-item{
-				clear: both;
+				display: inline-block;
+				padding-left: 10px;	
+				width: 100%;
 			}
 			
 			#logsMonitor .log-item.old:first-child{
@@ -288,41 +208,81 @@
 			}
 			
 			#logsMonitor .log-item.old{
-				color: #666;
+				opacity: 0.5;
 			}
 			
-			#logsMonitor .log-item div{
-				float: left;
-				padding-left: 10px;				
+			#logsMonitor .log-item.old:hover{
+				opacity: 1;	
 			}
-			
 			
 			#logsMonitor .log-item.error .datetime{
 				color: red;
 			}
 			
-			#logsMonitor .log-item.error .message .stack-line:first-child{
-				color: red;
-			}
-			
-			
-			#logsMonitor .log-item.error .stack-line{
+			.stack-line{
 				float: none;	
 				clear:both;
 			}
 			
-			#logsMonitor .log-item.error .stack-line .stack-part-prefix{
-				width: 150px;
-				text-align: left;
+			.stack-line .stack-part{
+				display: inline-block;
+				padding-left: 5px;
 			}
 			
-			#statusMonitor.server-work {
+			.stack-line .stack-part.function{
+				color: green;
+			}
+			
+			.stack-line .stack-part.module-name{
+				color: gray;
+			}
+			
+			.stack-line .stack-part.line{
+				color: navy;
+				font-weight: bold;
+			}
+			
+			#Notify{
+				background-color: white;
+				border: 1px solid navy;
+				border-radius: 10px 10px 10px 10px;
+				cursor: default;
+				font-size: 16px;
+				text-align: left;
+				opacity: 0.5;
+				position: absolute;
+				top: 10%;
+				right: 1%;
+				z-index: 20;
+				padding: 7px;
+				font-size: 12px;
+				overflow: hidden;
+				width: 10%;
+				height: 60%;
+			}
+			
+			#Notify .event{
+				color: #333;
+			}
+			
+			#Notify .event.first{
+				background-color:yellow;
+			}
+			
+			#Notify .event.error{
+				color: red;
+			}
+			
+			body[status='working'] #Notify {
 				background-color: #99FF99;
 			}
-			#statusMonitor.server-stop {
+			
+			body[status='exited'] #Notify,
+			body[status='idle'] #Notify{
 				background-color: #FFFF99;
 			}
-			#statusMonitor.error {
+			
+			body[status='error'] #Notify {
 				background-color: #FF3366;
 			}
 			
@@ -330,17 +290,11 @@
 				border:  1px solid black;
 			}
 			
-			.header.toolbar .menuitem.url-go {
-				float: right;
-			}
-			
 			.header.toolbar #urlBar {
 				border: 1px solid silver;
 				border-radius: 5px;
-				position: relative;
-				top: 17px;
+				display: inline-block;
 				width: 500px;
-				float: right;
 			}
 			
 			
@@ -350,27 +304,48 @@
 	<body>
 		
 		<include url='http://services.web-manufacture.net/UI/toolbars.htm'></include>
-		<div class='header toolbar'>
-			
-			<div class='menuitem server-control' id='serverStart' onclick="Monitor.ServerRun();">
+		<div class='header toolbar'>			
+			<div class='menuitem server-control' id='serverStart' onclick="Server.Start();">
 				СТАРТ
 			</div>
-			<div class='menuitem server-control' id='serverStop' onclick="Monitor.ServerStop();">
+			<div class='menuitem server-control' id='serverStop' onclick="Server.Stop();">
 				СТОП
 			</div>
-			<div class='menuitem server-control' id='serverRestart' onclick="Monitor.ServerRestart();">
+			<div class='menuitem server-control' id='serverRestart' onclick="Server.Reset();">
 				РЕСТАРТ
 			</div>
-			<div  id='statusMonitor'>
-			</div>
 			
-			<div class="menuitem server-control url-go" onclick="Monitor.GoUrl(DOM('#urlBar').innerHTML);">GO!</div>
-			<div id="urlBar" contenteditable="true" >http://web-manufacture.net:8000/</div>
-			
-			
+			<div class="menuitem server-control url-go invisible" onclick="Monitor.GoUrl(DOM('#urlBar').innerHTML);">GO!</div>
+			<div id="urlBar" class="invisible" contenteditable="true" ></div>
 		</div>
-		
+		<div  id='Notify'>
+		</div>
 		<div  id='logsMonitor'>
+			<div class='log-item info prototype'>
+				<span class='datetime'></span>
+				<span class='path'></span>
+				<span class='text'></span>
+			</div>
+			<div class='log-item debug prototype'>
+				<span class='datetime'></span>
+				<span class='path'></span>
+				<span class='text'></span>
+			</div>
+			<div class='log-item warn prototype'>
+				<span class='datetime'></span>
+				<span class='path'></span>
+				<span class='text'></span>
+			</div>
+			<div class='log-item error prototype'>
+				<span class='datetime'></span>
+				<span class='path'></span>
+				<span class='text'></span>
+			</div>
+			<div class='log-item log prototype'>
+				<span class='datetime'></span>
+				<span class='path'></span>
+				<span class='text'></span>
+			</div>
 		</div>
 	</body>
 	

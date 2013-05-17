@@ -3,57 +3,32 @@
 <head>
     <meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
     <link type='text/css' rel='stylesheet' href="http://Services.web-manufacture.net/Styles/System.default.css" />
-
     <script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Utils.js"></script>
-
     <script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/DOM.js"></script>
-
     <script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Events.js"></script>
-
     <script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Log.js"></script>
-
     <script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Url.js"></script>
-
     <script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Ajax.js"></script>
-
+	<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Net.js"></script>
     <script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Jasp.js"></script>
-
     <script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Modules.js"></script>
-
-    <script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Node.js"></script>
-
+	<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Node.js"></script>
     <script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/NodeTunnel.js"></script>
-
     <script type="text/javascript" src="http://services.web-manufacture.net/External/CodeMirror-3.0/lib/CodeMirror.js"></script>
-
     <link rel="stylesheet" href="http://services.web-manufacture.net/External/CodeMirror-3.0/lib/codemirror.css" />
-
     <script src="http://services.web-manufacture.net/External/CodeMirror-3.0/addon/search/search.js"></script>
-
     <script src="http://services.web-manufacture.net/External/CodeMirror-3.0/addon/search/searchcursor.js"></script>
-
     <script src="http://services.web-manufacture.net/External/CodeMirror-3.0/addon/search/match-highlighter.js"></script>
-
     <script src="http://services.web-manufacture.net/External/CodeMirror-3.0/addon/hint/show-hint.js"></script>
-
     <script src="http://services.web-manufacture.net/External/CodeMirror-3.0/addon/hint/javascript-hint.js"></script>
-
     <link rel="stylesheet" href="http://services.web-manufacture.net/External/CodeMirror-3.0/addon/hint/show-hint.css" />
-
     <script src="http://services.web-manufacture.net/External/CodeMirror-3.0/addon/edit/closetag.js"></script>
-
     <script src="http://services.web-manufacture.net/External/CodeMirror-3.0/addon/edit/matchbrackets.js"></script>
-
     <script src="http://services.web-manufacture.net/External/CodeMirror-3.0/addon/fold/foldcode.js"></script>
-
     <script src="http://services.web-manufacture.net/External/CodeMirror-3.0/mode/javascript/javascript.js"></script>
-
     <script src="http://services.web-manufacture.net/External/CodeMirror-3.0/mode/htmlmixed/htmlmixed.js"></script>
-
     <script src="http://services.web-manufacture.net/External/CodeMirror-3.0/mode/css/css.js"></script>
-
     <script src="http://services.web-manufacture.net/External/CodeMirror-3.0/mode/xml/xml.js"></script>
-
     <script type="text/javascript" key="TextEditor">
 
         Notify = {};
@@ -140,23 +115,33 @@
 
         Editor.GoUrl = function(url, key) {
             if (url) {
-                if (key) {
-                    window.open("TextEditor.htm?url=" + encodeURIComponent(url));
-                }
-                else {
-                    window.location = "TextEditor.htm?url=" + encodeURIComponent(url);
-                }
+				if (key){
+					Net.POST(url, '',function(result){
+						Notify.Show(result);
+					});
+				}
+				else{
+					Net.get(url, function(result){
+						Notify.Show(result);
+					});
+				}
             }
         };
 
         Editor.GoUrlAll = function(url, key) {
             if (url) {
-                if (key) {
-                    window.open("TextEditor.htm?method=SEARCH&url=" + encodeURIComponent(url));
-                }
-                else {
-                    window.location = "TextEditor.htm?method=SEARCH&url=" + encodeURIComponent(url);
-                }
+                if (key){
+					var channel = new HttpChannel(url, false);
+					channel.onRead.subscribe(function(result){
+						Notify.Show(result);
+					});
+				}
+				else{
+					var channel = new HttpChannel(url, true);
+					channel.onRead.subscribe(function(result){
+						Notify.Show(JSON.stringify(result));
+					});
+				}
             }
         };
 
@@ -165,6 +150,11 @@
             var parsers = "";
             DOM(".menuitem.reload").del(".disabled");
             var header = this.getResponseHeader("Content-Type");
+			var server = Editor.Server = {};
+			server.ServerUrl = this.getResponseHeader("ServerUrl");
+			server.ManageUrl = this.getResponseHeader("ManageUrl");
+			server.NodeType = this.getResponseHeader("NodeType");
+			server.NodeId = this.getResponseHeader("NodeId");
             if (header != null) {
                 if (header.Contains(["text/html", "text/htm"])) {
                     parsers = "text/html";
@@ -293,7 +283,7 @@
             var content = Editor.TextEditor.getValue();
 
             //код local storage
-            var keyArray = [];
+			/*var keyArray = [];
             var key1 = Editor.HistoryKey;
             var str = window.localStorage.getItem(key1);
             var i = 0;
@@ -313,7 +303,7 @@
             window.localStorage.setItem(key1, str); //должна быть строка
             var key2 = (now + '_' + Request.Params.UserDomain + "/" + Request.Params.SystemPath + "/" + Editor.fileName);
             window.localStorage.setItem(key2, content);
-
+			*/
             var req = XH();
             var url = "";
 

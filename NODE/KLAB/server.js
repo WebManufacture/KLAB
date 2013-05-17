@@ -28,8 +28,7 @@ try{
 		res.setHeader("Access-Control-Allow-Methods", "GET, DELETE, PUT, POST, HEAD, OPTIONS, SEARCH");
 		res.setHeader("Access-Control-Allow-Headers", "debug-mode,origin,content-type");
 		res.setHeader("Access-Control-Max-Age", "12000");
-		res.setHeader("Access-Control-Expose-Headers", "content-type,debug-mode,Content-Type,ETag,Finish,Date,Start,Load");
-		
+		res.setHeader("Access-Control-Expose-Headers", "content-type,debug-mode,Content-Type,ETag,Finish,Date,Start,Load");		
 		res.setHeader("Content-Type", "text/plain; charset=utf-8");
 		if (req.method == 'OPTIONS'){
 			res.statusCode = 200;
@@ -51,7 +50,7 @@ try{
 	
 	Server.Init = function(){
 		var config = Server.Config;
-		console.log(config);
+		//console.log(config);
 		var router = Server.Router = RouterModule;
 		var filesRouter = Files(config, Server);
 		router.map("mainMap", 
@@ -107,8 +106,8 @@ try{
 					   "/<": filesRouter
 				   });
 		
-		console.log("KLab server v "  + Server.Config.ver);
-		console.log("Listening " +  config.Host + ":" + config.Port + "");
+		console.log("KLab server v "  + 1.3);
+		//console.log("Listening " +  config.Host + ":" + config.Port + "");
 		Server.HTTPServer = http.createServer(Server.Process);
 		Server.HTTPServer.listen(config.Port);
 	};

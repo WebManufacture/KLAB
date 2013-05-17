@@ -163,8 +163,19 @@ if (!UsingDOM("KLabNet")){
 	KLabTunnel.prototype = {
 		_endRequest : function(){		
 			if (this.callback){
+				var contentType = this.getResponseHeader("Content-Type");
 				if (typeof(this.callback) == "function"){
-					this.callback(this.responseText, this.status);
+					var result = this.responseText;
+					if (contentType.start("text/json")){
+						try{
+							result = JSON.parse(result);
+						}
+						catch(e){
+							this.callback(this.responseText, this.status);
+							return;
+						}
+					}
+					this.callback(result, this.status);
 					return;
 				}
 				if (this.callback.add){
@@ -215,6 +226,7 @@ url = new Url(url);
 url.rebase(this.TunnelUrl);
 url = url.toString();*/
 			}
+			rq.id = (Math.random() + "").replace("0.", "");
 			rq.open(method, url + "", true);
 			rq.callback = callback;
 			rq.onload = this._endRequest;
@@ -235,32 +247,58 @@ url = url.toString();*/
 		},
 		
 		
-		get : function(url, callback){
-			return this._sendRequest("GET", url, null, callback);
+		get : function(url, data, callback){
+			if (!callback){
+				return this._sendRequest("GET", url, null, data);
+			}
+			else{
+				return this._sendRequest("GET", url, data, callback);
+			}
 		},
 		
-		all : function(url, callback){
-			return this._sendRequest("SEARCH", url, null, callback);
+		all : function(url, data, callback){
+			if (!callback){
+				return this._sendRequest("SEARCH", url, null, data);
+			}
+			else{
+				return this._sendRequest("SEARCH", url, data, callback);
+			}
 		},
 		
-		add : function(url, text, callback){
-			return this._sendRequest("POST", url, text, callback);
+		add : function(url, data, callback){
+			if (!callback){
+				return this._sendRequest("POST", url, null, data);
+			}
+			else{
+				return this._sendRequest("POST", url, data, callback);
+			}
 		},
 		
-		set : function(url, text, callback){
-			return this._sendRequest("PUT", url, text, callback);
+		set : function(url, data, callback){
+			if (!callback){
+				return this._sendRequest("PUT", url, null, data);
+			}
+			else{
+				return this._sendRequest("PUT", url, data, callback);
+			}
 		},
 		
-		del : function(url, callback){
-			return this._sendRequest("DELETE", url, null, callback);
+		del : function(url, data, callback){
+			if (!callback){
+				return this._sendRequest("DELETE", url, null, data);
+			}
+			else{
+				if (typeof(data) != 'string') data = JSON.stringify(data);
+				return this._sendRequest("DELETE", url, data, callback);
+			}
 		}	
 	};
 	
 	KLabTunnel.prototype.Gdd = KLabTunnel.prototype.GET = KLabTunnel.prototype.get;
 	KLabTunnel.prototype.Add = KLabTunnel.prototype.POST = KLabTunnel.prototype.add;
-	KLabTunnel.prototype.All = KLabTunnel.prototype.browse = KLabTunnel.prototype.all;
-	KLabTunnel.prototype.Set = KLabTunnel.prototype.set;
-	KLabTunnel.prototype.Del = KLabTunnel.prototype.del;
+	KLabTunnel.prototype.All = KLabTunnel.prototype.SEARCH = KLabTunnel.prototype.browse = KLabTunnel.prototype.all;
+	KLabTunnel.prototype.Set = KLabTunnel.prototype.PUT = KLabTunnel.prototype.set;
+	KLabTunnel.prototype.Del = KLabTunnel.prototype.DELETE = KLabTunnel.prototype.del;
 	
 	for (var item in KLabTunnel.prototype){
 		Net[item] = KLabTunnel.prototype[item];	

@@ -106,6 +106,7 @@ module.exports = Router;
 function Context(req, res, rootPath){
 	this.id = (Math.random() + "").replace("0.", "");
 	this.url = require('url').parse(req.url, true);
+	this.hostname = this.url.hostname = req.headers.host;
 	this.method = req.method;
 	this.urlString = "http://" + req.headers.host + req.url;
 	this.req = req;
