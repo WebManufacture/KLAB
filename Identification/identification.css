@@ -1,3 +1,8 @@
+win.screen-center {
+	left: 50%;
+	top: 50%;	
+}
+
 #InputFileBlock{
 	width: 100%;
 	height: 80px;

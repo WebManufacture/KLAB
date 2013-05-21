@@ -1,292 +1,152 @@
-var Url = require('url');
-var fs = require('fs');
-var Path = require('path');
-ObjectID = require('mongodb').ObjectID;
-try{
-	require(Path.resolve("./Modules/Node/Utils.js"));
-	require(Path.resolve("./Modules/Channels.js"));
-	require(Path.resolve("./Modules/Node/ChildProcess.js"));
-	require(Path.resolve('./Modules/Node/Logger.js'));
-	require(Path.resolve('./Modules/Node/Mongo.js'));
-	
-	Server = server = {};
-	
-	Server.InitDB = function (){
-		debug("connecting DB");
-		replicaSet([{host: "127.0.0.1", port : 20000}], "Identificator", function(err, database){
-			if (err){
-				error(err);	
-			}
-			global.db = database;
-		});
-	};
-	
-	Server.Config = JSON.parse(process.argv[2]);
+SemanticNet = function(){
+	this.nodes = {};
+}
 
-	Server.Init = function(){
-		var config = Server.Config;
-		Server.InitDB();
-		Channels.on("/http-request.get", function(route, id, url, headers, data){ 
-			var path = route.current;
-			var context = Server.Context(id, url, path, headers, data);
-			if (context.url.query.action == 'all'){
-				return Server.All(context);
-			}
-			return Server.Get(context);
-		});
-		Server.LastId = 0;
-		Channels.on("/http-request.put", function(route, id, url, headers, data){ 
-			if (this.randomId){
-				console.error("ERROR: duplicate messages " + this.randomId);
-				return;
-			}
-			console.log("ID: " + Server.LastId);
-			this.randomId = Server.LastId;
-			Server.LastId++;
-			var path = route.current;
-			var context = Server.Context(id, url, path, headers, data);
-			if (context.url.query.action == 'all'){
-				return Server.All(context);
-			}
-			if (context.url.query.action == 'get'){
-				return Server.Get(context);
-			}
-			if (context.url.query.action == 'set'){
-				return Server.Update(context);
-			}
-			if (context.url.query.action == 'add'){
-				return Server.Add(context);
-			}
-			if (context.url.query.action == 'del'){
-				return Server.Delete(context);
-			}
-			return Server.Finalize(context);
-		});		
-	};
-	
-	Server.GetDataObj = function(context){
-		if (!context.data || !context.data.length) return null;
-		if (typeof context.data != 'string') return context.data;
-		var data = JSON.parse(context.data);
-		if (data._id){
-			var id = data._id;
-			try{
-				id = ObjectID(data._id);
-			}
-			catch(e){
-				id = data._id;
-			}
-			data._id = id;
+SemanticNet.prototype.Parse = function(text, object){
+	//if (!object) object = {};
+	text = text.toLowerCase().replace(/[^\w\d\.А-Яа-я]/ig, " ");
+	var strings = text.split(" ");
+	object = [];
+	for (var i = 0; i < strings.length; i++){
+		if (strings[i] == "") continue;
+		var str = strings[i];
+		var obj = {_content: str, _verb : str, _path: "", _counter : 0};
+		if (/[0-9]+/.test(str)){
+			obj._type = "decimal";
 		}
 		else{
-			if (data.id){
-				data._id = data.id;
-			}
+			obj._type = "string";
+			this.processNode(obj, this.nodes);
 		}
-		return data;
-	};
-	
-	Server.All = function(context){		
-		context.setHeader("Content-Type", "text/plain; charset=utf-8");
-		try{
-			var collection = context.path;
-			var searchObj = Server.GetDataObj(context);
-			if (!searchObj){
-				searchObj = {};
-			}
-			var cursor = null;
-			cursor = db.collection(collection).find(searchObj);
-			if (context.url.sort){			
-				cursor.sort(context.url.sort);			
-				context.log("Sorting ", context.url.sort);
-			}
-			if (context.url.skip) {
-				cursor.skip(parseInt(context.url.skip));
-			}
-			if (context.url.limit) {
-				cursor.limit(parseInt(context.url.limit));
-			}
-			cursor.toArray(function(err, result){	
-				if (err){
-					context.finish(500, "GET " + context.url.pathname + " error: " + err);
-					return false;
-				}
-				if (!result){					
-					context.finish(404, "Content " + context.url.pathname + " not found");
-					return false;
-				}
-				context.setHeader("Content-Type", "text/json; charset=utf-8");
-				context.finish(200, JSON.stringify(result));
-			});
-			return false;
-		}
-		catch(e){
-			context.finish(500, e.message);
-			error(e);
-		}		
-		return true;
-	};
-	
-	Server.Get = function(context){		
-		context.setHeader("Content-Type", "text/plain; charset=utf-8");
-		try{
-			var collection = context.path;
-			var searchObj = Server.GetDataObj(context);
-			if (!searchObj){
-				searchObj = {};
-			}
-			var cursor = null;
-			cursor = db.collection(collection).find(searchObj);
-			if (context.url.sort){			
-				cursor.sort(context.url.sort);			
-				context.log("Sorting ", context.url.sort);
-			}
-			if (context.url.skip) {
-				cursor.skip(parseInt(context.url.skip));
-			}
-			if (context.url.limit) {
-				cursor.limit(parseInt(context.url.limit));
-			}
-			cursor.nextObject(function(err, result){	
-				if (err){
-					context.finish(500, "GET " + JSON.stringify(searchObj) + " error: " + err);
-					return false;
-				}
-				if (!result){					
-					context.finish(404, "Content " + JSON.stringify(searchObj) + " not found");
-					return false;
-				}
-				context.setHeader("Content-Type", "text/json; charset=utf-8");
-				context.finish(200, JSON.stringify(result));
-			});
-			return false;
-		}
-		catch(e){
-			context.finish(500, e.message);
-			error(e);
-		}		
-		return true;
-	};
-	
-	Server.Update = Server.Add = function(context){		
-		context.setHeader("Content-Type", "text/plain; charset=utf-8");
-		try{
-			var collection = context.path;
-			var doc = Server.GetDataObj(context);
-			if (doc){
-				db.collection(collection).save(doc, {safe : false}, function(err, result){
-					if (err){
-						context.finish(500, "POST " + context.url + " error " + err);
-						return;
-					}	
-					context.setHeader("Content-Type", "text/json; charset=utf-8");
-					if (result){						
-						context.finish(200, JSON.stringify(result));
-					}
-					else{
-						context.finish(200, JSON.stringify(doc));
-					}
-					return false;
-				});
-			}
-			else{
-				context.finish(500, "No data obj");	
-				return false;
-			}
-		}
-		catch(e){
-			context.finish(500, e.message);
-			error(e);
-		}		
-		return true;
-	};
-	
-	Server.Delete = function(context){		
-		context.setHeader("Content-Type", "text/plain; charset=utf-8");
-		try{
-			var collection = context.path;
-			var doc = Server.GetDataObj(context);
-			debug("removing " + (doc ? JSON.stringify(doc) : "null"));
-			db.collection(collection).remove(doc, {safe : false}, function(err, result){
-					if (err){
-						context.finish(500, "POST " + context.url + " error " + err);
-						return;
-					}					
-					context.setHeader("Content-Type", "text/json; charset=utf-8");
-					if (result){						
-						context.finish(200, JSON.stringify(result));
-					}
-					else{
-						context.finish(200, JSON.stringify(doc));
-					}
-					return false;
-			});
-		}
-		catch(e){
-			context.finish(500, e.message);
-			error(e);
-		}		
-		return true;
-	};	
-	
-	Server.Finalize = function(context){		
-		context.setHeader("Content-Type", "text/plain; charset=utf-8");
-		context.finish(404, "URL not available");
-		return true;
-	};	
-	
-	Server.SendResponse = function(id, status, result, headers){
-		//console.log("response: id" + id);
-		Channels.emit("http-response.id" + id, id, status, result, headers);	
-	};
-	
-	Server.Context = function(id, url, path, headers, data){
-		if (typeof(url) == "string") url = Url.parse(url, true);
-		context = { id : id, 
-				   url : url,
-				   path : path,
-				   pathTail : path,
-				   pathName: path,
-				   data: data,
-				   headers: headers, 
-				   method : url.method };
-		context.setHeader = function(name, value){
-			this.headers[name] = value;
-		}
-		context.sendFile = function(fileName){
-			if (fileName.indexOf("/") != 0){
-				fileName = "/" + fileName;
-			}
-			if (fileName.lastIndexOf("/") == fileName.length - 1){
-				fileName = fileName.substring(0, fileName.length - 1);
-			}
-			var adminApp = fs.readFileSync("." + fileName, 'utf8');
-			this.setHeader("Content-Type", "text/html; charset=utf-8");
-			this.finish(200, adminApp, 'utf8');
-		};
-		context.finish = function(status, result, encoding){
-			try{
-				if (encoding){
-					this.headers.encoding = encoding;
-				}
-				Server.SendResponse(this.id, status, result, this.headers);
-			}
-			catch(e){
-				console.log(e);	
-			}
-		}
-		return context;
-	};
-	
-	Server.Init();
+		object.push(obj);
+	}
+	return object;
 }
-catch(e){
-	if (this.error){
-		error(e);	
-		process.exit();
+
+SemanticNet.prototype.Process = function(verb){
+	return this.processNode({_content: verb, _verb : verb, _path: "", _counter : 0}, this.nodes);
+}
+
+SemanticNet.prototype.processNode = function(object, node){
+	if (!object._verb || object._verb == ""){
+		object._counter++;
+		this.applyValues(object, node);
+		object._values = node.values;
+		object._finished = true;
+		return object;
+	}
+	var sym = object._verb[0];
+	object._path += sym;
+	if (node[sym]){
+		object._counter++;
 	}
 	else{
-		throw(e);
+		object._finished = false;
+		return object;
+	}
+	object._verb = object._verb.substring(1);	
+	return this.processNode(object, node[sym]);
+}
+
+SemanticNet.prototype.applyValues = function(object, node){
+	if (!node.values){
+		node.values = {};
+		return;
+	}
+	for (var item in node.values){
+		if (object[item]){
+			if (typeof (object[item]) == "number"){
+				object[item] += node.values[item];
+			}
+		}
+		else{
+			object[item] = node.values[item];
+		}
 	}
 }
 
+
+SemanticNet.prototype.Serialize = function(){
+	return JSON.stringify(this.nodes);
+}
+
+SemanticNet.prototype.Clear = function(valuesOnly){
+	if (valuesOnly){
+		return this._clearValues(this.nodes);
+	}
+	this.nodes = {};
+	return;
+}
+
+SemanticNet.prototype._clearValues = function(node){
+	if (!node.values) return;
+	node.values = {};
+	for (var item in node){
+		if (item != "values"){
+			this._clearValues(node);
+		}
+	}
+}
+
+SemanticNet.prototype.Merge = function(net){
+	this._merge(this.nodes, net);
+}
+				 
+SemanticNet.prototype._merge = function(node, net){
+	if (node.values){
+		this._mergeValues(node.values, net.values);
+	}
+	else{
+		node.values = net.values;	
+	}
+	for (var item in net){
+		if (item == "values") continue;
+		if (node[item]){
+			this._merge(net[item], node[item]);	
+		}
+		else{
+			node[item] = net[item];	
+		}
+	}
+}
+
+
+
+SemanticNet.prototype._mergeValues = function(values, other, withReplace){
+	if (values && other){
+		for (var item in other.values){
+			if (typeof (values[item]) == 'undefined' || withReplace){
+				if (other[item] == null){
+					delete values[item]	
+				}
+				else{
+					values[item] = other[item];
+				}
+			}			
+		}
+	}
+}
+
+
+SemanticNet.prototype.MergeVerb = function(verb, obj){
+	return mergeNodeInternal(verb, this.nodes, obj);
+}
+
+SemanticNet.prototype.mergeNodeInternal = function(verb, node, object){
+	if (!verb || verb == ""){
+		if (!object) object = {};
+		if (node.values){
+			this._mergeValues(node.values, object, true);
+		}
+		else{
+			node.values = object;
+		}
+		return node;
+	}
+	var sym = verb[0];
+	if (!node[sym]){
+		node[sym] = {};
+	}
+	verb = verb.substring(1);	
+	return this.mergeNodeInternal(verb, node[sym], object);
+}

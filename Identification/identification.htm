@@ -18,13 +18,176 @@
 		
 		<script type='text/javascript' src='http://services.web-manufacture.net/SysUtils/NodeEnvironment.js'></script>
 		<script type='text/javascript' src='http://klab.web-manufacture.net/Modules/Channels.js'></script>
+		
+		<script type='text/javascript' src='Identification.js'></script>
 	</head>
 	<body>
 		<include url='http://services.web-manufacture.net/ui/Toolbars.htm'></include>
 		<include url='http://services.web-manufacture.net/ui/Win.htm'></include>
+		<include url='http://services.web-manufacture.net/ui/popup.htm'></include>
+		<include url='http://services.web-manufacture.net/ui/UiUtils.htm'></include>
 		<include url='http://services.web-manufacture.net/ui/htmlelements.htm'></include>
 		<include url='http://services.web-manufacture.net/Grids/Grids.htm'></include>
 		<script type='text/javascript'>
+			Semantic = new SemanticNet();
+			
+			Lexic = new SemanticNet();
+			
+			function SaveNet(){
+				Net.POST("http://web-manufacture.net/identification/semantic", Semantic.Serialize(), function(){});	
+				Net.POST("http://web-manufacture.net/identification/lexic", Lexic.Serialize(), function(){});	
+			}
+			
+			function LoadNet(){
+				Net.GET("http://web-manufacture.net/identification/semantic", function(result){
+					Semantic.Merge(result);
+				});	
+				Net.GET("http://web-manufacture.net/identification/lexic", function(result){
+					Lexic.Merge(result);
+				});	
+			}
+			
+			LoadNet();
+			
+			WS.DOMload(function(){
+				SemanticConfigurator.Show = function(){
+					var box = this.get(".semantic-box");
+					//for (var
+					this.show();	
+				}
+				
+				SemanticInput.onchange = function(){
+					var parseResults = Semantic.Parse(this.value);
+					var box = SemanticParsing.get(".parsing-results");
+					box.clear();
+					for (var i = 0; i < parseResults.length; i++){
+						SemanticUI.InitVerb(box.div(".parsed-verb"), parseResults[i]);
+					}
+				}
+			});
+			
+			SemanticUI = {
+				InitVerb : function(div, obj){
+					div.result = obj;
+					div.textContent = obj._content;
+					for (var item in obj){
+						if (item.start("_")) continue;	
+						if (item.start(".") && obj[item] > 0) div.add(item);
+						if (item.start("@")) div.set(item, obj[item]);
+					}
+					div.onclick = SemanticUI.ShowVerbPopup;
+				},
+				
+				ShowVerbPopup: function(){
+					SemanticUI.CreatePopupForm(this.result, this);	
+				},
+				
+				CreatePopupForm : function(obj){
+					var win = VerbManagePrototype.clone();					
+					win.get(".verb").textContent = obj._content;
+					win.obj = obj;
+					var vList = win.get(".values-list");
+					vList.onclick = function(){
+						this._all(".invisible").show();	
+					}
+					for (var prop in obj)
+					{
+						var value = obj[prop];
+						if (typeof(value) == "function") continue;
+						if (typeof(value) == "object") {
+							var vItem = vList.div(".item.object.invisible");
+							vItem.div(".prop", prop);
+							vItem.div(".value", DOM.formatJSON(obj));
+							continue;
+						}
+						vList.add(WS.JsonToHtml({
+							"@class" : typeof(value),
+							".item" : true,
+							".invisible" : prop.start("_"),
+							property:{
+								".prop" : true,
+								"@prop" : prop,
+								textContent : prop + ":"
+							},
+							value :{
+								".value": true,
+								textContent: value + ""
+							}
+						}));
+					}
+					win = Win.CreateWindow(win);
+					WS.Body.add(win);
+					win.Show();
+				}
+			};
+		</script>
+		<style type='text/css'>
+			.parsed-verb{
+				display: inline-block;	
+				padding: 5px;
+			}
+			
+			.parsed-verb:hover{
+				cursor: pointer;
+				border: solid 1px gray;
+			}
+			
+			
+			.verb-manager .verb{
+				font-style: italic;
+				color: navy;
+				font-size: 16px;
+				text-align: center;
+			}
+			
+			.verb-manager .values-list{
+				width: 250px;
+				min-height: 150px;
+			}
+			
+			.verb-manager .values-list .item .prop{
+				display: inline-block;
+				padding: 2px 5px;
+				color: gray;
+			}
+			
+			.verb-manager .values-list .item .value{
+				display: inline-block;
+				padding: 2px 5px;
+				cursor: pointer;
+			}
+			
+		</style>
+		
+		<win id='VerbManagePrototype' class='prototype window verb-manager' title='Verb editor'>
+			<div class='verb'>
+				
+			</div>
+			<div class='values-list'>
+				
+			</div>
+			<div class='controls'>
+				<div class='btn-ira ok' title='Сохранить'>
+					Сохранить
+				</div>
+			</div>
+		</win>
+		<win id='SemanticParsing' class='invisible screen-center' title='Распознаватель'>
+			<input type='text' id='SemanticInput'/>
+			<div class='parsing-results'>
+				
+			</div>
+		</win>
+		
+		<win id='SemanticConfigurator' class='invisible screen-center' title='Нейросеть'>
+			<div class='semantic-box'>
+				
+			</div>
+		</win>
+		
+		<script type='text/javascript'>
+			
+			
 			Clients = {};
 			
 			Clients.Init = function(){
@@ -108,8 +271,20 @@
 			
 		</script>
 		<div class='header toolbar'>
-			<div class='menuitem dictionary' id='serverStart' onclick="RegionsGridWin.Show();">
+			<div class='menuitem dictionary' id='serverStartMenu' onclick="RegionsGridWin.Show();">
 				Регионы
+			</div>
+			<div class='separator'>
+				
+			</div>
+			<div class='menuitem' onclick="SemanticParsing.Show();">
+				Обучить сеть
+			</div>
+			<div class='menuitem'  onclick="SaveNet();">
+				Сохранить сеть
+			</div>
+			<div class='menuitem' onclick="SemanticConfigurator.Show();">
+				Показать сеть
 			</div>
 		</div>
 		<win id='ClientsImportWin' class='window invisible' title='Импорт клиентов'>
