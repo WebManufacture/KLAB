@@ -23,7 +23,7 @@ if (global.Channels){
 		if (typeof pmessage == "object" && pmessage.type && pmessage.type == "channelMessage"){
 			var dateEnd = new Date();
 			var dateStart = new Date(pmessage.date);
-			//console.log(">> " + pmessage.args[0] + " Start: " + dateStart.formatTime(true) + " End: " + dateEnd.formatTime(true) + " Load: " + (dateEnd - dateStart) + "ms");
+			console.log("-> " + pmessage.args[0]);
 			Channels.emit.apply(Channels, pmessage.args);
 		}
 	});

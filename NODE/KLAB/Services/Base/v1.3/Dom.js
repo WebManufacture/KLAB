@@ -894,6 +894,44 @@ ev.CreateEvent("onDelContent", WS);*/
 		}
 	};
 	
+	WS.JsonToHtml = function(obj, div) {
+		if (!div){
+			div = DOM.Div();
+		}
+		if (Array.isArray(obj)){
+			div._add(".array");
+			for (var i = 0; i < obj.length; i++){
+				div._add(WS.JsonToHtml(obj[i]));
+			}
+			return div;
+		}
+		for (var prop in obj) {
+			var value = obj[prop]; 
+			if (prop.indexOf(".") == 0) {
+				if (value){
+					div._add(prop);
+				}
+				continue;
+			}
+			if (prop.indexOf("@") == 0) {
+				div._set(prop, value);
+				continue;
+			}
+			if (typeof(value) == "object") {
+				if (value instanceof HTMLElement) {
+					div._add(value);
+				}
+				else{
+					div._add(WS.JsonToHtml(value));
+				}
+			}
+			else {
+				div[prop] = obj[prop];
+			}
+		}
+		return div;
+	}
+	
 	WS.ToDiv = function(obj, param1, param2, param3) {
 		var div = DOM.Div();
 		var isdefault = false;
@@ -931,9 +969,9 @@ ev.CreateEvent("onDelContent", WS);*/
 		return div;
 	}
 		
-		WS.SetOutWrapper = function() {
-			return "$";
-		};
+	WS.SetOutWrapper = function() {
+		return "$";
+	};
 	
 	WS.SetInWrapper = function(value) {
 		if (value.start("$")) {

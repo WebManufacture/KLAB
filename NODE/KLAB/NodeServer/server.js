@@ -172,9 +172,9 @@ Server.RouteChannel = function(fork, req, res, url){
 	var path = url.pathname;
 	url.method = req.method.toLowerCase();
 	if (path.indexOf("/") == path.length - 1){
-			path = path.substring(0, path.length - 1);
-		}
-	//console.log((new Date).formatTime(true) + " " + req.url.info);
+		path = path.substring(0, path.length - 1);
+	}
+	path = path.replace("/" + fork.id, "");
 	var message = "/process/http-request";
 	message += "." + req.method.toLowerCase();
 	message += ".id" + id;
@@ -201,7 +201,7 @@ Server.RouteChannel = function(fork, req, res, url){
 
 Server.ForkResponse = function(message){	
 	var id = arguments[1];
-	console.log(("<< " + id + " ").verbose + (new Date).formatTime(true));
+	//console.log(("<< " + id + " ").verbose + (new Date).formatTime(true));
 	if (!id) {
 		console.log("ID NULL".error);
 		return null;
