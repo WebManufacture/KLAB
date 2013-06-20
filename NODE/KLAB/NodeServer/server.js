@@ -351,6 +351,17 @@ Server.Start = function(config){
 								   context.finish(200, adminApp, 'utf8');
 								   return true;
 							   }
+							   if (context.query["action"] == "edit" || context.query["action"] == "create"){
+								   context.res.setHeader("Content-Type", "text/html; charset=utf-8");
+								   fs.readFile("./TextEditor.htm", "utf8", function(err, result){   
+									   if (err){
+										   context.finish(500, "Not found files view page " + err);
+										   return;
+									   }		
+									   context.finish(200, result);
+								   });
+								   return false;
+							   }
 							   var localPath = context.pathName;
 							   if (localPath.indexOf(".") != 0){
 									localPath = "." + localPath;   
@@ -372,16 +383,7 @@ Server.Start = function(config){
 									   });
 									   return;
 								   }
-								   if (stat.isFile() && context.query["action"] == "edit"){
-									   context.res.setHeader("Content-Type", "text/html; charset=utf-8");
-									   fs.readFile("./TextEditor.htm", "utf8", function(err, result){   
-										   if (err){
-											   context.finish(500, "Not found files view page " + err);
-											   return;
-										   }		
-										   context.finish(200, result);
-									   });
-									   return;
+								   if (stat.isFile()){
 								   }
 								   context.continue();
 							   });

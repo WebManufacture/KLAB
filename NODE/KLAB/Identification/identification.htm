@@ -20,6 +20,7 @@
 		<script type='text/javascript' src='http://klab.web-manufacture.net/Modules/Channels.js'></script>
 		
 		<script type='text/javascript' src='Identification.js'></script>
+		<script type='text/javascript' src='fias.js'></script>
 	</head>
 	<body>
 		<include url='http://services.web-manufacture.net/ui/Toolbars.htm'></include>
@@ -28,22 +29,19 @@
 		<include url='http://services.web-manufacture.net/ui/UiUtils.htm'></include>
 		<include url='http://services.web-manufacture.net/ui/htmlelements.htm'></include>
 		<include url='http://services.web-manufacture.net/Grids/Grids.htm'></include>
+		<include url='http://services.web-manufacture.net/Grids/SimpleGrids.js'></include>
 		<script type='text/javascript'>
-			Semantic = new SemanticNet();
-			
-			Lexic = new SemanticNet();
-			
 			function SaveNet(){
-				Net.POST("http://web-manufacture.net/identification/semantic", Semantic.Serialize(), function(){});	
-				Net.POST("http://web-manufacture.net/identification/lexic", Lexic.Serialize(), function(){});	
+				Net.POST("http://web-manufacture.net/identification/storage/pointers", PointersNet.Serialize(), function(){});	
+				Net.POST("http://web-manufacture.net/identification/storage/regions", RegionsNet.Serialize(), function(){});	
 			}
 			
 			function LoadNet(){
-				Net.GET("http://web-manufacture.net/identification/semantic", function(result){
-					Semantic.Merge(result);
+				Net.GET("http://web-manufacture.net/identification/storage/pointers", function(result){
+					PointersNet.Merge(result);
 				});	
-				Net.GET("http://web-manufacture.net/identification/lexic", function(result){
-					Lexic.Merge(result);
+				Net.GET("http://web-manufacture.net/identification/storage/regions", function(result){
+					RegionsNet.Merge(result);
 				});	
 			}
 			
@@ -57,16 +55,23 @@
 				}
 				
 				SemanticInput.onchange = function(){
-					var parseResults = Semantic.Parse(this.value);
+					SemanticUI.Reparse(this.value);
+				}
+			});
+			
+			SemanticUI = {
+				Reparse : function(text){
+					if (!text){
+						text = 	SemanticInput.value;
+					}
+					var parseResults = Semantic.Parse(text);
 					var box = SemanticParsing.get(".parsing-results");
 					box.clear();
 					for (var i = 0; i < parseResults.length; i++){
 						SemanticUI.InitVerb(box.div(".parsed-verb"), parseResults[i]);
 					}
-				}
-			});
-			
-			SemanticUI = {
+				},
+				
 				InitVerb : function(div, obj){
 					div.result = obj;
 					div.textContent = obj._content;
@@ -75,54 +80,129 @@
 						if (item.start(".") && obj[item] > 0) div.add(item);
 						if (item.start("@")) div.set(item, obj[item]);
 					}
+					if (obj._finished){
+						div.add(".parsed");	
+					}
 					div.onclick = SemanticUI.ShowVerbPopup;
 				},
-				
+								
 				ShowVerbPopup: function(){
 					SemanticUI.CreatePopupForm(this.result, this);	
 				},
 				
 				CreatePopupForm : function(obj){
 					var win = VerbManagePrototype.clone();					
-					win.get(".verb").textContent = obj._content;
 					win.obj = obj;
-					var vList = win.get(".values-list");
-					vList.onclick = function(){
-						this._all(".invisible").show();	
+					var verb = win.get(".verb");
+					var text = obj._content;
+					verb.textContent = text;
+					var vTypeMenu = win.get(".verb-type-menu");
+					if (obj._finished){
+						win.add(".known");	
 					}
-					for (var prop in obj)
-					{
-						var value = obj[prop];
-						if (typeof(value) == "function") continue;
-						if (typeof(value) == "object") {
-							var vItem = vList.div(".item.object.invisible");
-							vItem.div(".prop", prop);
-							vItem.div(".value", DOM.formatJSON(obj));
-							continue;
-						}
-						vList.add(WS.JsonToHtml({
-							"@class" : typeof(value),
-							".item" : true,
-							".invisible" : prop.start("_"),
-							property:{
-								".prop" : true,
-								"@prop" : prop,
-								textContent : prop + ":"
-							},
-							value :{
-								".value": true,
-								textContent: value + ""
+					else{
+						win.add(".unknown");	
+						vTypeMenu.show();
+					}
+					vTypeMenu.onclick = function(){
+						vTypeMenu.hide();
+					}
+					vTypeMenu.all(".verb-type").each(function(vType){
+						vType.onclick = function(){
+							var vt = vType.get("@vtype");
+							if (vt){
+								var verbType = VerbTypes[vt];
+								if (verbType){
+									if (verbType.query){
+										verbType.query(obj._content, function(result){
+											if (typeof result == 'object'){
+												win.showVerbTypeVariants(verbType, result);
+											}
+										});
+									}
+									else{
+										mergeVerb(verbType.GetMergeObject(text, obj));
+									}
+								}
 							}
-						}));
+						}
+					});
+					var mergeVerb = function(obj){
+						if (obj){
+							var node = Semantic.MergeVerb(text, obj);
+							if (node){
+								initVList(node.values);	
+								win.del(".unknown");
+								win.add(".known");
+							}
+							SemanticUI.Reparse();
+							SaveNet();
+						}
 					}
+					verb.onclick = function(){
+						vTypeMenu.show();
+					};					
+					var initVList = function(obj){
+						var vList = win.get(".values-list");
+						vList.clear();
+						vList.onclick = function(){
+							this._all(".invisible").show();	
+						}
+						for (var prop in obj)
+						{
+							var value = obj[prop];
+							if (typeof(value) == "function") continue;
+							if (typeof(value) == "object") {
+								var vItem = vList.div(".item.object.invisible");
+								vItem.div(".prop", prop);
+								vItem.div(".value", DOM.formatJSON(obj));
+								continue;
+							}
+							vList.add(WS.JsonToHtml({
+								"@class" : typeof(value),
+								".item" : true,
+								".invisible" : prop.start("_"),
+								property:{
+									".prop" : true,
+									"@prop" : prop,
+									textContent : prop + ":"
+								},
+								value :{
+									".value": true,
+									textContent: value + ""
+								}
+							}));
+						}
+					}
+					win.showVerbTypeVariants = function(verbType, objects){
+						var vType = verbType.name;
+						var vts = this.get(".verb-type-select." + vType);
+						if (vts){
+							vts.onclick = function(){
+								vts.hide();	
+							}
+							vts.show();
+							vts.get(".vts-grid").ShowObjects(objects);
+							vts.all(".object-item").each(function(item){
+								item.onclick = function(event){
+									mergeVerb(verbType.GetMergeObject(text, this.data));
+								}
+							});
+						}
+					};
+					initVList(obj);
+					win.all(".simple-grid").del(".initialized");
 					win = Win.CreateWindow(win);
 					WS.Body.add(win);
 					win.Show();
+					win.id = '';
+					C.Process(win, "ui-processing");
 				}
 			};
 		</script>
 		<style type='text/css'>
 			.parsed-verb{
+				color: black;
 				display: inline-block;	
 				padding: 5px;
 			}
@@ -132,12 +212,34 @@
 				border: solid 1px gray;
 			}
 			
+			.parsed-verb.pointer{
+			    background-color: yellow;
+			}
+						
+			.parsed-verb.ignore{
+				color: #ccc;
+			}
+			
+			.parsed-verb:not(.parsed){
+				font-weight: bold;
+			}
 			
 			.verb-manager .verb{
 				font-style: italic;
 				color: navy;
 				font-size: 16px;
 				text-align: center;
+				cursor: pointer;
+				padding-bottom: 5px;
+			}
+			
+			.verb-manager.known .verb{
+				border-bottom: solid 1px green;
+			}
+			
+			.verb-manager.unknown .verb{
+				color: red;
+				border-bottom: dotted 1px red;
 			}
 			
 			.verb-manager .values-list{
@@ -162,22 +264,79 @@
 		<win id='VerbManagePrototype' class='prototype window verb-manager' title='Verb editor'>
 			<div class='verb'>
 				
+			</div>			
+			<div class='verb-type-menu invisible' style='border: solid 1px lightgray'>
+				<div class='verb-type abbreviation boxed link' vtype='abbreviation'>
+					Вид региона
+				</div>
+				<div class='verb-type region boxed link' vtype='region'>
+					Наименование региона
+				</div>
+				<div class='verb-type address boxed link' vtype='address'>
+					Часть адреса
+				</div>
+				<div class='verb-type client-type boxed link' vtype='client-type'>
+					Вид клиента
+				</div>
+				<div class='verb-type client boxed link' vtype='client'>
+					Название клиента
+				</div>
+				<div class='verb-type other boxed link' vtype='other'>
+					Прочее
+				</div>				
+				<div class='verb-type ignore boxed link' vtype='ignore'>
+					Игнорировать
+				</div>
+			</div>
+			<div class='verb-type-select invisible abbreviation' vtype='abbreviation'>
+				<div class='simple-grid vts-grid initialized'>
+					<div class="object-template prototype boxed link">
+						<span class='level' field='level'></span>
+						<span class='scname link' field='scname'></span>
+						<span class='socrname' field='socrname'></span>
+					</div>					
+				</div>
+			</div>
+			<div class='verb-type-select invisible address' vtype='address'>
+				<div class='simple-grid vts-grid initialized'>
+					<div class="object-template prototype boxed link">
+						<span class='shortname' field='shortname'></span>
+						<span class='level' field='level'></span>
+						<span class='offname' field='offname'></span>
+						<span class='postalcode' field='postalcode'></span>
+					</div>					
+				</div>
+			</div>
+			<div class='verb-type-select invisible region' vtype='region'>
+				<div class='simple-grid vts-grid initialized'>
+					<div class="object-template prototype boxed link">
+						<span class='shortname' field='shortname'></span>
+						<span class='level' field='level'></span>
+						<span class='offname' field='offname'></span>
+						<span class='postalcode' field='postalcode'></span>
+					</div>					
+				</div>
 			</div>
 			<div class='values-list'>
 				
 			</div>
 			<div class='controls'>
-				<div class='btn-ira ok' title='Сохранить'>
-					Сохранить
-				</div>
-			</div>
-		</win>
-		<win id='SemanticParsing' class='invisible screen-center' title='Распознаватель'>
-			<input type='text' id='SemanticInput'/>
-			<div class='parsing-results'>
 				
 			</div>
 		</win>
+		<div id='SemanticParsing' class='invisible' title='Распознаватель' style='border: solid 2px navy; padding: 5px;'>
+			<div class='btn-ira ok' onclick="SemanticUI.Reparse();">				
+				Распознать
+			</div>
+			<input type='text' style='width: 70%' id='SemanticInput' value='Филиал ООО "Ригла" в г. Чебоксары 429335 ЧР, г. Канаш, ул. Железнодорожная, дом 89, помещение №4. -'/>
+			
+			<div class='parsing-results'>
+				
+			</div>
+			<div class='btn-ira close' onclick="SemanticParsing.hide();">
+				Закрыть
+			</div>
+		</div>
 		
 		<win id='SemanticConfigurator' class='invisible screen-center' title='Нейросеть'>
 			<div class='semantic-box'>
@@ -609,5 +768,7 @@
 				</div>
 			</div>
 		</win>
+		
+		
 	</body>
 </html>

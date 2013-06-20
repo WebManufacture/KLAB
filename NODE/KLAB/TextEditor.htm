@@ -25,6 +25,7 @@
     <script src="http://services.web-manufacture.net/External/CodeMirror-3.0/addon/edit/closetag.js"></script>
     <script src="http://services.web-manufacture.net/External/CodeMirror-3.0/addon/edit/matchbrackets.js"></script>
     <script src="http://services.web-manufacture.net/External/CodeMirror-3.0/addon/fold/foldcode.js"></script>
+	<script src="http://services.web-manufacture.net/External/CodeMirror-3.0/mode/cslike/cslike.js"></script>
     <script src="http://services.web-manufacture.net/External/CodeMirror-3.0/mode/javascript/javascript.js"></script>
     <script src="http://services.web-manufacture.net/External/CodeMirror-3.0/mode/htmlmixed/htmlmixed.js"></script>
     <script src="http://services.web-manufacture.net/External/CodeMirror-3.0/mode/css/css.js"></script>
@@ -167,6 +168,9 @@
                 }
                 if (header.Contains("text/xml")) {
                     parsers = "xml";
+                }
+				if (header.Contains("text/plain")) {
+                    parsers = "text/x-csharp";
                 }
             }
 
@@ -404,14 +408,19 @@
                 window.open(Request.GetUrl(Request.Params.url));
                 return;
             }
-            var url = Request.Params.file;
-            if (Request.Params.SystemPath) {
-                url = Request.Params.SystemPath + "/" + url;
-            }
-            if (Request.Params.UserDomain) {
-                url = "http://" + Request.Params.UserDomain + "/" + url;
-            }
-            window.open(url);
+			if (Request.Params.file){
+				var url = Request.Params.file;
+				if (Request.Params.SystemPath) {
+					url = Request.Params.SystemPath + "/" + url;
+				}
+				if (Request.Params.UserDomain) {
+					url = "http://" + Request.Params.UserDomain + "/" + url;
+				}
+				window.open(url);
+			}
+			var url = new Url(window.location);
+			url.search = "";
+			window.open(url);
         };
 
         Editor.OpenLogWindow = function() {

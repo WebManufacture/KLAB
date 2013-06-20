@@ -18,7 +18,11 @@ SGrid.InitGrid = function (table) {
 	EV.CreateEvent('onObjectDelele', table);
 	EV.CreateEvent('onItemShow', table);
 	EV.CreateEvent('onLoaded', table);
-	table.tunnel = Net.GetTunnel(table.get("@url"));
+	var url = table.get("@url");
+	if (url){
+		table.tunnel = Net.GetTunnel(table.get("@url"));
+	}
+	console.log("SimpleGrid initialized");
 	table.add(".initialized");
 	var onInit = table.get("@oninit");
 	if (onInit){
@@ -35,15 +39,17 @@ SGrid._umGridMixin = {};
 
 SGrid._umGridMixin.LoadData = function(){
 	var table = this;
-	this.clear();
-	//.Page(0, table.pageSize)
-	table.add(".loading");
-	table.tunnel.All(function (result) {
-		table.ShowObjects(result);
-		table.del(".loading");
-		table.add(".loaded");
-		table.onLoaded.fire();
-	});
+	if (this.tunnel){
+		this.clear();
+		//.Page(0, table.pageSize)
+		table.add(".loading");
+		table.tunnel.All(function (result) {
+			table.ShowObjects(result);
+			table.del(".loading");
+			table.add(".loaded");
+			table.onLoaded.fire();
+		});
+	}
 };
 
 SGrid._umGridMixin.ShowObjects = function (data, start, count) {
@@ -333,6 +339,6 @@ SGrid.TableObject.EditAction = function() {
 	table.EditObjectAction(this);
 };
 
-C.Add({id: 'SGridContext', Condition: 'ui-processing', Selector:'.simple-grid[url]:not(.initialized)', Process: function(elem){
+C.Add({id: 'SGridContext', Condition: 'ui-processing', Selector:'.simple-grid:not(.initialized)', Process: function(elem){
 	SGrid.InitGrid(elem);
 }});

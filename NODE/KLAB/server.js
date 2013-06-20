@@ -63,6 +63,17 @@ try{
 					   },
 					   "/>" : {
 						   GET : function(context){
+								if (context.query["action"] == "edit" || context.query["action"] == "create"){
+								   context.res.setHeader("Content-Type", "text/html; charset=utf-8");
+								   fs.readFile("./TextEditor.htm", "utf8", function(err, result){   
+									   if (err){
+										   context.finish(500, "Not found files view page " + err);
+										   return;
+									   }		
+									   context.finish(200, result);
+								   });
+								   return false;
+							   }
 							   var path = context.pathName;
 							   if (config.basepath){
 									 path = config.basepath + context.pathName;
@@ -87,16 +98,8 @@ try{
 									   });
 									   return;
 								   }
-								   if (stat.isFile() && context.query["action"] == "edit"){
-									   context.res.setHeader("Content-Type", "text/html; charset=utf-8");
-									   fs.readFile("./TextEditor.htm", "utf8", function(err, result){   
-										   if (err){
-											   context.finish(500, "Not found files view page " + err);
-											   return;
-										   }		
-										   context.finish(200, result);
-									   });
-									   return;
+								   if (stat.isFile()){
+										
 								   }
 								   context.continue();
 							   });
