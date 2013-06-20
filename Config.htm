@@ -72,7 +72,7 @@
 			
 			#NodesBlock .object-item{
 				width: 180px;
-				height: 180px;
+				height: 200px;
 				display: inline-block;
 				border: solid 1px gray;
 				border-radius: 5px;
@@ -108,6 +108,18 @@
 				background-color: rgba(166,155,0,0.5);
 			}
 			
+			#NodesBlock .object-item .node-name{
+				white-space: nowrap;
+				overflow: hidden;
+				width: 100%;
+				height: 18px;
+				color: #909;
+				font-size: 18px;
+				font-weight: bold;
+				font-family: verdana;
+				padding-bottom: 5px;
+			}
+			
 			#NodesBlock .object-item .node-host{
 				white-space: nowrap;
 				overflow: hidden;
@@ -115,7 +127,7 @@
 				height: 16px;
 				color: navy;
 				font-size: 14px;
-				font-weight: bold;
+				padding-bottom: 3px;
 			}
 			
 			#NodesBlock .object-item .node-icon{
@@ -131,6 +143,12 @@
 			
 			#NodesBlock .object-item.remote .node-icon{
 				background: url("http://www.iconsearch.ru/uploads/icons/glaze/128x128/network.png") no-repeat center;
+				
+				background-size: 90px;
+			}
+			
+			#NodesBlock .object-item.managed .node-icon{
+				background: url("http://www.iconsearch.ru/uploads/icons/glaze/128x128/network_local.png") no-repeat center;
 				
 				background-size: 90px;
 			}
@@ -183,6 +201,7 @@
 		<div class="simple-grid block" url='/nodes' id="NodesBlock" oninit="ConfManager.InitTable();">
 			<div class='object-template prototype'>
 				<div class='node-icon'></div>
+				<div class='node-name' field='name'></div>
 				<div class='node-host' field='host'>
 				</div>
 				<div class='node-file' field='file'>
@@ -253,10 +272,10 @@
 			
 			ConfManager.Init = function(){
 				Server = new KLabTunnel(null, false);
-				Server.channel = new HttpChannel("/monitoring/*", true);
+				/*Server.channel = new HttpChannel("/monitoring/*", true);
 				Server.channel.onRead.subscribe(function(messages, arg){
 					Notify.ShowMessage(messages);
-				});
+				});*/
 				//Tunnel = Server.serverTunnel;
 				//Tunnel.OnMessage.subscribe(ConfManager.OnServerMessage);
 				Server.Start = function(item){

@@ -2,6 +2,8 @@ var Url = require('url');
 var fs = require('fs');
 var Path = require('path');
 ObjectID = require('mongodb').ObjectID;
+var edge = require('edge');
+var uuid = require('node-uuid');
 try{
 	require(Path.resolve("./Modules/Node/Utils.js"));
 	require(Path.resolve("./Modules/Channels.js"));
@@ -10,6 +12,36 @@ try{
 	require(Path.resolve('./Modules/Node/Mongo.js'));
 	
 	Server = server = {};
+	
+	process.env.OWIN_SQL_CONNECTION_STRING = "Server=fias.web-manufacture.net;Database=fias;user id=fias;password=kladr98";
+	//process.env.OWIN_SQL_CONNECTION_STRING = "Server=localhost;Database=Unipharm;Integrated Security=SSPI";
+	
+	sql = edge.func('MSsql.csx');
+	
+	QuerySQL = function(query, callback){
+		sql(new Buffer(query, 'utf8'), function (err, results) {
+			if (err) error(err);
+			debug("SQL: " + query + " results " + JSON.stringify(results));
+			if (!results) {
+				callback([], err);
+				return;
+			}
+			var objects = [];
+			var fields = results[0];
+			for (var i = 1; i < results.length; i++){
+				var line = results[i];
+				var obj = {};
+				for (var col = 0; col < line.length; col++){
+					var colName = fields[col];
+					if (!colName) colName = "Column" + col;
+					colName = colName.toLowerCase();
+					obj[colName] = line[col];
+				}
+				objects.push(obj);
+			}
+			callback(objects, err);
+		});
+	};
 	
 	Server.InitDB = function (){
 		debug("connecting DB");
@@ -26,8 +58,21 @@ try{
 	Server.Init = function(){
 		var config = Server.Config;
 		Server.InitDB();
-		Channels.on("/http-request.get/semantic", function(route, id, url, headers, data){ 
-			fs.readFile("semantic.json", "utf8", function(err, result){   
+		Channels.on("/http-request.post/fias", function(route, id, url, headers, data){ 
+			QuerySQL(data, function(result, err){
+				if (err){
+					Server.SendResponse(id, 500, err, {"Content-Type": "text/plain; charset=utf-8"});
+					return;
+				}		
+				Server.SendResponse(id, 200, JSON.stringify(result), {"Content-Type": "text/json; charset=utf-8"});
+			});
+			this.processsed = true;
+			return true;
+		});
+		Channels.on("/http-request.get/storage", function(route, id, url, headers, data){ 
+			var path = route.current.replace(/\//ig, "");
+			console.log(path);
+			fs.readFile(path + ".json", "utf8", function(err, result){   
 				if (err){
 					Server.SendResponse(id, 500, err);
 					return;
@@ -37,30 +82,9 @@ try{
 			this.processsed = true;
 			return true;
 		});
-		Channels.on("/http-request.get/lexic", function(route, id, url, headers, data){ 
-			fs.readFile("lexic.json", "utf8", function(err, result){   
-				if (err){
-					Server.SendResponse(id, 500, err);
-					return;
-				}		
-				Server.SendResponse(id, 200, result, {"Content-Type": "text/json; charset=utf-8"});
-			});
-			this.processsed = true;
-			return true;
-		});
-		Channels.on("/http-request.post/semantic", function(route, id, url, headers, data){ 
-			fs.writeFile("semantic.json", data, 'utf8', function(err, result){
-				if (err){
-					Server.SendResponse(id, 500, err);
-					return;
-				}		
-				Server.SendResponse(id, 200, "", {"Content-Type": "text/plain; charset=utf-8"});
-			});
-			this.processsed = true;
-			return true;
-		});
-		Channels.on("/http-request.post/lexic", function(route, id, url, headers, data){ 
-			fs.writeFile("lexic.json", data, 'utf8', function(err, result){
+		Channels.on("/http-request.post/storage", function(route, id, url, headers, data){ 
+			var path = route.current.replace(/\//ig, "");
+			fs.writeFile(path + ".json", data, 'utf8', function(err, result){
 				if (err){
 					Server.SendResponse(id, 500, err);
 					return;

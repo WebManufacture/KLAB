@@ -345,12 +345,15 @@ SearchBox.ShowSelectedByHint(search);
 		text-shadow: 0 1px 1px white;
 		vertical-align: middle;
 		white-space: nowrap;
-		width: 60px;
+		min-width: 60px;
 	}
 	.btn-ira.ok {
 		border: 2px solid #467F71;
 	}
 	.btn-ira.clear {
+		border: 2px solid #E0E0E0;
+	}	
+	.btn-ira.close {
 		border: 2px solid #E0E0E0;
 	}
 	.btn-ira.cancel {
@@ -365,6 +368,11 @@ SearchBox.ShowSelectedByHint(search);
 		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25), 0 0 3px #FFFFFF inset;
 	}
 	.btn-ira.clear:hover, .btn-ira.clear:focus {
+		background: -moz-linear-gradient(center top , white, #E0E0E0) repeat scroll 0 0 transparent;
+		border-color: #999999;
+		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25), 0 0 3px #FFFFFF inset;
+	}
+	.btn-ira.close:hover, .btn-ira.close:focus {
 		background: -moz-linear-gradient(center top , white, #E0E0E0) repeat scroll 0 0 transparent;
 		border-color: #999999;
 		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25), 0 0 3px #FFFFFF inset;
@@ -385,6 +393,9 @@ SearchBox.ShowSelectedByHint(search);
 	.btn-ira.clear:active {
 		background: -moz-linear-gradient(center top , #E0E0E0, gainsboro) repeat scroll 0 0 transparent;
 	}
+	.btn-ira.close:active {
+		background: -moz-linear-gradient(center top , #E0E0E0, gainsboro) repeat scroll 0 0 transparent;
+	}
 	.btn-ira.cancel:active {
 		background: -moz-linear-gradient(center top , #FFCA3B, gainsboro) repeat scroll 0 0 transparent;
 	}
@@ -392,4 +403,21 @@ SearchBox.ShowSelectedByHint(search);
 		background: -moz-linear-gradient(center top , #E52738, gainsboro) repeat scroll 0 0 transparent;
 	}
 	
+	.boxed{
+		border: solid 1px gray;
+		border-radius : 3px;
+		padding : 5px 10px;
+	}
+	
+	.boxed-inline{
+		display: inline-block;
+		border: solid 1px gray;
+		border-radius : 3px;
+		padding : 5px 10px;
+	}
+	
+	.link:hover{
+		cursor: pointer;
+		color: blue;
+	}
 </style>
