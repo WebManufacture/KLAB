@@ -50,7 +50,7 @@
 			}
 			else
 			{
-				if (!Drag.dragObject.has("fixed-width")){
+				if (Drag.dragObject._is(".fixed-width")){
 					Drag.dragObject.style.width = Drag.dragObject.offsetWidth + "px";
 					Drag.dragObject.style.height = Drag.dragObject.offsetHeight + "px";        
 				}
@@ -94,7 +94,7 @@
 				}
 				if (result){
 					this.add(Drag.dragObject);
-					if (!Drag.dragObject._is(".fixed-width")){
+					if (Drag.dragObject._is(".fixed-width")){
 						Drag.dragObject.style.width = Drag.dragObject.offsetWidth + "px";
 						Drag.dragObject.style.height = Drag.dragObject.offsetHeight + "px";    
 					}

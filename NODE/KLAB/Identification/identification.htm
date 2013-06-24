@@ -19,10 +19,12 @@
 		<script type='text/javascript' src='http://services.web-manufacture.net/SysUtils/NodeEnvironment.js'></script>
 		<script type='text/javascript' src='http://klab.web-manufacture.net/Modules/Channels.js'></script>
 		
+		<script type='text/javascript' src='Semantic.js'></script>
 		<script type='text/javascript' src='Identification.js'></script>
 		<script type='text/javascript' src='fias.js'></script>
 	</head>
 	<body>
+		<include url='http://services.web-manufacture.net/ui/Wizards.js'></include>
 		<include url='http://services.web-manufacture.net/ui/Toolbars.htm'></include>
 		<include url='http://services.web-manufacture.net/ui/Win.htm'></include>
 		<include url='http://services.web-manufacture.net/ui/popup.htm'></include>
@@ -31,119 +33,456 @@
 		<include url='http://services.web-manufacture.net/Grids/Grids.htm'></include>
 		<include url='http://services.web-manufacture.net/Grids/SimpleGrids.js'></include>
 		<script type='text/javascript'>
-			function SaveNet(){
-				Net.POST("http://web-manufacture.net/identification/storage/pointers", PointersNet.Serialize(), function(){});	
-				Net.POST("http://web-manufacture.net/identification/storage/regions", RegionsNet.Serialize(), function(){});	
-			}
-			
-			function LoadNet(){
-				Net.GET("http://web-manufacture.net/identification/storage/pointers", function(result){
-					PointersNet.Merge(result);
-				});	
-				Net.GET("http://web-manufacture.net/identification/storage/regions", function(result){
-					RegionsNet.Merge(result);
-				});	
-			}
-			
-			LoadNet();
-			
 			WS.DOMload(function(){
 				SemanticConfigurator.Show = function(){
 					var box = this.get(".semantic-box");
 					//for (var
 					this.show();	
 				}
-				
-				SemanticInput.onchange = function(){
-					SemanticUI.Reparse(this.value);
-				}
 			});
 			
 			SemanticUI = {
-				Reparse : function(text){
-					if (!text){
-						text = 	SemanticInput.value;
+				Reparse : function(tokens){
+					if (!tokens) {
+						if (SemanticUI.currentData){
+							SemanticUI.ParseData({data : SemanticUI.currentData});
+							return;
+						}
+						tokens = SemanticUI.currentTokens;
 					}
-					var parseResults = Semantic.Parse(text);
-					var box = SemanticParsing.get(".parsing-results");
-					box.clear();
-					for (var i = 0; i < parseResults.length; i++){
-						SemanticUI.InitVerb(box.div(".parsed-verb"), parseResults[i]);
+					if (tokens){
+						SemanticInput.hide();
+						if (typeof tokens == 'string'){
+							SemanticInput.value = tokens;
+							tokens = NeuroParser.ParseToken(tokens);
+						}
+						SemanticUI.ParseTokens(tokens);
+					}				
+					else{
+						SemanticInput.show();							
 					}
 				},
 				
-				InitVerb : function(div, obj){
-					div.result = obj;
-					div.textContent = obj._content;
+				ParseTokens : function(tokens){
+					SemanticUI.currentTokens = tokens;
+					for (var i = 0; i <  tokens.length; i++){
+						tokens[i]["@id"] = "verb" + (i + 1);	
+					}
+					SemanticParsing.show();	
+					var box = SemanticParsing.get(".parsing-results");
+					box.clear();
+					var rb = SemanticParsing.get(".object-description.prototype");
+					box.add(rb.clone());
+					
+					
+					for (var i = 0; i < tokens.length; i++){
+						SemanticUI.InitVerb(box.div(".parsed-verb"), tokens[i]);
+					}					
+					for (var i = 0; i < tokens.length; i++){
+						var token = tokens[i];
+						var verbId = token["@id"];
+						var verb = box.get("#" + verbId);
+						PointersNet.Process(token);
+						if (token._finished){
+							var pToken = null;
+							if (token.direction && token.direction == "prev"){
+								if (i > 0){
+									pToken = tokens[i-1];
+								}
+							}
+							if (token.direction && token.direction == "next"){
+								if (i < tokens.length - 1){
+									pToken = tokens[i+1];
+								}
+							}	
+							
+							if (pToken && token.ptype){
+								if (pToken[token.ptype]){
+									pToken[token.ptype]++;
+								}
+								else{
+									pToken[token.ptype]	= 1;
+								}
+							}
+						}						
+					}
+					var gobj = {
+						regionId : null,
+						cityId : null,
+						streetId : null
+					}
+					for (var i = 0; i < tokens.length; i++){
+						var verbId = tokens[i]["@id"];
+						var verb = box.get("#" + verbId)
+						var token = tokens[i];
+						if (!token._finished && token._type == 'string'){
+							if (token.parent > 1){								
+								ParentsNet.Process(token);
+								if (token._finished && token.parentId){
+									gobj.parentId = token.parentId;
+								}
+								else{
+									token.parentId = gobj.parentId = (Math.random() + "").replace("0.", "");
+									ParentsNet.MergeVerb(token._content, { parentId : gobj.parentId});
+									token._finished = true;
+									SavePNet();
+								}
+								gobj.parent = token._content;
+								SemanticUI.MergeVerbDiv(verb, token);
+								continue;
+							}
+							if (token.client > 1){
+								ClientsNet.Process(token);
+								if (token._finished && token.clientId){
+									gobj.clientId = token.clientId;
+								}
+								else{
+									token.clientId = gobj.clientId = (Math.random() + "").replace("0.", "");
+									ClientsNet.MergeVerb(token._content, { clientId : gobj.clientId});
+									token._finished = true;
+									SaveCNet();
+								}
+								gobj.client = token._content;
+								SemanticUI.MergeVerbDiv(verb, token);
+								continue;
+							}
+							RegionsNet.Process(token);
+							if (token.regionId){
+								gobj.regionId = token.regionId;
+								gobj.region = token._content;
+							}							
+						}
+						SemanticUI.MergeVerbDiv(verb, token);
+					}
+					for (var i = 0; i < tokens.length; i++){
+						var verbId = tokens[i]["@id"];
+						var verb = box.get("#" + verbId)
+						var token = tokens[i];
+						if (!token._finished){
+							if (token.region > 1){
+								SemanticUI.loadRegionData(verb, token, gobj);
+								continue;
+							}
+						}
+						SemanticUI.MergeVerbDiv(verb, token);
+					}
+					SemanticUI.gobj = gobj;
+					
+					var parseRoomsCallback = function(){
+						for (var i = 0; i < tokens.length; i++){
+							var verbId = tokens[i]["@id"];
+							var verb = box.get("#" + verbId)
+							var token = tokens[i];
+							if (!token._finished){
+								if (token.room >= 1){
+									SemanticUI.loadRoomData(verb, token, gobj, SemanticUI.SetEndValues);
+									continue;
+								}
+							}
+							SemanticUI.MergeVerbDiv(verb, token);
+						}
+					}
+					var parseHouseCallback = function(){
+						for (var i = 0; i < tokens.length; i++){
+							var verbId = tokens[i]["@id"];
+							var verb = box.get("#" + verbId)
+							var token = tokens[i];
+							if (!token._finished){
+								if (token.house >= 1){
+									SemanticUI.loadHouseData(verb, token, gobj, parseRoomsCallback);
+									continue;
+								}
+							}
+							SemanticUI.MergeVerbDiv(verb, token);
+						}
+					}
+					var parseStreetsCallback = function(){
+						for (var i = 0; i < tokens.length; i++){
+							var verbId = tokens[i]["@id"];
+							var verb = box.get("#" + verbId)
+							var token = tokens[i];
+							if (!token._finished){
+								if (token.address > 1){
+									SemanticUI.loadStreetData(verb, token, gobj, parseHouseCallback);
+									continue;
+								}
+							}
+							SemanticUI.MergeVerbDiv(verb, token);
+						}
+					}
+					for (var i = 0; i < tokens.length; i++){
+						var verbId = tokens[i]["@id"];
+						var verb = box.get("#" + verbId)
+						var token = tokens[i];
+						if (!token._finished){
+							if (token.city > 1){
+								SemanticUI.loadCityData(verb, token, gobj, parseStreetsCallback);
+								continue;
+							}
+						}
+						SemanticUI.MergeVerbDiv(verb, token);
+					}												
+					
+					/*
+					for (var i = 0; i < tokens.length; i++){
+						var verbId = tokens[i]["@id"];
+						var verb = box.get("#" + verbId)
+						SemanticUI.MergeVerbDiv(verb, tokens[i]);
+					}*/
+				},
+				
+				SetEndValues : function(){
+					if (SemanticUI.gobj.parentId){
+						SemanticParsing.get("[field='parentId']").textContent = SemanticUI.gobj.parentId;
+						SemanticParsing.get("[field='parent']").textContent = SemanticUI.gobj.parent;
+					}
+					if (SemanticUI.gobj.clientId){
+						SemanticParsing.get("[field='clientId']").textContent = SemanticUI.gobj.clientId;
+						SemanticParsing.get("[field='client']").textContent = SemanticUI.gobj.client;
+					}
+					if (SemanticUI.gobj.regionId){
+						SemanticParsing.get("[field='regionId']").textContent = SemanticUI.gobj.regionId;
+						SemanticParsing.get("[field='region']").textContent = SemanticUI.gobj.region;
+					}
+					if (SemanticUI.gobj.cityId){
+						SemanticParsing.get("[field='cityId']").textContent = SemanticUI.gobj.cityId;
+						SemanticParsing.get("[field='city']").textContent = SemanticUI.gobj.city;
+					}
+					if (SemanticUI.gobj.streetId){
+						SemanticParsing.get("[field='streetId']").textContent = SemanticUI.gobj.streetId;
+						SemanticParsing.get("[field='street']").textContent = SemanticUI.gobj.street;
+					}
+					if (SemanticUI.gobj.house){
+						SemanticParsing.get("[field='house']").textContent = SemanticUI.gobj.house;
+					}						
+					if (SemanticUI.gobj.room){
+						SemanticParsing.get("[field='room']").textContent = SemanticUI.gobj.room;
+					}
+				},
+				
+				loadRegionData : function(verb, token){
+					verb.add(".loading");
+					VerbTypes.region.query(token._content, function(result){
+						verb.del(".loading");	
+						for (var i = 0; i < result.length; i++){
+							var line = result[i];
+							if (line.aolevel == 1){
+								token.regionId = line.aoguid;
+								gobj.region = line.offname;
+								var node = RegionsNet.MergeVerb(token._content, {regionId : token.regionId, level : 1});
+								SaveRNet();
+								token._finished = true;
+								SemanticUI.MergeVerbDiv(verb, token);
+								SemanticUI.Reparse();
+								return;
+							}
+						}
+						for (var i = 0; i < result.length; i++){
+							var line = result[i];
+							if (line.aolevel == 2){
+								token.regionId = line.aoguid;
+								gobj.region = line.offname;
+								var node = RegionsNet.MergeVerb(token._content, {regionId : token.regionId, level : 2});
+								SaveRNet();
+								token._finished = true;
+								SemanticUI.MergeVerbDiv(verb, token);
+								SemanticUI.Reparse();
+								return;
+							}
+						}						
+						for (var i = 0; i < result.length; i++){
+							var line = result[i];
+							if (line.aolevel == 3){
+								token.regionId = line.aoguid;
+								gobj.region = line.offname;
+								var node = RegionsNet.MergeVerb(token._content, {regionId : token.regionId, level : 3});
+								SaveRNet();
+								token._finished = true;
+								SemanticUI.MergeVerbDiv(verb, token);
+								SemanticUI.Reparse();
+								return;
+							}
+						}
+						verb.add(".problem");
+						SemanticUI.MergeVerbDiv(verb, token);
+					});
+				},
+				
+				loadCityData : function(verb, token, gobj, callback){
+					if (gobj.regionId){
+						verb.add(".loading");
+						VerbTypes.city.queryFiltered(gobj.regionId, token._content, function(result){
+							verb.del(".loading");	
+							for (var i = 0; i < result.length; i++){
+								var line = result[i];
+								if (line.aolevel == 4){
+									token.cityId = line.aoguid;
+									gobj.city = line.offname;
+									token.level = 4;
+									gobj.cityId = token.cityId
+									token._finished = true;
+									SemanticUI.MergeVerbDiv(verb, token);
+									if (callback){
+										callback();	
+									}
+									return;
+								}
+							}
+							for (var i = 0; i < result.length; i++){
+								var line = result[i];
+								if (line.aolevel == 5){
+									token.cityId = line.aoguid;
+									gobj.city = line.offname;
+									token.level = 5;
+									gobj.cityId = token.cityId
+									token._finished = true;
+									SemanticUI.MergeVerbDiv(verb, token);
+									if (callback){
+										callback();	
+									}
+									return;
+								}
+							}						
+							for (var i = 0; i < result.length; i++){
+								var line = result[i];
+								if (line.aolevel == 6){
+									token.cityId = line.aoguid;
+									gobj.city = line.offname;
+									token.level = 6;
+									gobj.cityId = token.cityId
+									token._finished = true;
+									SemanticUI.MergeVerbDiv(verb, token);
+									if (callback){
+										callback();	
+									}
+									return;
+								}
+							}
+							verb.add(".problem");
+							SemanticUI.MergeVerbDiv(verb, token);
+						});
+					}
+				},
+				
+				loadStreetData : function(verb, token, gobj, callback){
+					if (gobj.cityId){
+						verb.add(".loading");
+						VerbTypes.street.queryFiltered(gobj.cityId, token._content, function(result){
+							verb.del(".loading");	
+							for (var i = 0; i < result.length; i++){
+								var line = result[i];
+								if (line.aolevel == 7){
+									token.streetId = line.aoguid;
+									gobj.street = line.offname;
+									token.level = 7;
+									gobj.streetId = token.streetId;									
+									token._finished = true;
+									SemanticUI.MergeVerbDiv(verb, token);
+									if (callback){
+										callback();	
+									}
+									return;
+								}
+							}
+							verb.add(".problem");
+							SemanticUI.MergeVerbDiv(verb, token);
+						});
+					}
+				},
+				
+				loadHouseData : function(verb, token, gobj, callback){
+					if (token._type == 'decimal'){
+						token._finished = true;
+						gobj.house = token._content;
+					}
+					else{
+						verb.add(".problem");
+					}
+					SemanticUI.MergeVerbDiv(verb, token);
+					if (callback){
+						callback();	
+					}
+				},
+				
+				loadRoomData : function(verb, token, gobj, callback){
+					if (token._type == 'decimal'){
+						token._finished = true;
+						gobj.room = token._content;
+					}
+					else{
+						verb.add(".problem");
+					}
+					SemanticUI.MergeVerbDiv(verb, token);
+					if (callback){
+						callback();	
+					}
+				},
+				
+				/*
+				data.ClientId = Clients.GetCellValue(cells[13]);
+				data.ParentClient = Clients.GetCellValue(cells[1]);
+				data.ParentClientId = Clients.GetCellValue(cells[14]);
+				data.ClientSource = Clients.GetCellValue(cells[2]);
+				data.RegionSource = Clients.GetCellValue(cells[3]);
+				data.CitySource = Clients.GetCellValue(cells[4]);
+				data.AddressFSource = Clients.GetCellValue(cells[5]);
+				data.AddressUSource = Clients.GetCellValue(cells[6]);
+				data.INN = Clients.GetCellValue(cells[7]);
+				data.CityId = null;
+				data.RegionId = null;
+				data.Address = "";
+				data.Client = "";
+				data.Comments = "";
+				data.Postal = null;
+				*/
+				
+				ParseData : function(item){
+					var data = item.data;
+					SemanticUI.currentData = data;
+					var tokens = [];
+					NeuroParser.ParseTokens(data.RegionSource, { region : 1 }, tokens);
+					NeuroParser.ParseTokens(data.CitySource, { city : 1 }, tokens);
+					NeuroParser.ParseTokens(data.AddressFSource, { address : 1 }, tokens);
+					NeuroParser.ParseTokens(data.ParentClient, { parent : 1 }, tokens);
+					NeuroParser.ParseTokens(data.ClientSource, { client : 1 }, tokens);
+					SemanticUI.ParseTokens(tokens);
+				},
+				
+				MergeVerbDiv : function(div, obj){
 					for (var item in obj){
 						if (item.start("_")) continue;	
-						if (item.start(".") && obj[item] > 0) div.add(item);
-						if (item.start("@")) div.set(item, obj[item]);
+						if (item.start(".") && obj[item] > 0) {
+							div.add(item);
+							continue;
+						}
+						if (item.start("@")) {
+							div.set(item, obj[item]);
+							continue;
+						}
+						div.set("@data-" + item, obj[item]);
 					}
 					if (obj._finished){
 						div.add(".parsed");	
 					}
-					div.onclick = SemanticUI.ShowVerbPopup;
-				},
-								
-				ShowVerbPopup: function(){
-					SemanticUI.CreatePopupForm(this.result, this);	
+					if (obj.vtype){
+						div.cls(obj.vtype);	
+					}
 				},
 				
-				CreatePopupForm : function(obj){
-					var win = VerbManagePrototype.clone();					
-					win.obj = obj;
-					var verb = win.get(".verb");
-					var text = obj._content;
-					verb.textContent = text;
-					var vTypeMenu = win.get(".verb-type-menu");
-					if (obj._finished){
-						win.add(".known");	
+				InitVerb : function(div, obj){
+					div.data = obj;
+					div.textContent = obj._content;
+					this.MergeVerbDiv(div, obj);
+					div.onclick = function(){
+						SemanticUI.ShowVerbPopup(obj);
 					}
-					else{
-						win.add(".unknown");	
-						vTypeMenu.show();
-					}
-					vTypeMenu.onclick = function(){
-						vTypeMenu.hide();
-					}
-					vTypeMenu.all(".verb-type").each(function(vType){
-						vType.onclick = function(){
-							var vt = vType.get("@vtype");
-							if (vt){
-								var verbType = VerbTypes[vt];
-								if (verbType){
-									if (verbType.query){
-										verbType.query(obj._content, function(result){
-											if (typeof result == 'object'){
-												win.showVerbTypeVariants(verbType, result);
-											}
-										});
-									}
-									else{
-										mergeVerb(verbType.GetMergeObject(text, obj));
-									}
-								}
-							}
-						}
-					});
-					var mergeVerb = function(obj){
-						if (obj){
-							var node = Semantic.MergeVerb(text, obj);
-							if (node){
-								initVList(node.values);	
-								win.del(".unknown");
-								win.add(".known");
-							}
-							SemanticUI.Reparse();
-							SaveNet();
-						}
-					}
-					verb.onclick = function(){
-						vTypeMenu.show();
-					};					
-					var initVList = function(obj){
+				},
+				
+				ShowVerbPopup: function(obj){
+					var win = SemanticUI.CreatePopupForm(obj);
+					if (obj._finished){						
 						var vList = win.get(".values-list");
+						vList.show();
 						vList.clear();
 						vList.onclick = function(){
 							this._all(".invisible").show();	
@@ -174,127 +513,245 @@
 							}));
 						}
 					}
-					win.showVerbTypeVariants = function(verbType, objects){
-						var vType = verbType.name;
-						var vts = this.get(".verb-type-select." + vType);
-						if (vts){
-							vts.onclick = function(){
-								vts.hide();	
+					else{							
+						var wizard = win.get(".wizard-box");
+						wizard.show();
+						wizard = new Wizard(VerbTypeWizard, wizard, SemanticUI.WizardComplete);
+					}
+					
+				},
+				
+				WizardComplete : function(obj){
+					if (obj && obj.vtype){
+						if (obj.vtype == 'pointer'){
+							delete obj["@id"];
+							var win = this.get("^.window");
+							if (win){
+								var data = win.obj;
+								win.del();
+								var node = PointersNet.MergeVerb(data._content, obj);
+								SaveNet();
 							}
-							vts.show();
-							vts.get(".vts-grid").ShowObjects(objects);
-							vts.all(".object-item").each(function(item){
-								item.onclick = function(event){
-									mergeVerb(verbType.GetMergeObject(text, this.data));
-								}
-							});
 						}
-					};
-					initVList(obj);
+						SemanticUI.Reparse();
+					}
+				},
+				
+				CreatePopupForm : function(obj){
+					var win = VerbManagePrototype.clone();					
+					win.obj = obj;
+					var verb = win.get(".verb");
+					var text = obj._content;
+					verb.textContent = text;
+					if (obj._finished){
+						win.add(".known");	
+					}
+					else{
+						win.add(".unknown");	
+					}
 					win.all(".simple-grid").del(".initialized");
 					win = Win.CreateWindow(win);
 					WS.Body.add(win);
 					win.Show();
 					win.id = '';
 					C.Process(win, "ui-processing");
+					return win;
+				},
+				
+				SearchRegion : function(){
+					var win = SearchWin.clone();					
+					win.all(".simple-grid").del(".initialized");
+					win.title = 'Поиск региона'
+					win = Win.CreateWindow(win);
+					WS.Body.add(win);
+					win.Show();
+					win.id = '';
+					win.get(".SearchBtn").onclick = function(){
+						if (win.get(".SearchInput").value.length > 3){
+							win.add(".loading");
+							VerbTypes.region.query(win.get(".SearchInput").value.toLowerCase(), function(result){
+								win.del(".loading");
+								win.get(".simple-grid").ShowObjects(result);
+								win.all(".simple-grid .object-item").each(function(item){
+									item.onclick = function(){
+										var line = item.data;
+										win.del();
+										SemanticUI.gobj.regionId = line.aoguid;
+										SemanticUI.gobj.region = line.offname;
+										SemanticUI.gobj.cityId = "";
+										SemanticUI.gobj.city = "";
+										SemanticUI.gobj.streetId = "";
+										SemanticUI.gobj.street = "";
+										var node = RegionsNet.MergeVerb(line.formalname, {regionId : line.aoguid, level : line.aolevel});
+										SaveRNet();
+										SemanticUI.SetEndValues();									
+									}
+								});
+							});
+						}
+					}
+					C.Process(win, "ui-processing");
+					return win;
+				},
+				
+				SearchCity : function(){
+					if (!SemanticUI.gobj.regionId) return;
+					var win = SearchWin.clone();					
+					win.all(".simple-grid").del(".initialized");
+					win.title = 'Поиск города'
+					win = Win.CreateWindow(win);
+					WS.Body.add(win);
+					win.Show();
+					win.id = '';
+					win.get(".SearchBtn").onclick = function(){
+						if (win.get(".SearchInput").value.length > 3){
+							win.add(".loading");
+							VerbTypes.city.queryFiltered(SemanticUI.gobj.regionId, win.get(".SearchInput").value.toLowerCase(), function(result){
+								win.del(".loading");
+								win.get(".simple-grid").ShowObjects(result);
+								win.all(".simple-grid .object-item").each(function(item){
+									item.onclick = function(){
+										var line = item.data;
+										win.del();
+										SemanticUI.gobj.cityId = line.aoguid;
+										SemanticUI.gobj.city = line.offname;
+										SemanticUI.gobj.streetId = "";
+										SemanticUI.gobj.street = "";
+										SemanticUI.SetEndValues();									
+									}
+								});
+							});
+						}
+					}
+					C.Process(win, "ui-processing");
+					return win;
+				},
+				
+				SearchStreet : function(){
+					if (!SemanticUI.gobj.cityId) return;
+					var win = SearchWin.clone();					
+					win.all(".simple-grid").del(".initialized");
+					win.title = 'Поиск города'
+					win = Win.CreateWindow(win);
+					WS.Body.add(win);
+					win.Show();
+					win.id = '';
+					win.get(".SearchBtn").onclick = function(){
+						if (win.get(".SearchInput").value.length > 3){
+							win.add(".loading");
+							VerbTypes.street.queryFiltered(SemanticUI.gobj.cityId, win.get(".SearchInput").value.toLowerCase(), function(result){
+								win.del(".loading");
+								win.get(".simple-grid").ShowObjects(result);
+								win.all(".simple-grid .object-item").each(function(item){
+									item.onclick = function(){
+										var line = item.data;
+										win.del();
+										SemanticUI.gobj.streetId = line.aoguid;
+										SemanticUI.gobj.street = line.offname;
+										SemanticUI.SetEndValues();									
+									}
+								});
+							});
+						}
+					}
+					C.Process(win, "ui-processing");
+					return win;
 				}
 			};
 		</script>
-		<style type='text/css'>
-			.parsed-verb{
-				color: black;
-				display: inline-block;	
-				padding: 5px;
-			}
-			
-			.parsed-verb:hover{
-				cursor: pointer;
-				border: solid 1px gray;
-			}
-			
-			.parsed-verb.pointer{
-			    background-color: yellow;
-			}
-						
-			.parsed-verb.ignore{
-				color: #ccc;
-			}
-			
-			.parsed-verb:not(.parsed){
-				font-weight: bold;
-			}
-			
-			.verb-manager .verb{
-				font-style: italic;
-				color: navy;
-				font-size: 16px;
-				text-align: center;
-				cursor: pointer;
-				padding-bottom: 5px;
-			}
-			
-			.verb-manager.known .verb{
-				border-bottom: solid 1px green;
-			}
-			
-			.verb-manager.unknown .verb{
-				color: red;
-				border-bottom: dotted 1px red;
-			}
-			
-			.verb-manager .values-list{
-				width: 250px;
-				min-height: 150px;
-			}
-			
-			.verb-manager .values-list .item .prop{
-				display: inline-block;
-				padding: 2px 5px;
-				color: gray;
-			}
-			
-			.verb-manager .values-list .item .value{
-				display: inline-block;
-				padding: 2px 5px;
-				cursor: pointer;
-			}
-			
-		</style>
 		
 		<win id='VerbManagePrototype' class='prototype window verb-manager' title='Verb editor'>
 			<div class='verb'>
 				
 			</div>			
-			<div class='verb-type-menu invisible' style='border: solid 1px lightgray'>
-				<div class='verb-type abbreviation boxed link' vtype='abbreviation'>
-					Вид региона
+			<div class='values-list invisible'>
+				
+			</div>						
+			<div class='wizard-box invisible'>
+				
+			</div>
+		</win>
+		
+		<div class='prototype' id='verb-wizards'>
+			<div id='VerbTypeWizard' class='invisible wizard'>
+				<div class='verb-type abbreviation boxed link' vtype='abbreviation' next='#PointerDirectionWizard' add='vtype=pointer'>
+					Указатель
 				</div>
-				<div class='verb-type region boxed link' vtype='region'>
-					Наименование региона
+				<div class='verb-type region boxed link' vtype='region' next='#RegionTypeWizard' add='vtype=region'>
+					Регион
 				</div>
-				<div class='verb-type address boxed link' vtype='address'>
-					Часть адреса
+				<div class='verb-type city boxed link' vtype='address' next='#CityTypeWizard' add='vtype=city'>
+					Город
 				</div>
-				<div class='verb-type client-type boxed link' vtype='client-type'>
-					Вид клиента
+				<div class='verb-type street boxed link end' add='vtype=street'>
+					Улица
 				</div>
-				<div class='verb-type client boxed link' vtype='client'>
-					Название клиента
+				<div class='verb-type client boxed link' vtype='client' next='#PointerDirectionWizard' add='vtype=parent'>
+					Название сети
 				</div>
-				<div class='verb-type other boxed link' vtype='other'>
+				<div class='verb-type client boxed link' vtype='client' next='#PointerDirectionWizard' add='vtype=client'>
+					Клиент
+				</div>
+				<div class='verb-type other boxed link' vtype='other' next='#PointerDirectionWizard' add='vtype=other'>
 					Прочее
 				</div>				
-				<div class='verb-type ignore boxed link' vtype='ignore'>
+				<div class='verb-type ignore boxed link' vtype='ignore' next='#PointerDirectionWizard' add='vtype=ignore'>
 					Игнорировать
 				</div>
 			</div>
-			<div class='verb-type-select invisible abbreviation' vtype='abbreviation'>
-				<div class='simple-grid vts-grid initialized'>
-					<div class="object-template prototype boxed link">
-						<span class='level' field='level'></span>
-						<span class='scname link' field='scname'></span>
-						<span class='socrname' field='socrname'></span>
-					</div>					
+			<div id='PointerDirectionWizard' class='invisible wizard'>
+				<div class='hint' style='color: navy; font-weight: bold;'>
+					Тип указателя:
+				</div>
+				<div class='verb-type abbreviation boxed link' next='#PointerTypeWizard' value='direction=next'>
+					Префиксный <span class='example' style='color: green'>(ООО Ригла)</span>
+				</div>
+				<div class='verb-type region boxed link' next='#PointerTypeWizard' value='direction=prev'>
+					Постфиксный <span class='example' style='color: green'>(Ульяновская обл)</span>
+				</div>				
+				<div class='verb-type region boxed link' next='#PointerTypeWizard' value=''>
+					Инвариантный <span class='example' style='color: green'>(Респ Тыва, Тыва респ.)</span>
+				</div>
+			</div>
+			<div  id='PointerTypeWizard' class='invisible wizard'>
+				<div class='hint' style='color: navy; font-weight: bold;'>
+					Указывает на:
+				</div>
+				<div class='pointer-type boxed link end' add='.region=1' value='level=1,ptype=region'>
+					Регион
+				</div>				
+				<div class='pointer-type boxed link end' add='.region=1' value='level=2,ptype=region'>
+					Авт. Округ
+				</div>				
+				<div class='pointer-type boxed link end'  add='.region=1' value='level=3,ptype=region'>
+					Район
+				</div>
+				<div class='pointer-type boxed link end'  add='.city=1'  value='level=4,ptype=city'>
+					Город
+				</div>
+				<div class='pointer-type boxed link end'  add='.city=1' value='level=5,ptype=city'>
+					Внутригородская терр.
+				</div>
+				<div class='pointer-type boxed link end'  add='.city=1'  value='level=6,ptype=city' >
+					Насел. пункт
+				</div>
+				<div class='pointer-type boxed link end'   add='.address=1'  value='level=7,ptype=address' >
+					Улица
+				</div>
+				<div class='pointer-type boxed link end'  add='.house=1'  value='level=8,ptype=house' >
+					Строение
+				</div>				
+				<div class='pointer-type boxed link end'  add='.room=1'  value='level=9,ptype=room' >
+					Помещение
+				</div>				
+				<div class='pointer-type boxed link end'  add='.parent=1,ptype=parent'>
+					Название сети
+				</div>				
+				<div class='pointer-type boxed link end'  add='.client=1,ptype=client' >
+					Клиент
+				</div>
+				<div class='pointer-type boxed link end'  add='.index=1,ptype=index'>
+					Индекс
 				</div>
 			</div>
 			<div class='verb-type-select invisible address' vtype='address'>
@@ -317,26 +774,60 @@
 					</div>					
 				</div>
 			</div>
-			<div class='values-list'>
-				
-			</div>
-			<div class='controls'>
-				
-			</div>
-		</win>
-		<div id='SemanticParsing' class='invisible' title='Распознаватель' style='border: solid 2px navy; padding: 5px;'>
-			<div class='btn-ira ok' onclick="SemanticUI.Reparse();">				
-				Распознать
-			</div>
-			<input type='text' style='width: 70%' id='SemanticInput' value='Филиал ООО "Ригла" в г. Чебоксары 429335 ЧР, г. Канаш, ул. Железнодорожная, дом 89, помещение №4. -'/>
 			
-			<div class='parsing-results'>
-				
-			</div>
-			<div class='btn-ira close' onclick="SemanticParsing.hide();">
-				Закрыть
+			<div class='controls'>
+				Cвободный поиск: <input type='text' id='fsClientBox'/>
+				<div class='btn-ira' title='искать'>
+					искать
+				</div>
 			</div>
 		</div>
+		
+		<win id='SemanticParsing' class='invisible window' title='Распознаватель' >
+			<div class='btn-ira invisible ok' onclick="SemanticUI.Reparse(SemanticInput.value);">				
+				Распознать
+			</div>
+			<input type='text' style='width: 70%' class='invisible' id='SemanticInput' value='Филиал ООО "Ригла" в г. Чебоксары 429335 ЧР, г. Канаш, ул. Железнодорожная, дом 89, помещение №4. -'/>
+			<div class='parsing-results'>
+				
+			</div>						
+			<div class='object-description prototype'>
+				<div class="parent line link">
+					Сеть: <span class="field id" field="parentId"> </span> <span class="field" field="parent"> Не распознан </span>
+				</div>
+				<div class="client line link">
+					Клиент: <span class="field  id" field="clientId">  </span> <span class="field" field="client"> Не распознан </span>
+				</div>
+				<div class="Location">
+					<div class="region line link" onclick='SemanticUI.SearchRegion()'>
+						Регион: <span class="field id" field="regionId"></span> <span class="field" field="region"> Не распознан </span>									
+					</div>
+					<div class="city line link" onclick='SemanticUI.SearchCity()'>
+						Город: <span class="field id" field="cityId"></span> <span class="field" field="city"> Не распознан </span>									
+					</div>
+					<div class="address line link" onclick='SemanticUI.SearchStreet()'>
+						Адрес: <span class="field id" field="streetId"></span> <span class="field" field="street"> Не распознана </span> &nbsp;
+						<span class="field" field="house"> </span>, <span class="field" field="room">  </span>
+					</div>				
+				</div>	
+			</div>		
+			
+		</win>
+		
+		<win id='SearchWin' class='prototype window search-win'>
+				<input type='text' style='width: 70%' class='SearchInput' value=''/>
+				<div class='btn-ira ok SearchBtn'>				
+					Найти
+				</div>
+				<div class='simple-grid initialized'>
+					<div class="object-template prototype boxed link">
+						<span class='shortname' field='shortname'></span>
+						<span class='level' field='level'></span>
+						<span class='offname' field='offname'></span>
+						<span class='postalcode' field='postalcode'></span>
+					</div>					
+				</div>
+			</win>
 		
 		<win id='SemanticConfigurator' class='invisible screen-center' title='Нейросеть'>
 			<div class='semantic-box'>
@@ -418,11 +909,12 @@
 				data.Address = "";
 				data.Client = "";
 				data.Comments = "";
+				data.Postal = null;
 				return data;
 			}
 			
 			Clients.GetCellValue = function(value){
-				if (value) return value.textContent;
+				if (value && value != "-") return value.textContent;
 				return null;
 			}
 			
@@ -475,7 +967,7 @@
 				<div class="objects-container">
 				</div>
 			</div>
-			<div class='table-object prototype'>
+			<div class='table-object prototype' >
 				<div class="object-header">
 					
 				</div>
@@ -483,46 +975,46 @@
 					<div class="left-panel">
 						<div class="panel control-panel">
 							<div class="edit-button small-object-button" onclick="this.Get('^.table-object').EditAction();" title="Edit"></div>
-							<div class="parse-button small-object-button" onclick="ParsedGrid.ParseObject(this.Get('^.table-object'));" title="Parse"></div>
+							<div class="parse-button small-object-button" onclick='SemanticUI.ParseData(this.get("^.table-object"));' title="Parse"></div>
 							<div class="delete-button small-object-button" onclick="this.Get('^.table-object').DeleteAction();" title="Delete"></div>
 						</div>
 					</div>					
 					<div class="content-panel">
-						<div class="content-line">
-							<div class="ids">
-								ID: 
-								<span class="field" field="ClientId">ID</span>
-								<span class="field" field="ParentClientId">Нет родителя</span>
-								<span class="field" field="RegionId"></span>								
-								<span class="field" field="CityId"></span>								
-							</div>
-							<div class="Client">
-								Клиент: 
-								<div class="field" field="Client">Не распознан</div>
-								<div class="field" field="ParentClient"></div>
-								<div class="field source" field="ClientSource">Клиент Первичка</div>
-							</div>
-							<div class="Location">
-								<div class="Region">
-									Регион: 
-									<div class="field" field="Region">Не распознан</div>									
-									<div class="field source" field="RegionSource">Регион Первичка</div>
-								</div>
-								<div class="City">
-									Город: 
-									<div class="field" field="City">Не распознан</div>
-									
-									<div class="field source" field="CitySource">Город Первичка</div>
-								</div>
-								<div class="Address">
-									Адрес: 
-									<div class="field" field="Address">Не распознан</div>
-									<div class="field source" field="AddressFSource">Адрес клиента Фактический</div>
-									<div class="field source" field="AddressUSource">Адрес клиента Юридический</div>
-								</div>
-							</div>
-							<div class="field" field="INN">ИНН</div>			
+						
+						<div class="ids content-line">
+							ID: 
+							<span class="field" field="ClientId">ID</span>
+							<span class="field" field="ParentClientId">Нет родителя</span>
+							<span class="field" field="RegionId"></span>								
+							<span class="field" field="CityId"></span>								
 						</div>
+						<div class="Client content-line" onclick='SemanticUI.ParseClient(this.get("^.table-object"));'>
+							Клиент: 
+							<div class="field" field="Client" >Не распознан</div>
+							<div class="field" field="ParentClient" onclick='SemanticUI.ParseParent(this.get("^.table-object"));'></div>
+							<div class="field source" field="ClientSource">Клиент Первичка</div>
+						</div>
+						<div class="Location">
+							<div class="Region content-line" onclick='SemanticUI.ParseRegion(this.get("^.table-object"));'>
+								Регион: 
+								<div class="field" field="Region">Не распознан</div>									
+								<div class="field source" field="RegionSource">Регион Первичка</div>
+							</div>
+							<div class="City content-line" onclick='SemanticUI.ParseCity(this.get("^.table-object"));'>
+								Город: 
+								<div class="field" field="Postal"></div>
+								<div class="field" field="City">Не распознан</div>
+								<div class="field source" field="CitySource">Город Первичка</div>
+							</div>
+							<div class="Address content-line" onclick='SemanticUI.ParseAddress(this.get("^.table-object"));'>
+								Адрес: 
+								<div class="field" field="Address">Не распознан</div>
+								<div class="field source" field="AddressFSource">Адрес клиента Фактический</div>
+								<div class="field source" field="AddressUSource">Адрес клиента Юридический</div>
+							</div>
+							
+						</div>
+						<div class="field content-line" field="INN">ИНН</div>	
 					</div>
 					<div class="right-panel">
 						
@@ -768,7 +1260,6 @@
 				</div>
 			</div>
 		</win>
-		
 		
 	</body>
 </html>
