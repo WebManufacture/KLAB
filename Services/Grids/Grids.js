@@ -355,33 +355,95 @@ Grids.TableObject.createDataObj = function() {
 };
 
 Grids.TableObject.update = function(dataObj) {
-	if (dataObj){
-		if (!dataObj.id){
-			dataObj.id = dataObj._id;
+	if (!dataObj) return;
+	var elem = this;	
+	if (!dataObj.id) {
+		dataObj.id = dataObj._id;
+	}
+	for (var key in dataObj) {
+		this[key] = dataObj[key];
+		if (key.start(".")){
+			this.add(key);	
+			continue;
 		}
-		for (var key in dataObj) {
-			if (key.start(".")){
-				this.add(key);	
-				continue;
-			}
-			if (key.start("@")){
-				this.add(key);	
-				this[key] = this.get(key);
-				continue;
-			}
-			if (key.start("#")){
-				key = key.replace('#', '');
-				this.id = key;	
-				this.set('@key', key);
-				continue;
-			}
-			this[key] = dataObj[key];
-		};		
-		if (!this.id){
-			this.id = 'id' + dataObj.id;
+		if (key.start("@")){
+			this.add(key);	
+			this[key] = this.get(key);
+			continue;
 		}
-		this.set('@key', dataObj.id);
-		this.key = dataObj.id;
+		if (key.start("#")){
+			key = key.replace('#', '');
+			this.id = key;	
+			this.set('@key', key);
+			continue;
+		}
+		if (typeof(dataObj[key]) !='object' && key != 'id' && !key.start('_')){ 
+			this.set("@data-" + key.toLowerCase(), dataObj[key]);
+		}
+		
+	};
+	this.key = dataObj.id;
+	this.id = 'obj' + dataObj.id;
+	this.set('@key', dataObj.id);
+	this.data = dataObj;
+	var allFields = this.all('[field]').each(function (field) {
+		var key = field.get("@field");
+		if (key && dataObj[key]) {
+			field.textContent = dataObj[key];
+		}
+	});
+	var lookup = this.all('.lookup[field]:not(.looked)');
+	lookup.each(function (field) {
+		var key = field.get("@field");
+		var value = dataObj[key];
+		var lsrc = field.get("@lookup-source");
+		var lprefix = field.get("@lookup-prefix");
+		var lselector = field.get("@lookup-selector");
+		if (lprefix) value = lprefix + value;
+		if (lsrc) {
+			lsrc = DOM.get(lsrc);
+			if (lsrc) {
+				var mapfunc = function () {
+					var src = lsrc.get("#" + value);
+					if (src) {
+						value = src.get(lselector);
+						if (value) {
+							if (value.textContent) {
+								field.add(".looked");
+								field.textContent = value.textContent;
+								if (table && table.filter && table.filter.length > 0 && !field.is(".highlight")){
+									elem._highlightFieldValue(field, table.filter);
+								}
+							}
+							else {
+								if (value.value) {
+									field.add(".looked");
+									field.textContent = value.value;
+								}
+								else {
+									field.add(".looked");
+									field.textContent = value;
+								}
+							}
+						}
+					}
+					else {
+						window.setTimeout(mapfunc, 400);
+					}
+				};
+				mapfunc();
+			}
+		}
+	});
+	var oncalc = this.get("@oncalc");
+	var obj = { data: dataObj, element: this };
+	try {
+		with (obj) {
+			eval(oncalc);
+			this.add(".calculated");
+		}
+	} catch (e) {
+		console.error(e);
 	}
 };
 

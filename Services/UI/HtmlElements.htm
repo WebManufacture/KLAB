@@ -331,7 +331,9 @@ SearchBox.ShowSelectedByHint(search);
 	}
 	
 	.btn-ira {
-		background: none repeat scroll 0 0 transparent;
+		border: 2px solid #E0E0E0;
+		background: none no-repeat 0 0;
+		background-color: white;
 		border-radius: 3px 3px 3px 3px;
 		box-shadow: 0 1px 1px #FFFFFF;
 		color: #666666;
@@ -347,6 +349,17 @@ SearchBox.ShowSelectedByHint(search);
 		white-space: nowrap;
 		min-width: 60px;
 	}
+	
+	.btn-ira:hover, .btn-ira:focus {
+		background: -moz-linear-gradient(center top , white, #E0E0E0) repeat scroll 0 0 transparent;
+		border-color: #999999;
+		box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25), 0 0 3px #FFFFFF inset;
+	}
+	
+	.btn-ira.clear:active {
+		background: -moz-linear-gradient(center top , #E0E0E0, gainsboro) repeat scroll 0 0 transparent;
+	}
+	
 	.btn-ira.ok {
 		border: 2px solid #467F71;
 	}

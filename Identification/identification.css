@@ -50,6 +50,14 @@ body{
 	font-weight: bold;
 }
 
+.grid .table-object{
+	color: gray;	
+}
+
+.grid .table-object .field{
+	color: black;	
+}
+
 .grid .table-object .field.source{
 	color: gray;
 	display: none;	
@@ -62,6 +70,23 @@ body{
 
 .grid .table-object:hover .field.source{
 	display: inline-block;	
+}
+
+.grid .table-object .content-line:hover{
+	font-weight: bold;
+}
+
+.grid .table-object .Client{
+	font-size : 20px;	
+}
+
+.grid .table-object .ParentClient,
+.grid .table-object .Client,
+.grid .table-object .Region,
+.grid .table-object .City,
+.grid .table-object .Address
+{
+	cursor: pointer;
 }
 
 .grid .small-object-button:hover
@@ -128,4 +153,93 @@ body{
 
 .grid .objects-container .table-object.deleted:hover{
 	background-color: Gainsboro;
+}
+
+.parsed-verb{
+	color: black;
+	display: inline-block;	
+	padding: 5px;
+}
+
+.parsed-verb.loading{
+	display : none;
+}
+
+.parsed-verb:hover{
+	cursor: pointer;
+	border: solid 1px gray;
+}
+
+.parsed-verb.pointer{
+	background-color: yellow;
+}
+
+.parsed-verb.problem{
+	color: red;
+}
+
+.parsed-verb.ignore{
+	color: #ccc;
+}
+
+.parsed-verb:not(.parsed){
+	font-weight: bold;
+}
+
+.verb-manager .verb{
+	font-style: italic;
+	color: navy;
+	font-size: 16px;
+	text-align: center;
+	cursor: pointer;
+	padding-bottom: 5px;
+}
+
+.verb-manager.known .verb{
+	border-bottom: solid 1px green;
+}
+
+.verb-manager.unknown .verb{
+	color: red;
+	border-bottom: dotted 1px red;
+}
+
+.verb-manager .values-list{
+	width: 250px;
+	min-height: 150px;
+}
+
+.verb-manager .values-list .item .prop{
+	display: inline-block;
+	padding: 2px 5px;
+	color: gray;
+}
+
+.verb-manager .values-list .item .value{
+	display: inline-block;
+	padding: 2px 5px;
+	cursor: pointer;
+}
+
+#SemanticParsing{
+	border: solid 2px navy;
+	padding: 5px;
+	width : 500px;
+	height: 300px;
+}
+
+#SemanticParsing .field{
+	font-weight: bold;	
+}
+
+#SemanticParsing .id.field{
+	color: #ccc;
+}
+
+.search-win.loading{
+	background : gray;
+}
+
+.search-win.loading *{
+	opacity: 0.4;
 }
