@@ -1,0 +1,249 @@
+<include url='http://services.web-manufacture.net/Base/v1.3/ui.js'></include>
+<script src='http://services.web-manufacture.net/Authentication/HttpErrors.js'></script>
+<style type="text/css">
+	.authenticationForm {
+		background-color:  #05a5a0;
+		border-radius: 0px 0px 10px 10px;
+		top: 0;
+		color: white;
+		position: fixed;
+		right: 0;
+		text-align: center;
+		width: 250px;
+		z-index: 200;
+		opacity:0.4;
+	}
+	.authenticationForm:hover{
+		opacity: 1;		
+	}
+	.authenticationPanel {
+		display: none;
+	}
+	.authenticatedPanel {
+		display: none;
+	}
+	
+	.authenticationForm:hover .authenticationPanel{
+		display: block;
+	}
+	
+	.authenticationForm a.user-greating {
+		color: white;
+		text-decoration: none;
+	}
+	
+	.authenticationForm.authenticated .authenticationPanel{
+		display: none ;
+	}
+	.authenticationForm.authenticated .authenticatedPanel{
+		display: block ;
+	}
+	
+	.authenticationForm .button {
+		background:  	#808080;
+		border-radius: 2px 2px 10px 10px;
+		margin: 5px;
+		cursor: pointer;
+	}
+	
+	
+	.authenticationForm .button:hover {
+		background: silver;
+	}
+	.authenticationForm #LoginButton.button:active {
+		background: teal;
+	}	
+	.authenticationForm #LogoutButton.button:active {
+		background: teal;
+	}
+	
+	.authenticationPanel .fields {
+		text-align: right;
+		position: relative;
+		right: 15px;
+	}
+	.authFields {
+		padding: 5px;
+	}
+	.authenticationForm.authenticated .authenticatedPanel .button{
+		display: none ;
+	}
+	.authenticationForm.authenticated:hover .authenticatedPanel .button{
+		display: block ;
+	}
+	#div-of-user-greating.error {
+		background: red
+	}
+	
+	
+</style>
+
+<script type="text/javascript">
+	
+	
+	function getXmlHttp(){
+		var xmlhttp;
+		try {
+			xmlhttp = new ActiveXObject("Msxml2.XMLHTTP");
+		} catch (e) {
+			try {
+				xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
+			} catch (E) {
+				xmlhttp = false;
+			}
+		}
+		if (!xmlhttp && typeof XMLHttpRequest!='undefined') {
+			xmlhttp = new XMLHttpRequest();
+		}
+		return xmlhttp;
+	};
+	
+	Auth = Authentication = authentication = M.GetModuleEndsUrl("Authentication.htm");
+	
+	Auth.Init = Auth.main = function(){
+		Auth.Form = DOM("#AuthenticationForm");
+		WS.Body.ins(Auth.Form);
+		//Auth.Form.Get("#LoginButton");
+		var loginButton = DOM.get("#LoginButton");
+		loginButton.onclick = Auth.authFromForm;
+		
+		var logoutButton = DOM.get("#LogoutButton");
+		logoutButton.onclick = Auth.logout;
+		
+		var login = localStorage['user-login'];
+		var pwd = localStorage['user-pass'];
+		
+
+		
+		
+		
+		if (login && pwd) {
+			Auth.Login = login;
+			var reqestHash = Auth.ComputeHash(Auth.Login, pwd);
+			Auth.AuthReqest(Auth.Login, reqestHash);
+		};
+	};
+	
+	
+	
+	
+	
+	Auth.authFromForm = function(){
+		var loginField = DOM.get('#UserLogin');
+		var passField = DOM.get('#UserPass');
+		var login = loginField.value;
+		var pass = passField.value;
+		if (login && pass) {
+			Auth.Login = login;
+			Auth.Pass = pass;
+			var reqestHash = Auth.ComputeHash(Auth.Login, pass);
+			Auth.AuthReqest(Auth.Login, reqestHash);
+		};
+	};
+	
+	Auth.logout = function (){
+		localStorage.removeItem('user-login');
+		localStorage.removeItem('user-pass');
+		var elem = DOM.get('#authenticationForm');
+		elem.del('.authenticated');
+		var elem2 = DOM.get('#UserName');
+		elem2.set('Аноним (Войти)');
+		var passField = DOM.get('#UserPass');
+		passField.value = "";
+		Auth.main();
+	};
+	
+	Auth.ComputeHash = function(login, pwd) {
+		var date = new Date();
+		date = date.formatDateRus() + " " + date.getHours() + ":" + date.getMinutes();
+		return sha1(pwd + " " + date);	
+	};
+	
+	
+	Auth.AuthReqest = function(login, reqestHash) {
+		var xmlhttp = getXmlHttp();
+		var url = Request.GetUrl('http://localhost:8888/Auth', {login: login, hash : reqestHash});
+		xmlhttp.open('Get', url, true);
+		xmlhttp.onload = Auth.AuthComplete;
+		xmlhttp.onerror = Auth.AuthError;
+		xmlhttp.send(null);
+	};
+	
+	Auth.AuthError = function(error){		
+				Auth.Error(0);
+	};
+	
+	Auth.Error = function(error){		
+		localStorage.removeItem('user-login');
+		localStorage.removeItem('user-pass');
+		var passField = DOM.get('#UserPass');
+		passField.value = "";
+		var errorCode = error;
+		var elem2 = DOM.get('#UserName');
+		var elem3 = DOM.get('#div-of-user-greating');
+		elem2.set('Ошибка #' + error);
+		elem3.set('@title', '' + HttpErrors['' + errorCode]);
+		elem3.add('.error');		
+		
+	};
+	
+	Auth.AuthComplete = function(result){
+		if (this.status != 200) {		    
+			Auth.Error(this.status);
+			return;
+		}
+		var elem = DOM.get('#authenticationForm');
+		elem.add('.authenticated');
+		var elem2 = DOM.get('#UserName');
+		elem2.set('' + Auth.Login);
+		
+		var elem3 = DOM.get('#div-of-user-greating');
+		elem3.del('.error');
+		elem3.del('@title');// !!хрень какая-то!
+		
+		localStorage.setItem('user-login', Auth.Login);
+		localStorage.setItem('user-pass', Auth.Pass);
+	
+		
+		var res = DOM.div();
+		res.innerHtml = result;
+	
+	
+		var resreal = res.firstChild;
+		if (resreal.is(".error")){
+			
+		}
+		
+		
+		//
+		var res = DOM.wrap(result);
+	
+	};
+	
+	
+</script>
+
+
+<div id= 'authenticationForm' class= 'authenticationForm'>  <!-- добавить к этому элементу класс "authenticate" после авторизации -->
+	<div id= 'div-of-user-greating' class='header'>
+		<a href='#' class='user-greating'><span id='UserName'>Аноним (Войти)</span></a>
+	</div>
+	<div id='authenticationPanel' class = 'authenticationPanel'>
+		<div class='fields'>
+			<div class='authFields'>
+				<span>Login</span>
+				<input id='UserLogin'/>
+			</div>
+			<div class='authFields'>
+				<span>Pass</span>
+				<input id='UserPass'/>
+			</div>
+		</div>	
+		<div id='LoginButton' class='button'>Вход</div>
+	</div>
+	<div class = authenticatedPanel>
+		<div id='LogoutButton' class='button'>Выйти</div>
+	</div>	    
+</div>
+
+

@@ -17,7 +17,7 @@
 		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/ui.js"></script>
 		
 		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/NodeTunnel.js"></script>
-		<script type="text/javascript" src="http://web-manufacture.net:8000/HTTPErrors.js"></script>
+		<script type="text/javascript" src="http://Services.web-manufacture.net/Utils/HTTPErrors.js"></script>
 		
 		<script>
 			
@@ -43,7 +43,7 @@
 			};
 			
 			TableManager.Init = function(){
-				TableManager.Url = 'http://klab.web-manufacture.net:808/security/permissions';
+				TableManager.Url = '/permissions';
 				TableManager.Server = new NodeTunnel(TableManager.Url); 
 				TableManager.BlockPrototypes = DOM.get('#prototypes');
 				TableManager.GroupTable = DOM.get('#groups-table');

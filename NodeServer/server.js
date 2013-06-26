@@ -2,12 +2,13 @@ var http = require('http');
 var Url = require('url');
 var path = require('path');
 require(path.resolve("./Modules/Node/Utils.js"));
-require(path.resolve("./Modules/Node/Logger.js"));
+var logger = require(path.resolve("./Modules/Node/Logger.js"));
 var RouterModule = require(path.resolve("./Modules/Node/Router.js"));
 var Forks = require(path.resolve("./Modules/Node/Forks.js"));
 var Files = require(path.resolve("./Modules/Node/Files.js"));
 require(path.resolve("./Modules/Channels.js"));
 var channelsClient = require(path.resolve("./Modules/Node/ChannelsClient.js"));
+var DBProc = require(path.resolve("./Modules/Node/DBProc.js"));
 var fs = require('fs');
 var httpProxy = require('http-proxy');
 var colors = require('colors');
@@ -404,6 +405,9 @@ Server.Start = function(config){
 						   context.finish(200, JSON.stringify(Server.CreateChannelMap(Channels.routes)));
 					   }
 				   },
+				   "/users/>" : DBProc(config, "users", logger),
+				   "/groups/>" : DBProc(config, "groups", logger),
+				   "/permissions/>" : DBProc(config, "permissions", logger),
 				   "/nodes/>": Server.NodesRouter,				   
 				   "/monitoring/>": channelsClient,
 				   "/<":  filesRouter

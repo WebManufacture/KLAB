@@ -6,9 +6,6 @@ var Db = mongo.Db,
     ReplSetServers = mongo.ReplSetServers,
     CheckMaster = mongo.CheckMaster;
 
-DB_CONF = [{host : "127.0.0.1", port : 9991}, {host : "127.0.0.1", port : 9992}, 
-           { host: "127.0.0.1", port: 9993 }, { host: "127.0.0.1", port: 9994 }]
-
 replicaSet = function(serversArray, name, callback) {
 	try{
 		var rs = new Array();

@@ -2,6 +2,7 @@
  {"NodeName":"KLAB","Host":"klab.web-manufacture.net","Location":"localhost","File":"server.js","Args":{"value":1},"id":2,"State":"working"},
  {"NodeName":"Services","Host":"services.web-manufacture.net","Location":"localhost","File":"server.js","Args":{"basepath":"./services"},"id":3,"State":"working"},
  {"NodeName":"System","Host":"system.web-manufacture.net","Location":"localhost","File":"server.js","Args":{"basepath":"./system"},"id":4,"State":"working"},
+ {"NodeName":"Video","Host":"video.web-manufacture.net","Location":"localhost","File":"VideoNet/server.js","Args":{"basepath":"./VideoNet", "ver":"0.12"},"id":"video","State":"working"},
  {"NodeName":"Identification", "id" : "identification", "Location":"managed", "File":"identification/ServerIPC.js","Args":{"value":3},"State":"working"},
  {"NodeName":"CncController", "id" : "cnccontroller", "Location":"managed", "File":"cnccontroller/CncController.js","Args":{},"State":"working"}
 ]
