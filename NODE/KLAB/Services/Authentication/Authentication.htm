@@ -1,7 +1,6 @@
-<include url='http://services.web-manufacture.net/Base/v1.3/ui.js'></include>
-<script src='http://services.web-manufacture.net/Authentication/HttpErrors.js'></script>
+<script src='http://services.web-manufacture.net/Base/v1.3/ui.js'></script>
 <style type="text/css">
-	.authenticationForm {
+	#AuthenticationForm {
 		background-color:  #05a5a0;
 		border-radius: 0px 0px 10px 10px;
 		top: 0;
@@ -13,33 +12,44 @@
 		z-index: 200;
 		opacity:0.4;
 	}
-	.authenticationForm:hover{
+	#AuthenticationForm:hover{
 		opacity: 1;		
 	}
-	.authenticationPanel {
-		display: none;
-	}
-	.authenticatedPanel {
+	
+	#AuthenticationForm .authenticationPanel{
 		display: none;
 	}
 	
-	.authenticationForm:hover .authenticationPanel{
+	#AuthenticationForm .authenticatedPanel{
+		display: none;
+	}
+	
+	#AuthenticationForm:not(.authenticated):hover .authenticationPanel{
 		display: block;
 	}
 	
-	.authenticationForm a.user-greating {
+	#AuthenticationForm.authenticated:hover .authenticatedPanel{
+		display: block;
+	}
+	
+	#AuthenticationForm.loading{
+		background-color: lightgray;	
+	}
+	
+	#AuthenticationForm.loading .authenticationPanel{
+		display: none!important;
+	}
+	
+	#AuthenticationForm.loading .authenticatedPanel{
+		display: none!important;
+	}
+	
+	#AuthenticationForm a.user-greating {
 		color: white;
 		text-decoration: none;
 	}
 	
-	.authenticationForm.authenticated .authenticationPanel{
-		display: none ;
-	}
-	.authenticationForm.authenticated .authenticatedPanel{
-		display: block ;
-	}
-	
-	.authenticationForm .button {
+	#AuthenticationForm .button {
 		background:  	#808080;
 		border-radius: 2px 2px 10px 10px;
 		margin: 5px;
@@ -47,243 +57,52 @@
 	}
 	
 	
-	.authenticationForm .button:hover {
+	#AuthenticationForm .button:hover {
 		background: silver;
 	}
-	.authenticationForm #LoginButton.button:active {
+	
+	#AuthenticationForm #LoginButton.button:active {
 		background: teal;
 	}	
-	.authenticationForm #LogoutButton.button:active {
+	
+	#AuthenticationForm #LogoutButton.button:active {
 		background: teal;
 	}
 	
-	.authenticationPanel .fields {
+	#AuthenticationForm .auth-fields {
 		text-align: right;
 		position: relative;
 		right: 15px;
 	}
-	.authFields {
+	
+	#AuthenticationForm .auth-field {
 		padding: 5px;
 	}
-	.authenticationForm.authenticated .authenticatedPanel .button{
-		display: none ;
+	
+	#AuthenticationForm .auth-field.empty, #AuthenticationForm input.empty{
+		border: solid 1px red;
 	}
-	.authenticationForm.authenticated:hover .authenticatedPanel .button{
-		display: block ;
-	}
-	#div-of-user-greating.error {
+		
+	#AuthenticationForm.error {
 		background: red
 	}
 	
-	
 </style>
 
-<script type="text/javascript">
-	
-	
-	function getXmlHttp(){
-		var xmlhttp;
-		try {
-			xmlhttp = new ActiveXObject("Msxml2.XMLHTTP");
-		} catch (e) {
-			try {
-				xmlhttp = new ActiveXObject("Microsoft.XMLHTTP");
-			} catch (E) {
-				xmlhttp = false;
-			}
-		}
-		if (!xmlhttp && typeof XMLHttpRequest!='undefined') {
-			xmlhttp = new XMLHttpRequest();
-		}
-		return xmlhttp;
-	};
-	
-	Auth = Authentication = authentication = M.GetModuleEndsUrl("Authentication.htm");
-	
-	Auth.Init = Auth.main = function(){
-		
-		Auth.Form = DOM("#AuthenticationForm");
-		WS.Body.ins(Auth.Form);
-		//Auth.Form.Get("#LoginButton");
-		var loginButton = DOM.get("#LoginButton");
-		loginButton.onclick = Auth.authFromForm;
-		
-		var logoutButton = DOM.get("#LogoutButton");
-		logoutButton.onclick = Auth.Logout;
-		
-		var login = localStorage['user-login'];
-		var pwd = localStorage['user-pass'];
-		var sessionkey = localStorage['user-sessionkey'];
-		
-		if (login && sessionkey){
-			Auth.SessionReqest(login, sessionkey);
-			//alert(sessionkey);
-			return;
-		};
-		
 
-		
-		
-		
-		if (login && pwd) {
-			//Auth.Login = login;
-			var reqestHash = Auth.Hash(login, pwd);
-			Auth.AuthReqest(login, reqestHash, pwd);
-		};
-	};
-	
-	
-	
-	
-	
-	Auth.authFromForm = function(){
-		var loginField = DOM.get('#UserLogin');
-		var passField = DOM.get('#UserPass');
-		var login = loginField.value;
-		var pass = passField.value;
-		if (login && pass) {
-			//Auth.Login = login;
-			//Auth.Pass = pass;
-			var reqestHash = Auth.Hash(login, pass);
-			Auth.AuthReqest(login, reqestHash, pass);
-		};
-	};
-	
-	Auth.Logout = function (){
-		localStorage.removeItem('user-login');
-		localStorage.removeItem('user-pass');
-		var elem = DOM.get('#authenticationForm');
-		elem.del('.authenticated');
-		var elem2 = DOM.get('#UserName');
-		elem2.set('Аноним (Войти)');
-		var passField = DOM.get('#UserPass');
-		passField.value = "";
-		Auth.main();
-	};
-	
-	Auth.Hash = function(login, pwd) {
-		var date = new Date();
-		date = date.getTime();
-		date = Math.floor(date/60000) * 60000;
-		return sha1(pwd + " " + date);	
-	};
-	
-	Auth.SessionReqest = function(login, sessionkey){
-		var xmlhttp = getXmlHttp();
-		xmlhttp.login = login;
-		xmlhttp.sessionkey = sessionkey;
-		var url = Request.GetUrl('http://web-manufacture.net:8080/Auth', {login: login, key : sessionkey});
-		xmlhttp.open('Get', url, true);
-		xmlhttp.onload = Auth.AuthComplete;
-		xmlhttp.onerror = Auth.AuthError;
-		xmlhttp.send(null);
-	};
-	
-	Auth.AuthReqest = function(login, reqestHash, pass) {
-		var xmlhttp = getXmlHttp();
-		xmlhttp.login = login;
-		xmlhttp.pwd = pass;
-		var url = Request.GetUrl('http://web-manufacture.net:8080/Auth', {login: login, hash : reqestHash});
-		xmlhttp.open('Get', url, true);
-		xmlhttp.onload = Auth.AuthComplete;
-		xmlhttp.onerror = Auth.AuthError;
-		xmlhttp.send(null);
-	};
-	
-	Auth.AuthError = function(error){		
-				Auth.Error(0);
-	};
-	
-	Auth.Error = function(error){		
-		localStorage.removeItem('user-login');
-		localStorage.removeItem('user-pass');
-		var passField = DOM.get('#UserPass');
-		passField.value = "";
-		var errorCode = error;
-		var elem2 = DOM.get('#UserName');
-		var elem3 = DOM.get('#div-of-user-greating');
-		elem2.set('Ошибка #' + error);
-		elem3.set('@title', '' + HttpErrors['' + errorCode]);
-		elem3.add('.error');		
-		
-	};
-	
-	Auth.AuthComplete = function(result){
-		if (this.status != 200) {		    
-			Auth.Error(this.status);
-			return;
-		};
-		if (this.responseText == 'giveHash'){
-			var login = localStorage['user-login'];
-			var pwd = localStorage['user-pass'];
-			var reqestHash = Auth.Hash(login, pwd);
-			Auth.AuthReqest(login, reqestHash, pwd);
-			return;
-		};
-		Auth.Login = this.login;
-		localStorage.setItem('user-login', Auth.Login);
-		
-		if (this.pwd){
-			Auth._password = this.pwd;
-			localStorage.setItem('user-pass', Auth._password);
-		};
-		if (this.responseText != 'sessionkeyString'){
-			Auth._sessionkey = this.responseText;
-			localStorage.setItem('user-sessionkey', Auth._sessionkey);
-		};
-			
-		var elem = DOM.get('#authenticationForm');
-		elem.add('.authenticated');
-		var elem2 = DOM.get('#UserName');
-		elem2.set('' + Auth.Login);
-		
-		var elem3 = DOM.get('#div-of-user-greating');
-		elem3.del('.error');
-		elem3.del('@title');// !!хрень какая-то!
-		
-		//localStorage.setItem('user-login', Auth.Login);
-		//localStorage.setItem('user-pass', Auth._password);
-	
-		//ERROR!403Неверный пароль!
-		//<div id='AuthResult' class='error icorrect-pwd' error-code='403'>Неверный пароль!</div>
-		//"<div id='AuthResult' class='error' error-code='" + errCode + "'>" + errText + "</div>"
-		//errCode + errText
-		var res = DOM.div();
-		res.innerHtml = result;
-		//Это наш res
-		//<div> 
-		//   <div id='AuthResult' class='error icorrect-pwd' error-code='403'>Неверный пароль!</div>
-		//</div>
-		//{ authResult: "error", code:"403" }
-		
-		var resreal = res.firstChild;
-		if (resreal.is(".error")){
-			
-		}
-		
-		
-		//
-		var res = DOM.wrap(result);
-	
-	};
-	
-	
-</script>
-
-
-<div id= 'authenticationForm' class= 'authenticationForm'>  <!-- добавить к этому элементу класс "authenticate" после авторизации -->
+<div id='AuthenticationForm' class= 'authentication-form'>  <!-- добавить к этому элементу класс "authenticate" после авторизации -->
 	<div id= 'div-of-user-greating' class='header'>
 		<a href='#' class='user-greating'><span id='UserName'>Аноним (Войти)</span></a>
 	</div>
 	<div id='authenticationPanel' class = 'authenticationPanel'>
-		<div class='fields'>
-			<div class='authFields'>
+		<div class='auth-fields'>
+			<div class='auth-field login-box'>
 				<span>Login</span>
-				<input id='UserLogin'/>
+				<input id='aUserLogin'/>
 			</div>
-			<div class='authFields'>
+			<div class='auth-field pwd-box'>
 				<span>Pass</span>
-				<input id='UserPass'/>
+				<input id='aUserPass'/>
 			</div>
 		</div>	
 		<div id='LoginButton' class='button'>Вход</div>
@@ -293,4 +112,8 @@
 	</div>	    
 </div>
 
+
+<script type="text/javascript" src='http://services.web-manufacture.net/Authentication/Authentication.js'>
+	
+</script>
 

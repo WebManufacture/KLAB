@@ -17,13 +17,13 @@
 		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/ui.js"></script>
 		
 		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/NodeTunnel.js"></script>
-		<script type="text/javascript" src="http://web-manufacture.net:8000/HTTPErrors.js"></script>
+		<script type="text/javascript" src="http://Services.web-manufacture.net/Utils/HTTPErrors.js"></script>
 		
 		<script>
 			Usermanager = {};
 			
 			Usermanager.Init = function(){				
-				Usermanager.Server = new NodeTunnel('http://web-manufacture.net:12249');	
+				Usermanager.Server = new NodeTunnel('/users');	
 			};
 			
 			Usermanager.Init();
@@ -33,10 +33,10 @@
 				Usermanager.usersBrowser = DOM.get('#users-browser');
 				var sync = new Sync();
 				M.WaitModule("http://services.web-manufacture.net/ui/dragging.htm", sync.check());
-				Usermanager.Server.all('http://web-manufacture.net:12249/SecurityGroupsBD/', sync.add(function(rte, stat){
+				Usermanager.Server.all('/groups/', sync.add(function(rte, stat){
 					Usermanager.ShowSecurityGroups(JSON.parse(rte));
 				}));
-				Usermanager.Server.all('http://web-manufacture.net:12249/users/', sync.add(function(rt, stat){
+				Usermanager.Server.all('/users/', sync.add(function(rt, stat){
 					if (stat != 200){
 						Usermanager.Error(stat);
 					}else{
@@ -187,7 +187,7 @@
 			Usermanager.ApplyChanges = function(){
 				
 				DOM.all('.delited').each(function(delitedUsersDiv){
-					var DelitableUserPath = Request.GetUrl('http://web-manufacture.net:12249/users/', {_id: delitedUsersDiv.key});
+					var DelitableUserPath = Request.GetUrl('/users/', {_id: delitedUsersDiv.key});
 					Usermanager.Server.del(DelitableUserPath, function(rt, stat){
 						if (stat != 200){
 							Usermanager.Error(stat);
@@ -200,7 +200,7 @@
 				
 				DOM.all('.added').each(function(addedUserDiv){
 					var newUserString = addedUserDiv.get('@changingParams');
-					Usermanager.Server.add('http://web-manufacture.net:12249/users/', newUserString, 'text/plain', function(rt, stat){
+					Usermanager.Server.add('/users/', newUserString, 'text/plain', function(rt, stat){
 						if (stat != 200){
 							Usermanager.Error(stat);
 						}else{
@@ -211,7 +211,7 @@
 				
 				DOM.all('.statused').each(function(restatusetUserDiv){
 					var status = restatusetUserDiv.get('@status');
-					var restatusetUserPath = Request.GetUrl('http://web-manufacture.net:12249/users/', {_id: restatusetUserDiv.key});
+					var restatusetUserPath = Request.GetUrl('/users/', {_id: restatusetUserDiv.key});
 					Usermanager.Server.set(restatusetUserPath, status, 'text/plain', function(rt, stat){
 						if (stat != 200){
 							Usermanager.Error(stat);
@@ -225,7 +225,7 @@
 				DOM.all('.regrouped').each(function(regroupedUserDiv){
 					var group = regroupedUserDiv.get('@SecurityGroup');
 					group = group.slice(2);
-					var regroupedUserPath = Request.GetUrl('http://web-manufacture.net:12249/users/', {_id: regroupedUserDiv.key});
+					var regroupedUserPath = Request.GetUrl('/users/', {_id: regroupedUserDiv.key});
 					Usermanager.Server.set(regroupedUserPath, JSON.stringify({securitygroup: group}), 'text/plain', function(rt, stat){
 						if (stat != 200){
 							Usermanager.Error(stat);
@@ -238,7 +238,7 @@
 				
 				DOM.all('.repassed').each(function(repassedUserDiv){
 					var repass = repassedUserDiv.get('@repassed');
-					var repassedUserPath = Request.GetUrl('http://web-manufacture.net:12249/users/', {_id: repassedUserDiv.key});
+					var repassedUserPath = Request.GetUrl('/users/', {_id: repassedUserDiv.key});
 					Usermanager.Server.set(repassedUserPath, repass, 'text/plain', function(rt, stat){
 						if (stat != 200){
 							Usermanager.Error(stat);
@@ -440,22 +440,21 @@ var fall = true;
 		<include url='http://services.web-manufacture.net/UI/toolbars.htm'></include>
 		<div class='header toolbar'>
 			
-			<div class='menuitem server-control' id='serverStart' onclick="Usermanager.ApplyChanges()">
+			<div class='menuitem server-control' onclick="Usermanager.ApplyChanges()">
 				Применить изменения
 			</div>
-			<div class='menuitem server-control' id='serverStop' onclick="">
+			<div class='menuitem server-control' onclick="">
 				Изменить пароль
 			</div>
-			<div class='menuitem server-control' id='serverRestart' onclick="">
+			<div class='menuitem server-control' onclick="">
 				Временно отключить
 			</div>
-			<div class='menuitem server-control' id='serverRestart' onclick="Usermanager.NewSecurityGroup()">
+			<div class='menuitem server-control' onclick="Usermanager.NewSecurityGroup()">
 				Изменить группу
 			</div>
-			<div class='menuitem server-control' id='serverRestart' onclick="Usermanager.NewUser()">
+			<div class='menuitem server-control' onclick="Usermanager.NewUser()">
 				Добавить нового пользователя
-			</div>
-			
+			</div>		
 			
 			
 		</div>
