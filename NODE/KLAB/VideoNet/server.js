@@ -126,24 +126,24 @@ try{
 	VideoServer.Users = {};
 	
 	VideoServer.OnConnect = function(req, res){
-		var url = Url.parse(req.url);
+		var url = Url.parse(req.url, true);
+		//console.log(url);
 		var fpath = Path.resolve(Server.Config.basepath + 'store/' + url.pathname);
 		var cookie = req.headers.cookie;
-		var re = /AuthKey=([0-9a-f]+)/ig;
 		var vre = /VideoKey=([0-9a-f]+)/ig;
 		var vCookie = vre.exec(cookie);
-		cookie = re.exec(cookie);
-		if (!cookie || cookie.length <= 1){
+		var sKey = url.query.key;
+		if (!sKey || sKey.length <= 1){
+			console.log("errkey: " + sKey);
 			res.setHeader("Content-Type", "text/plain; charset=utf-8");
 			res.writeHead(403);
-			res.end();	
+			res.end("error key");	
 			return;
 		}
-		cookie = cookie[1];
-		Auth.RetreiveUser(cookie, function(user){
+		Auth.RetreiveUser(sKey, function(user){
 			if (!user || !user.sessionKey){
 				console.log("user: " + user);
-				//res.setHeader("set-cookie", "text/plain; charset=utf-8");
+				res.setHeader("set-cookie", "AuthKey=null;VideoKey=null;");
 				res.setHeader("Content-Type", "text/plain; charset=utf-8");
 				res.writeHead(401);
 				res.end();	
@@ -151,6 +151,7 @@ try{
 			}
 			fs.stat(fpath, function(err, stat){
 				if (err || !stat){
+					console.log(err);
 					err = "video " + url.pathname + " not found " + err;
 					res.setHeader("Content-Type", "text/plain; charset=utf-8");
 					res.writeHead(404, { "Content-Length": err.length } );
@@ -172,7 +173,7 @@ try{
 						var parts = range.replace(/bytes=/, "").split("-");
 					}
 					else{
-						parts = [0, total];	
+						parts = [0, chunksize];	
 					}
 					var partialstart = parts[0];
 					var partialend = parts[1];
@@ -192,6 +193,7 @@ try{
 						if (!vCookie || vCookie.length <= 1 || vCookie[1] != uKey){
 							console.log(uKey);
 							console.log(vCookie);
+							res.setHeader("Set-Cookie", "VideoKey=" + newKey);
 							res.setHeader("Content-Type", "text/plain; charset=utf-8");
 							res.writeHead(403);
 							res.end();	
@@ -199,11 +201,12 @@ try{
 						}
 						uKey = VideoServer.Users[user.login] = newKey; 	
 						res.setHeader("Set-Cookie", "VideoKey=" + newKey);
-					}									
+					}								
 					var buf = new Buffer(chunksize);
 										
 					fs.read(file, buf, 0, chunksize, start, function(err, bytesRead, buffer){
 						if (err){
+							console.log(err);
 							res.setHeader("Content-Type", "text/plain; charset=utf-8");
 							res.writeHead(500);
 							res.end("video " + url.pathname + " readerror " + err);		

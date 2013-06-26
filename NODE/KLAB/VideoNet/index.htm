@@ -19,6 +19,92 @@
 <include url='http://services.web-manufacture.net/Authentication/Authentication.htm'></include>
 <include url='http://services.web-manufacture.net/UI/HtmlElements.htm'></include>
 
+
+<style type='text/css'>
+	#VideoBox{
+		width : 480px;
+		height : 360px;
+	}
+	
+	#PlayerBox {
+		position : relative;
+		width : 480px;
+		height : 360px;
+		background: gray;
+	}
+	
+	#PlayerBox .control-box{
+		position: absolute;
+		z-index: 10;		
+		width : 480px;
+		display: none;
+	}
+	
+	#PlayerBox:hover .control-box{
+		display : block;
+		position: absolute;
+		bottom: 0;
+		left: 0;
+		width : 480px;
+		height : 40px;
+		background-color: rgba(100, 120, 120, 0.4);
+	}
+	
+	#PlayerBox .control-box .video-control.play{
+		display: inline-block;	
+	}
+	
+	#PlayerBox.playing .control-box .video-control.play{
+		display: none;	
+	}
+	
+	#PlayerBox .control-box .video-control.pause{
+		display: none;	
+	}
+	
+	#PlayerBox.playing .control-box .video-control.pause{
+		display: inline-block;	
+	}
+	
+	#protectionBox{
+		position: absolute;
+		top : 0;
+		left : 0;		
+		width : 480px;
+		height : 360px;
+		background: none;
+		z-index: 5;
+	}
+	
+	#protectionBox .watermark{
+		position: absolute;
+		width: 80px;
+		height: 40px;
+		color: white;
+		opacity: 0.5;
+	}
+</style>
+
+<div id='PlayerBox' class='invisible'>
+	
+	<video id='VideoBox' src="http://video.web-manufacture.net:9000/BBB.mp4" preload='none' nocache='nocache' type='video/mp4;' ></video>
+	
+	<div class='control-box'>
+		<div class='btn-ira ok video-control play' onclick='Controller.PlayClick()'>
+			Play
+		</div>
+		<div class='btn-ira cancel video-control pause' onclick='Controller.PauseClick()'>
+			Pause
+		</div>
+	</div>
+	
+	<div id='protectionBox'>
+		
+	</div>
+	
+</div>
+
+
 <script type='text/javascript'>
 	Controller = {};
 	
@@ -30,8 +116,12 @@
 		protectionBox.addEventListener ("DOMNodeRemoved", function(){
 			PlayerBox.del();
 		}, false);
-		Auth.onAuth = function(login, key){
-			VideoBox.set("@src", VideoBox.get("@src") + "?key=" + login);
+		if (window.authenticated){
+			PlayerBox.show();
+		}
+		window.onAuth = function(login, key){
+			PlayerBox.show();
+			VideoBox.set("@src", VideoBox.get("@src") + "?key=" + key);
 		};
 	};
 	
@@ -121,88 +211,3 @@
 	
 	WS.DOMload(Controller.Init);
 </script>
-
-
-<style type='text/css'>
-	#VideoBox{
-		width : 480px;
-		height : 360px;
-	}
-	
-	#PlayerBox {
-		position : relative;
-		width : 480px;
-		height : 360px;
-		background: gray;
-	}
-	
-	#PlayerBox .control-box{
-		position: absolute;
-		z-index: 10;		
-		width : 480px;
-		display: none;
-	}
-	
-	#PlayerBox:hover .control-box{
-		display : block;
-		position: absolute;
-		bottom: 0;
-		left: 0;
-		width : 480px;
-		height : 40px;
-		background-color: rgba(100, 120, 120, 0.4);
-	}
-	
-	#PlayerBox .control-box .video-control.play{
-		display: inline-block;	
-	}
-	
-	#PlayerBox.playing .control-box .video-control.play{
-		display: none;	
-	}
-	
-	#PlayerBox .control-box .video-control.pause{
-		display: none;	
-	}
-	
-	#PlayerBox.playing .control-box .video-control.pause{
-		display: inline-block;	
-	}
-	
-	#protectionBox{
-		position: absolute;
-		top : 0;
-		left : 0;		
-		width : 480px;
-		height : 360px;
-		background: none;
-		z-index: 5;
-	}
-	
-	#protectionBox .watermark{
-		position: absolute;
-		width: 80px;
-		height: 40px;
-		color: white;
-		opacity: 0.5;
-	}
-</style>
-
-<div id='PlayerBox'>
-	
-	<video id='VideoBox' src="http://video.web-manufacture.net:9000/BBB.mp4" preload='none' buffered='none' nocache='nocache' type='video/mp4;' ></video>
-	
-	<div class='control-box'>
-		<div class='btn-ira ok video-control play' onclick='Controller.PlayClick()'>
-			Play
-		</div>
-		<div class='btn-ira cancel video-control pause' onclick='Controller.PauseClick()'>
-			Pause
-		</div>
-	</div>
-	
-	<div id='protectionBox'>
-		
-	</div>
-	
-</div>

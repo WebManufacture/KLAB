@@ -197,24 +197,10 @@ Auth.AuthComplete = function(result){
 		Auth.KeepReqest(Auth.Login, Auth._sessionkey);
 	}, 5000);
 	
-	if (typeof Auth.onAuth == "function"){
-		Auth.onAuth(Auth.Login, Auth._sessionkey);
+	window.authenticated = true;
+	if (typeof window.onAuth == "function"){
+		window.onAuth(Auth.Login, Auth._sessionkey);
 	}
-	
-	//localStorage.setItem('user-login', Auth.Login);
-	//localStorage.setItem('user-pass', Auth._password);
-	
-	//ERROR!403Неверный пароль!
-	//<div id='AuthResult' class='error icorrect-pwd' error-code='403'>Неверный пароль!</div>
-	//"<div id='AuthResult' class='error' error-code='" + errCode + "'>" + errText + "</div>"
-	//errCode + errText
-	
-	//Это наш res
-	//<div> 
-	//   <div id='AuthResult' class='error icorrect-pwd' error-code='403'>Неверный пароль!</div>
-	//</div>
-	//{ authResult: "error", code:"403" }
-	
 	
 };
 
