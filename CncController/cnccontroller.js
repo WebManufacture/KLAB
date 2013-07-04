@@ -3,11 +3,12 @@ var fs = require('fs');
 var Path = require('path');
 ObjectID = require('mongodb').ObjectID;
 var edge = require('edge');
+
+require(Path.resolve("./Modules/Node/Utils.js"));
+require(Path.resolve("./Modules/Channels.js"));
+require(Path.resolve("./Modules/Node/ChildProcess.js"));
+require(Path.resolve('./Modules/Node/Logger.js'));
 try{
-	require(Path.resolve("./Modules/Node/Utils.js"));
-	require(Path.resolve("./Modules/Channels.js"));
-	require(Path.resolve("./Modules/Node/ChildProcess.js"));
-	require(Path.resolve('./Modules/Node/Logger.js'));
 	require(Path.resolve('./Modules/Node/Mongo.js'));
 	
 	Server = server = {};
@@ -17,34 +18,24 @@ try{
 	require(Server.Path + '/cnc.js');
 	
 	var uartFunc = edge.func({
-			source: Server.Path + "/Uart.cs",
-			references: [ Server.Path + '/FTD2XX_NET.dll' ]
-		}
-	);
+		source: Server.Path + "/Uart.cs",
+		references: [ ]
+	});
 	
 	Uart = {};
-	
-	Uart.Write = function(data){
-		if (!Uart.initialized) return;
-		if (Array.isArray(data)){
-			uartFunc({action: "write", data : data}, null); 
-		}
-		if (typeof(data) == "number"){
-			uartFunc({action: "write", data : [data]}, null); 
-		}
-	};
-	
-	Uart.Command = function(data){
+		
+	Uart.Write = function(data, callback){
 		if (!Uart.initialized) return;
 		data.action = 'command';
 		uartFunc(data, null); 
+		//Uart.waitResponse(data.command);
 	};
-		
+	
 	Uart.Read = function(){
 		if (!Uart.initialized) return;
 		var readFunc = function(){
 			uartFunc({action: "read"}, function(err, result){
-				if (!result){
+				if (err || !result){
 					setTimeout(readFunc, 200);	
 				}
 				else{
@@ -74,7 +65,7 @@ try{
 	
 	Uart.Init = function(){
 		var initFunc = function(){
-			uartFunc({action: "init", stops : 1}, function(err, result){
+			uartFunc({action: "init", port : 'COM2'}, function(err, result){
 				if (err){
 					error(err);	
 				}
@@ -82,7 +73,7 @@ try{
 					setTimeout(initFunc, 1000);	
 				}
 				else{
-					console.log("UART initialized!");
+					log("UART initialized!");
 					Uart.initialized = true;
 					Uart.Read();
 				}
@@ -111,7 +102,7 @@ try{
 		}
 	};
 	
-
+	
 	Server.Init = function(){
 		if (!Server.Config){
 			Server.Config = {};
@@ -152,7 +143,12 @@ try{
 			});
 			return false;
 		});	
-		Channels.on("/http-request.post", function(route, id, url, headers, data){ 
+		Channels.on("/http-request.post/program", function(route, id, url, headers, data){ 
+			if (this.processsed) return;
+			Uart.Write(data);
+			return false;
+		});		
+		Channels.on("/http-request.post/command", function(route, id, url, headers, data){ 
 			if (this.processsed) return;
 			Uart.Write(data);
 			return false;

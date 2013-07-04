@@ -144,10 +144,11 @@ div.command
 
 #ProgramResult
 {
-	width: 280px;
+	width: 480px;
 	float: left;
 	text-align: left;
 }
+
 #ProgramResultCode.error
 {
 	border-top: solid 8px red;
@@ -176,6 +177,11 @@ div.command
 #ProgramResult .prog-line.warning
 {
 	background-color: darkorange;
+}
+
+#ProgramResult .prog-line>div
+{
+	display: inline-block;
 }
 
 #ProgramResult .code-elem

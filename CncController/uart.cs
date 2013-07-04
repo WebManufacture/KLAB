@@ -4,15 +4,12 @@ using System.ComponentModel;
 using System.Text;
 using System.IO.Ports;
 using System.Threading;
-using FTD2XX_NET;
 using System.Threading.Tasks;
-
-public delegate void OnReceiveHandler(byte[] data);
 
 public class Startup
 {
-    Uart device;
-    
+    Device device;
+
     public Task<object> Invoke(IDictionary<string, object> input)
     {
         if (input.ContainsKey("action"))
@@ -20,7 +17,11 @@ public class Startup
             var action = input["action"].ToString();
             if (action == "init")
             {
-                return Init(input);
+                return Task.Run<object>(() => { return Init(input); });
+            }
+            if (action == "list")
+            {
+                return Task.Run<object>(() => { return Device.GetPorts(); });
             }
             if (device != null)
             {
@@ -32,6 +33,10 @@ public class Startup
                 if (action == "command")
                 {
                     var obj = new MotorCommand();
+					if (input.ContainsKey("line"))
+                    {
+                        obj.programLine = (byte)input["line"];
+                    }
                     if (input.ContainsKey("command"))
                     {
                         obj.command = (byte)input["command"];
@@ -62,11 +67,11 @@ public class Startup
                 }
                 if (action == "read")
                 {
-                    return await Task.Run(() => { return device.Read(); });
+                    return Task.Run<object>(() => { return device.Read(); });
                 }
                 if (action == "state")
                 {
-                    return await Task.Run(() => { return device.GetState(); });
+                    return Task.Run<object>(() => { return device.GetState(); });
                 }
             }
         }
@@ -80,36 +85,31 @@ public class Startup
 
     public bool Init(IDictionary<string, object> characters)
     {
-        var devs = Uart.GetDevicesList();
-        foreach (var ftDeviceInfoNode in devs)
+        int speed = 38400;
+        int timeout = 1000;
+        string port = "COM1";
+        if (characters.ContainsKey("speed"))
         {
-            if (ftDeviceInfoNode.Type == FTDI.FT_DEVICE.FT_DEVICE_232R)
-            {
-                uint speed = 38400;
-                uint timeout = 1000;
-                byte bytes = 8;
-                byte stops = 1;
-                if (characters.ContainsKey("speed"))
-                {
-                    speed = (uint)characters["speed"];
-                }
-                if (characters.ContainsKey("timeout"))
-                {
-                    timeout = (uint)characters["timeout"];
-                }
-                if (characters.ContainsKey("bytes"))
-                {
-                    bytes = (byte)characters["bytes"];
-                }
-                if (characters.ContainsKey("speed"))
-                {
-                    stops = (byte)characters["stops"];
-                }
-                device = new Uart(ftDeviceInfoNode.SerialNumber, speed, timeout, bytes, stops);
-                return true;
-            }
+            speed = (int)characters["speed"];
         }
-        return false;
+        if (characters.ContainsKey("timeout"))
+        {
+            timeout = (int)characters["timeout"];
+        }
+        if (characters.ContainsKey("port"))
+        {
+            port = characters["port"] + "";
+        }
+        try
+        {
+            device = new Device(port, speed, timeout);
+        }
+        catch (Exception)
+        {
+            return false;
+        }
+
+        return true;
     }
 }
 
@@ -133,6 +133,8 @@ public class MotorState
     public int yLimit;
     public int zLimit;
     public byte state;
+    public byte stateA;
+    public byte stateB;
     public DateTime date = DateTime.Now;
     public ushort line;
 }
@@ -197,132 +199,84 @@ public enum UARTReadingState
     readingSized
 }
 
-public class Uart
+
+public class Device
 {
+    public static string[] GetPorts()
+    {
+        return SerialPort.GetPortNames();
+    }
+
     private EDeviceState _state = EDeviceState.Unknown;
 
     public string PortName;
 
-    public List<string> Errors = new List<string>();
-
-    private UARTWritingState writeState;
-
-    private FTDI device = new FTDI();
-    
-    private void error(FTDI.FT_STATUS status, string error)
+    public EDeviceState State
     {
-        error = string.Format(error, status.ToString());
-        Errors.Add(error);
-        throw new Exception(error);
+        get
+        {
+            return _state;
+        }
+        private set
+        {
+            _state = value;
+        }
     }
 
-    public static FTDI.FT_DEVICE_INFO_NODE[] GetDevicesList()
+    public UARTReadingState readState { get; private set; }
+
+    public UARTWritingState writeState { get; private set; }
+
+    private SerialPort device;
+
+    public Device(string portName)
+        : this(portName, 38400, 1000)
     {
-        var device = new FTDI();
-        uint devCount = 0;
-        var status = device.GetNumberOfDevices(ref devCount);
-        if (status != FTDI.FT_STATUS.FT_OK)
-        {
-            return null;
-        }
-        FTDI.FT_DEVICE_INFO_NODE[] devices = new FTDI.FT_DEVICE_INFO_NODE[devCount];
-        status = device.GetDeviceList(devices);
-        if (status == FTDI.FT_STATUS.FT_OK)
-        {
-            return devices;
-        }
-        return null;
+
     }
 
-    public Uart(string serial, uint speed, uint timeout, byte bytes, byte stops)
+    public Device(string portName, int speed)
+        : this(portName, speed, 1000)
     {
+
+    }
+
+    public Device(string portName, int speed, int timeout)
+    {
+        device = new SerialPort(portName, speed, Parity.Odd, 8, StopBits.One);
         if (device.IsOpen)
         {
-            _state = EDeviceState.Busy;
+            State = EDeviceState.Busy;
             device.Close();
-            _state = EDeviceState.Unknown;
+            State = EDeviceState.Unknown;
         }
-        var status = device.OpenBySerialNumber(serial);
-        if (status == FTDI.FT_STATUS.FT_OK)
-        {
-            _state = EDeviceState.Present;
-        }
-        else
-        {
-            error(status, "Init device with SN: " + serial + " error {0}");
-        }
-        status = device.GetCOMPort(out PortName);
-        if (status != FTDI.FT_STATUS.FT_OK || PortName == "")
-        {
-            error(status, "Init device with SN: " + serial + " No Port Specified {0}");
-        }
-        device.SetTimeouts(timeout, timeout);
-        device.SetBaudRate(speed);
-        device.SetDataCharacteristics(bytes, stops, FTDI.FT_PARITY.FT_PARITY_ODD);
-        // port.DataReceived += new SerialDataReceivedEventHandler(port_DataReceived);
-    }
-
-    public MotorState Read()
-    {
-        if (device.IsOpen)
-        {
-            uint bytesRead = 0;
-            var status = device.GetRxBytesAvailable(ref bytesRead);
-            if (bytesRead > 0)
-            {
-                byte[] buf = new byte[bytesRead];
-                status = device.Read(buf, bytesRead, ref bytesRead);
-                if (buf[0] == 01)
-                {
-                    var size = buf[1];
-                    var bytes = new byte[size / 2];
-                    for (int i = 0; i < bytes.Length; i++)
-                    {
-                        bytes[i] = (byte)((buf[i * 2 + 2] & (byte)0x0F) * 16 + (buf[i * 2 + 3] & (byte)0x0F));
-                    }
-                    return ConvertData(bytes);
-                }
-            }
-        }
-        return null;
+        device.ReadTimeout = timeout;
+        device.WriteTimeout = timeout;
     }
 
     public EDeviceState GetState()
     {
-        if (writeState > UARTWritingState.free)
+        if (writeState > UARTWritingState.free || readState > UARTReadingState.free)
         {
-            _state = EDeviceState.Working;
-            return _state;
+            State = EDeviceState.Working;
+            return State;
         }
         try
         {
             if (device.IsOpen)
             {
-                FTDI.FT_DEVICE dev = FTDI.FT_DEVICE.FT_DEVICE_UNKNOWN;
-                if (device.GetDeviceType(ref dev) != FTDI.FT_STATUS.FT_OK)
-                {
-                    _state = EDeviceState.Unknown;
-                    return _state;
-                }
-                if (dev == FTDI.FT_DEVICE.FT_DEVICE_UNKNOWN)
-                {
-                    _state = EDeviceState.Error;
-                }
-                else
-                {
-                    _state = EDeviceState.Online;
-                }
+                State = EDeviceState.Online;
             }
             else
             {
-                _state = EDeviceState.Offline;
+                State = EDeviceState.Offline;
             }
         }
         catch (Exception e)
         {
-            _state = EDeviceState.Error;
+            State = EDeviceState.Error;
         }
-        return _state;
+        return State;
     }
 
     public void Close()
@@ -330,8 +284,66 @@ public class Uart
         if (device.IsOpen)
         {
             device.Close();
-            _state = EDeviceState.Offline;
+            State = EDeviceState.Offline;
         }
+    }
+
+    public MotorState Read()
+    {
+        var readTimeout = device.ReadTimeout / 100;
+        byte[] receivedBuf = null;
+        int readingIndex = 0;
+        while (readTimeout > 0 && device.IsOpen)
+        {
+            readTimeout--;
+            int bytesRead = device.BytesToRead;
+            if (bytesRead == 0)
+            {
+                break;
+            }
+            int b = device.ReadByte();
+            if (b < 0) continue;
+            if (readState == UARTReadingState.free && b == 01)
+            {
+                readState = UARTReadingState.reading;
+                continue;
+            }
+            if (readState == UARTReadingState.reading)
+            {
+                receivedBuf = new byte[b];
+                readingIndex = 0;
+                readState = UARTReadingState.readingSized;
+                continue;
+            }
+            if (readState == UARTReadingState.readingSized)
+            {
+                if (readingIndex >= receivedBuf.Length)
+                {
+                    if (b == 4)
+                    {
+                        var bytes = new byte[receivedBuf.Length / 2];
+                        for (int i = 0; i < bytes.Length; i++)
+                        {
+                            bytes[i] = (byte)((receivedBuf[i * 2] & (byte)0x0F) * 16 + (receivedBuf[i * 2 + 1] & (byte)0x0F));
+                        }
+                        readState = UARTReadingState.free;
+                        return ConvertData(bytes);
+                    }
+                    else
+                    {
+                        State = EDeviceState.Error;
+                        break;
+                    }
+                    readState = UARTReadingState.free;
+                }
+                else
+                {
+                    receivedBuf[readingIndex] = (byte)b;
+                    readingIndex++;
+                }
+            }
+        }
+        return null;
     }
 
     public bool Send(byte[] buffer)
@@ -355,13 +367,19 @@ public class Uart
         buf[buf.Length - 2] = crc;
         buf[buf.Length - 1] = (byte)ASCII.EOT;
         uint bwrite = 0;
-        var status = device.Write(buf, buf.Length, ref bwrite);
-        if (status != FTDI.FT_STATUS.FT_OK)
-        {
-            return false;
-        }
+        device.Write(buf, 0, buf.Length);
         writeState = UARTWritingState.free;
         return true;
+    }
+
+    public void Send(byte command)
+    {
+        Send(new byte[] { command });
+    }
+
+    public void Send(string str)
+    {
+        Send(ASCIIEncoding.ASCII.GetBytes(str));
     }
 
     private static int loadInt(byte[] arr, int index)
@@ -371,16 +389,17 @@ public class Uart
 
     private static int saveInt(byte[] arr, int index, int value)
     {
-        arr[index] = (byte)(value / 16777216);
-        arr[index + 1] = (byte)(value / 65536);
-        arr[index + 2] = (byte)(value / 256);
+        arr[index] = (byte)(value >> 24);
+        arr[index + 1] = (byte)(value >> 16);
+        arr[index + 2] = (byte)(value >> 8);
         arr[index + 3] = (byte)(value);
         return value;
     }
 
     public MotorState ConvertData(byte[] data)
     {
-        if (data.Length >= 28)
+        if (data == null) return null;
+        if (data.Length >= 30)
         {
             MotorState obj = new MotorState();
             obj.command = data[0];
@@ -392,6 +411,8 @@ public class Uart
             obj.xLimit = loadInt(data, 16);
             obj.yLimit = loadInt(data, 20);
             obj.zLimit = loadInt(data, 24);
+            obj.stateA = data[28];
+            obj.stateB = data[29];
             return obj;
         }
         return null;
