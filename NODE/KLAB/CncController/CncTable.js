@@ -2,31 +2,14 @@
 
 CNC = {};
 
-CNC.Init = function() {
+CNC.Init = function(settings) {
+	if (!settings) return;
 	L.debug = true;	
 	CNC.log = L.Log;
-	CNC.id = "CNC";
-	CNC.CompileSettings = {};
-	CNC.CncSettings = {};
-	Storage = Net.GetTunnel("/storage/cnc_table");
-	DOM.all(".tabs-container .tab-btn").each(function(elem){
-		elem.onclick = function(){
-			DOM.all(".tab-btn").del(".active");
-			DOM.all(".tab").del(".active-tab");
-			DOM.all(".tab").hide();
-			var tab = DOM(this.attr("for"));
-			tab.show();
-			tab.add(".active-tab");
-			this.add(".active");
-			return false;
-		};
-	});
+	CNC.id = settings.id;
+	CNC.Settings = settings;
 	
-	canv = DOM("#prewiewer");
-	canv.height = canv.width;
-	canv.width = canv.height;
-	dc = canv.getContext("2d");
-	logDiv = DOM("#LogBar");
+	
 	CNC.startDate = new Date();
 	CNC.State = DOM("#StatusBar");
 	CNC.State.InnerProperty("X", "#xCoord");
@@ -39,42 +22,11 @@ CNC.Init = function() {
 	CNC.DebugMode = false;
 	CNC.ProgramCode;
 	CNC.GetState();
-	CNC.Load();
-	
-	nx = 10;
-	ny = 10;
-	ps = 0;
-	zup = 40000;
-	zdwn = 54000;
-	rbtx = 0;
-	rbty = 0;
-	rbtz = 0;
-	scx = 1;
-	scy = 1;
-	scz = 1;
-	ms = 1000;
 };
 
 
-logger = function(type){
-	//L.Info( "CNC")
-	var li = DOM("#ProgramLog").div(".log");
-	DOM("#ProgramLog").ins(li);
-	li.div(".item.log-time", (new Date()).formatTime(true));
-	for (var i = 0; i < arguments.length; i++){
-		var text = arguments[i];
-		if (typeof(text) == "object"){
-			text = JSON.stringify(text);
-		}
-		li.div(".item", text + "");
-	}
-}	
-	
-	logger.Clear = function(){
-		DOM("#ProgramLog").clear();	
-	}
-		
-		CNC.Commands = ["unknown", "go", "rebase", "stop", "info", "P"];
+
+CNC.Commands = ["unknown", "go", "rebase", "stop", "info", "P"];
 CNC.CommandsShort = ["U", "G", "R", "S", "I", "P"];
 CNC.GCommands = { "Z": 1, "G": 1, "S": 3, "R": 2, "I": 4, "P" : 100 };
 
@@ -88,7 +40,7 @@ public int? programLine;
 */
 
 CNC.GetProgram = function() {
-	var url = new Url("http://web-manufacture.net/CncController/program");
+	var url = new Url("http://dfc-server:8008/program");
 	if (CNC.lastpoll) {
 		url.addParam("lastdate", CNC.lastpoll);
 	}
@@ -100,20 +52,9 @@ CNC.GetProgram = function() {
 };
 
 
-CNC.Load = function(){
-	Storage.get("", function(result){
-		if (this.status == 200){
-			DOM("#programText").value = result;
-		}
-	});
-};
-
-CNC.Save = function(){
-	Storage.add("",DOM("#programText").value, 28);
-};
 
 CNC.GetState = function() {
-	var url = new Url("http://web-manufacture.net/CncController/messages");
+	var url = new Url("http://dfc-server:8008/state");
 	url.addParam("rnd", Math.random());
 	/*if (CNC.lastpoll) {
 url.addParam("lastdate", CNC.lastpoll);
@@ -174,11 +115,11 @@ CNC.StateReturned = function() {
 							var prev = DOM(".prog-line[line='" + (message.line) + "']");
 							var curr = DOM(".prog-line[line='" + (message.line + 1) + "']");
 							var next = DOM(".prog-line[line='" + (message.line + 2) + "']");
-							if (prev){
+							if (prev && !prev.is(".finished")){
 								prev.add(".finished");
-								prev.div(".time-complete", "Finished: " + (new Date()).formatTime(true));
+								prev.div(".time-complete", "" + (new Date()).formatTime(true));
 								if (window.programStartTime){
-									prev.div(".time-total", "FromBase: " + ((new Date()).valueOf() - window.programStartTime.valueOf()));
+									prev.div(".time-total", " - " + ((new Date()).valueOf() - window.programStartTime.valueOf()));
 								}
 							}
 							if (curr){
@@ -254,20 +195,20 @@ CNC.Command = function(str, callback) {
 	if (typeof (str) != "string") {
 		str = JSON.stringify(str);
 	}
-	Net.add("command?type=single&rnd=" + Math.random(), str, CNC.CommandComplete);
+	Net.add("http://dfc-server:8008/command?type=single&rnd=" + Math.random(), str, CNC.CommandComplete);
 };
 
 CNC.ProgCommand = function(str, callback) {
 	WS.Body.add(".busy");
 	if (typeof (str) == "string") {
-		Net.get("command?type=single&rnd=" + Math.random() + "&command=" + str + (CNC.DebugMode ? "&debug=true" : ""), CNC.CommandComplete);
+		Net.get("http://dfc-server:8008/command?type=single&rnd=" + Math.random() + "&command=" + str + (CNC.DebugMode ? "&debug=true" : ""), CNC.CommandComplete);
 	}
 };
 
 CNC.SendProgram = function(str) {
 	WS.Body.add(".busy");
 	if (typeof (str) == "string") {
-		Net.add("command?type=code&rnd=" + Math.random() + (CNC.DebugMode ? "&debug=true" : ""), str, CNC.CommandComplete);
+		Net.add("http://dfc-server:8008/command?type=code&rnd=" + Math.random() + (CNC.DebugMode ? "&debug=true" : ""), str, CNC.CommandComplete);
 	}
 };
 
@@ -421,6 +362,7 @@ parse = function(paramName, paramValue) {
 parseParam = function(param, i, last) {
 	if (!param || param == "") return last;
 	var sign = 0;
+	if (last == undefined) last = null;
 	if (!param.start("+") && !param.start("-")) {
 		last = null;
 	}
@@ -436,7 +378,7 @@ parseParam = function(param, i, last) {
 		var int = parseFloat(param);
 	}
 	if (!isNaN(int)) {
-		if (last && sign != 0) {
+		if (last != null && sign != 0) {
 			int = last + sign * int;
 		}
 		return int;
@@ -1089,5 +1031,3 @@ CNC.ShowProgram = function() {
 		}
 	}
 };
-
-WS.DOMload(CNC.Init); 
