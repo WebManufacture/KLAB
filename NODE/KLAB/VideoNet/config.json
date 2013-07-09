@@ -1,1 +1,1 @@
-{"VideoPath" : "store", "RefererPage" : "http://klab.web-manufacture.net/VideoNet/Index.htm", "VideoPort" : 9000, "AuthPort" : 9001, "ChunkSize" : 70000}
+{"VideoPath" : "store", "RefererPage" : "http://klab\\.web-manufacture\\.net/videonet/index\\.htm\\?userid={uid}\\&key={key}", "VideoPort" : 9000, "AuthPort" : 9001, "ChunkSize" : 70000}
