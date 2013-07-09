@@ -20,7 +20,31 @@ SGrid.InitGrid = function (table) {
 	EV.CreateEvent('onLoaded', table);
 	var url = table.get("@url");
 	if (url){
-		table.tunnel = Net.GetTunnel(table.get("@url"));
+		if (table.is(".file-storage")){
+			table.tunnel = {};
+			
+			table.tunnel.All = table.tunnel.all = function(callback){
+				Net.get(url, function(result){
+					table.object = result;
+					callback(result);
+				});	
+			}
+			table.tunnel.Add = table.tunnel.add = function(obj){
+				table.object[obj.id] = obj.value;
+				Net.POST(url, JSON.stringify(table.object), function(result){});	
+			}
+			table.tunnel.Set = table.tunnel.set = function(obj){
+				table.object[obj.id] = obj.value;
+				Net.POST(url, JSON.stringify(table.object), function(result){});	
+			}
+			table.tunnel.Del = table.tunnel.del = function(obj){
+				delete table.object[obj.id];
+				Net.POST(url, JSON.stringify(table.object), function(result){});	
+			}
+		}
+		else{
+			table.tunnel = Net.GetTunnel(url);
+		}
 	}
 	console.log("SimpleGrid initialized");
 	table.add(".initialized");
@@ -28,7 +52,7 @@ SGrid.InitGrid = function (table) {
 	if (onInit){
 		eval(onInit);
 	}
-	table.LoadData();
+	if (!table.is(".deffered")) table.LoadData();
 };
 
 
@@ -69,7 +93,7 @@ SGrid._umGridMixin.ShowObject = function (data) {
 	var elem = this.CreateObject(data);
 	var table = this;
 	this.onItemShow.fire(elem);
-	this.ObjectsContainer.add(elem);
+	this.add(elem);
 };
 
 
@@ -78,6 +102,7 @@ SGrid._umGridMixin.CreateObject = function(dataObj) {
 		var proto = this.ObjectProto.clone();
 		proto.del(".object-template");
 		proto.add(".object-item");
+		Extend(proto, SGrid.TableObject);
 		for (var func in SGrid.TableObject){
 			proto[func] = SGrid.TableObject[func];
 		}
@@ -97,6 +122,9 @@ SGrid._umGridMixin.AddObjectAction = function(obj) {
 
 SGrid._umGridMixin.EditObjectAction = function(obj) {
 	var editForm = this.EditFormProto.clone();
+	editForm.del(".edit-template");
+	editForm.add(".edit-object-form");
+	Extend(editForm, SGrid.EditFormActions);
 	editForm.editingObject = obj;
 	if (!obj) {
 		this.ins(editForm);
@@ -148,25 +176,25 @@ SGrid.EditFormActions.Save = function() {
 	if (!this.editingObject) {
 		this.editingObject = table.CreateObject();
 		this.editingObject.hide();
-		table.ObjectsContainer.ins(this.editingObject);
+		table.ins(this.editingObject);
 	}
 	for (var i = 0; i < allFields.length; i++) {
 		var field = allFields[i].get('@field');
 		var value = allFields[i].value;
 		if (field && value != undefined) {
-			this.editingObject[data-field] = value;
+			this.editingObject["data-field"] = value;
 		};
 	};
 	var dataObj = this.editingObject.createDataObj();
 	if (dataObj.id) {
-		table.Storage.set(dataObj);
+		table.tunnel.set(dataObj);
 	}
 	else {
 		this.editingObject.AttrProperty("internalNum");
 		dataObj.internalNum = Math.random();
 		dataObj.id = Math.random();
 		this.editingObject.update(dataObj);
-		table.Storage.add(dataObj);
+		table.tunnel.add(dataObj);
 	}
 	this.editingObject.show();
 	this.del();
@@ -321,7 +349,7 @@ SGrid.TableObject.update = function (dataObj, table) {
 SGrid.TableObject.DeleteAction = function() {
 	var table = this.get("^.simple-grid");
 	if (this.is(".deleted")) return;
-	table.Storage.del(this.createDataObj());
+	table.tunnel.del(this.createDataObj());
 	//this.del();
 	this.add(".deleted");
 };
@@ -342,3 +370,4 @@ SGrid.TableObject.EditAction = function() {
 C.Add({id: 'SGridContext', Condition: 'ui-processing', Selector:'.simple-grid:not(.initialized)', Process: function(elem){
 	SGrid.InitGrid(elem);
 }});
+

@@ -85,7 +85,11 @@ module.exports.Auth = Auth = {
 	
 	
 	UpdateData : function(user, date, sessionKey){
-		var	obj = {$set : {lastAuthTime: date}};
+		var rKey = (Math.random() + "").replace("0.", "");
+		console.log("rKey " + rKey);
+		user.randomKey = rKey;
+		user.lastAuthTime = date;
+		var	obj = {$set : {lastAuthTime: date, randomKey : rKey}};
 		if (!sessionKey){
 			sessionKey = "";
 			for (var i = 0; i < 120; i++){
@@ -94,6 +98,7 @@ module.exports.Auth = Auth = {
 			obj.$set.sessionKey = sessionKey;
 		}
 		Auth.db.collection('users').update({_id: user['_id']}, obj);
+		user.sessionKey = sessionKey;
 		return sessionKey;
 	},
 };
@@ -123,11 +128,11 @@ AuthRouter = {
 			if (key){
 				key = Auth.AuthByKey(key, user, date);
 				if (key){
-					context.res.setHeader("Set-Cookie", "AuthKey=" + key);
+					context.res.setHeader("Set-Cookie", "RandomKey=" + user.randomKey + "; Expires=" + (new Date((new Date()).valueOf() + 60000)).toUTCString());
 					context.finish(200, key);
 				}
 				else{
-					context.res.setHeader("set-cookie", "AuthKey=null");
+					context.res.setHeader("set-cookie", "RandomKey=null");
 					context.finish(403, "Invalid session key!");	
 				};
 				return true;
@@ -136,15 +141,15 @@ AuthRouter = {
 			if (hash){
 				key = Auth.AuthByHash(hash + "", user, date)
 				if (key){
-					context.res.setHeader("Set-Cookie", "AuthKey=" + key);
+					context.res.setHeader("Set-Cookie", "RandomKey=" + user.randomKey + "; Expires=" + (new Date((new Date()).valueOf() + 60000)).toUTCString());
 					context.finish(200, key);
 				}
 				else{
-					context.res.setHeader("set-cookie", "AuthKey=null");
+					context.res.setHeader("set-cookie", "RandomKey=null");
 					context.finish(401, "Invalid hash!");				
 				};
 			};		
-			context.res.setHeader("set-cookie", "AuthKey=null");
+			context.res.setHeader("set-cookie", "RandomKey=null");
 			context.finish(403, "Invalid auth params");
 			return;
 		});

@@ -8,8 +8,6 @@ CNC.Init = function(settings) {
 	CNC.log = L.Log;
 	CNC.id = settings.id;
 	CNC.Settings = settings;
-	
-	
 	CNC.startDate = new Date();
 	CNC.State = DOM("#StatusBar");
 	CNC.State.InnerProperty("X", "#xCoord");
@@ -40,7 +38,7 @@ public int? programLine;
 */
 
 CNC.GetProgram = function() {
-	var url = new Url("http://dfc-server:8008/program");
+	var url = new Url(CNC.Settings.url + "/program");
 	if (CNC.lastpoll) {
 		url.addParam("lastdate", CNC.lastpoll);
 	}
@@ -54,7 +52,7 @@ CNC.GetProgram = function() {
 
 
 CNC.GetState = function() {
-	var url = new Url("http://dfc-server:8008/state");
+	var url = new Url(CNC.Settings.MessagesUrl);
 	url.addParam("rnd", Math.random());
 	/*if (CNC.lastpoll) {
 url.addParam("lastdate", CNC.lastpoll);
@@ -195,20 +193,20 @@ CNC.Command = function(str, callback) {
 	if (typeof (str) != "string") {
 		str = JSON.stringify(str);
 	}
-	Net.add("http://dfc-server:8008/command?type=single&rnd=" + Math.random(), str, CNC.CommandComplete);
+	Net.add(CNC.Settings.CommandUrl + "?type=single&rnd=" + Math.random(), str, CNC.CommandComplete);
 };
 
 CNC.ProgCommand = function(str, callback) {
 	WS.Body.add(".busy");
 	if (typeof (str) == "string") {
-		Net.get("http://dfc-server:8008/command?type=single&rnd=" + Math.random() + "&command=" + str + (CNC.DebugMode ? "&debug=true" : ""), CNC.CommandComplete);
+		Net.get(CNC.Settings.CommandUrl + "?type=single&rnd=" + Math.random() + "&command=" + str + (CNC.DebugMode ? "&debug=true" : ""), CNC.CommandComplete);
 	}
 };
 
 CNC.SendProgram = function(str) {
 	WS.Body.add(".busy");
 	if (typeof (str) == "string") {
-		Net.add("http://dfc-server:8008/command?type=code&rnd=" + Math.random() + (CNC.DebugMode ? "&debug=true" : ""), str, CNC.CommandComplete);
+		Net.add(CNC.Settings.CodeUrl + "?type=code&rnd=" + Math.random() + (CNC.DebugMode ? "&debug=true" : ""), str, CNC.CommandComplete);
 	}
 };
 

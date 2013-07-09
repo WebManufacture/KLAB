@@ -1,213 +1,238 @@
 <!DOCTYPE html>
-
-<meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
-
-<title>Тест системы видео</title>
-
-<link type='text/css' rel='stylesheet' href="http://Services.web-manufacture.net/Styles/System.default.css"/>
-<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Utils.js"></script>
-<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/DOM.js"></script>
-<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Log.js"></script>
-<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Events.js"></script>
-<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Url.js"></script>
-<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Ajax.js"></script>
-<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Modules.js"></script>
-<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Jasp.js"></script>
-<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/ui.js"></script>
-
-<include url='http://services.web-manufacture.net/UI/Notification.htm'></include>
-<include url='http://services.web-manufacture.net/Authentication/Authentication.htm'></include>
-<include url='http://services.web-manufacture.net/UI/HtmlElements.htm'></include>
-
-
-<style type='text/css'>
-	#VideoBox{
-		width : 480px;
-		height : 360px;
-	}
-	
-	#PlayerBox {
-		position : relative;
-		width : 480px;
-		height : 360px;
-		background: gray;
-	}
-	
-	#PlayerBox .control-box{
-		position: absolute;
-		z-index: 10;		
-		width : 480px;
-		display: none;
-	}
-	
-	#PlayerBox:hover .control-box{
-		display : block;
-		position: absolute;
-		bottom: 0;
-		left: 0;
-		width : 480px;
-		height : 40px;
-		background-color: rgba(100, 120, 120, 0.4);
-	}
-	
-	#PlayerBox .control-box .video-control.play{
-		display: inline-block;	
-	}
-	
-	#PlayerBox.playing .control-box .video-control.play{
-		display: none;	
-	}
-	
-	#PlayerBox .control-box .video-control.pause{
-		display: none;	
-	}
-	
-	#PlayerBox.playing .control-box .video-control.pause{
-		display: inline-block;	
-	}
-	
-	#protectionBox{
-		position: absolute;
-		top : 0;
-		left : 0;		
-		width : 480px;
-		height : 360px;
-		background: none;
-		z-index: 5;
-	}
-	
-	#protectionBox .watermark{
-		position: absolute;
-		width: 80px;
-		height: 40px;
-		color: white;
-		opacity: 0.5;
-	}
-</style>
-
-<div id='PlayerBox' class='invisible'>
-	
-	<video id='VideoBox' src="http://video.web-manufacture.net:9000/BBB.mp4" preload='none' nocache='nocache' type='video/mp4;' ></video>
-	
-	<div class='control-box'>
-		<div class='btn-ira ok video-control play' onclick='Controller.PlayClick()'>
-			Play
-		</div>
-		<div class='btn-ira cancel video-control pause' onclick='Controller.PauseClick()'>
-			Pause
-		</div>
-	</div>
-	
-	<div id='protectionBox'>
+<html>
+	<head>
 		
-	</div>
-	
-</div>
-
-
-<script type='text/javascript'>
-	Controller = {};
-	
-	Controller.Init = function(){
-		PlayerBox.onclick = Controller.ToggleClick;	
-		PlayerBox.get(".control-box").onclick = function(event){
-			event.stopPropagation();
-		}
-		protectionBox.addEventListener ("DOMNodeRemoved", function(){
-			PlayerBox.del();
-		}, false);
-		if (window.authenticated){
-			PlayerBox.show();
-		}
-		window.onAuth = function(login, key){
-			PlayerBox.show();
-			VideoBox.set("@src", VideoBox.get("@src") + "?key=" + key);
-		};
-	};
-	
-	Controller.ToggleClick = function(){
-		if (VideoBox.playing){
-			Controller.PauseClick();
-		}
-		else{					
-			Controller.PlayClick();
-		}
-	}
-	
-	Controller.PlayClick = function(){
-		if (!VideoBox.playing && Controller.StartProtection()){
-			VideoBox.play();
-			PlayerBox.add(".playing");
-			VideoBox.playing = true;
-		}
-	}
-	
-	Controller.PauseClick = function(){
-		if (VideoBox.playing){
-			VideoBox.pause();			
-			Controller.StopProtection();
-			PlayerBox.del(".playing");
-			VideoBox.playing = false;
-		}
-	}
-	
-	Controller.WTop = 270;
-	Controller.WBottom = 300;
-	Controller.WLeft = 100;
-	Controller.WRight = 300;
-	
-	Controller.Colors = ['#036', '#593', '#651','#0dd','#ffa','#faf', '#aff', '#aca', '#ccf', '#fff'];
-	
-	Controller.StartProtection = function(){
-		if (!protectionBox) PlayerBox.del();
-		if (!protectionBox.get(".watermark")){
-			var wm = protectionBox.div(".watermark");
-			wm.textContent = (Math.random() + "").substring(2, 6);
-			wm.xpos = 100;
-			wm.ypos = 240;
-			wm.ticks = 0;
-		}
-		Controller.protectionInterval = setInterval(Controller.ProtectTick, 100);	
-		return true;
-	}
-	
-	Controller.StopProtection = function(){
-		clearInterval(Controller.protectionInterval);	
-	}
-	
-	Controller.ProtectTick = function(){		
-		if (!protectionBox) PlayerBox.del();
-		var wm = protectionBox.get(".watermark");
-		if (!wm) PlayerBox.del();
-		wm.ticks++;
-		if (wm.ticks > 30 + (Math.random() * 20)){
-			wm.ticks = 0;
-			wm.xpos += 20 - Math.random() * 40;
-			wm.style.color = Controller.Colors[parseInt((Math.random() * Controller.Colors.length))];
-		}
-		if (wm.xpos > Controller.WRight){
-			wm.dir = "back";	
-		}
-		if (wm.xpos < Controller.WLeft){
-			wm.dir = "fwd";	
-		}
-		if (wm.ypos > Controller.WBottom){
-			wm.ypos = Controller.WTop;
-		}
-		if (wm.ypos < Controller.WTop){
-			wm.ypos = Controller.WBottom;
-		}
-		if (wm.dir == "back"){
-			wm.xpos--;
-			wm.ypos--;			
-		}
-		else{
-			wm.xpos++;
-			wm.ypos++;
-		}
-		wm.style.left = wm.xpos + "px";
-		wm.style.top = wm.ypos + "px";
-	}
-	
-	WS.DOMload(Controller.Init);
-</script>
+		<meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
+		
+		<title>Тест системы видео</title>
+		
+		<link type='text/css' rel='stylesheet' href="http://Services.web-manufacture.net/Styles/System.default.css"/>
+		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Utils.js"></script>
+		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/DOM.js"></script>
+		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Log.js"></script>
+		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Events.js"></script>
+		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Url.js"></script>
+		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Ajax.js"></script>
+		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Modules.js"></script>
+		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Jasp.js"></script>
+		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/ui.js"></script>
+		
+		<link href="http://vjs.zencdn.net/4.1/video-js.css" rel="stylesheet">
+		<script src="http://vjs.zencdn.net/4.1/video.js"></script>
+		<style type="text/css">
+			.vjs-control-bar { font-size: 67% }
+		</style>
+		
+		<style type='text/css'>
+			#VideoBox{
+				width : 480px;
+				height : 360px;
+			}
+			
+			#PlayerBox {
+				position : relative;
+				width : 480px;
+				height : 360px;
+				background: gray;
+			}
+			
+			#PlayerBox .control-box{
+				position: absolute;
+				z-index: 10;		
+				width : 480px;
+				display: none;
+			}
+			
+			#PlayerBox:hover .control-box{
+				display : block;
+				position: absolute;
+				bottom: 0;
+				left: 0;
+				width : 480px;
+				height : 40px;
+				background-color: rgba(100, 120, 120, 0.4);
+			}
+			
+			#PlayerBox .control-box .video-control.play{
+				display: inline-block;	
+			}
+			
+			#PlayerBox.playing .control-box .video-control.play{
+				display: none;	
+			}
+			
+			#PlayerBox .control-box .video-control.pause{
+				display: none;	
+			}
+			
+			#PlayerBox.playing .control-box .video-control.pause{
+				display: inline-block;	
+			}
+			
+			#protectionBox{
+				position: absolute;
+				top : 0;
+				left : 0;		
+				width : 480px;
+				height : 360px;
+				background: none;
+				z-index: 5;
+				display: none;
+			}
+			
+			#protectionBox .watermark{
+				position: absolute;
+				width: 80px;
+				height: 40px;
+				color: white;
+				opacity: 0.5;
+			}
+		</style>
+	</head>
+	<body>
+		
+		<include url='http://services.web-manufacture.net/UI/Notification.htm'></include>
+		<include url='http://services.web-manufacture.net/Authentication/Authentication.htm'></include>
+		<include url='http://services.web-manufacture.net/UI/HtmlElements.htm'></include>
+		
+		
+		<div id='PlayerBox' class='invisible'>
+			
+			<video id='VideoBox' src="http://video.web-manufacture.net:9000/BBB.mp4"  ></video>
+			
+			<video id="VideoBox" class="vjs-default-skin" controls='none' preload='none' buffered='none' width="640" height="264" poster="my_video_poster.png"
+				data-setup="{}">
+			</video>
+			
+			<div class='control-box invisible'>
+				<div class='btn-ira ok video-control play' onclick='Controller.PlayClick()'>
+					Play
+				</div>
+				<div class='btn-ira cancel video-control pause' onclick='Controller.PauseClick()'>
+					Pause
+				</div>
+			</div>
+			
+			<div id='protectionBox'>
+				
+			</div>
+			
+		</div>
+		
+		
+		<script type='text/javascript'>
+			Controller = {};
+			
+			Controller.Init = function(){
+				//PlayerBox.onclick = Controller.ToggleClick;	
+				PlayerBox.get(".control-box").onclick = function(event){
+					event.stopPropagation();
+				}
+				protectionBox.addEventListener ("DOMNodeRemoved", function(){
+					PlayerBox.del();
+				}, false);
+				if (window.Auth && Auth.Authenticated){
+					PlayerBox.show();
+				}
+				else{
+					window.onAuth = function(login, key){
+						PlayerBox.show();
+						VideoBox.set("@src", VideoBox.get("@src") + "?key=" + key);
+						videojs("VideoBox", {}, function(){
+							// Player (this) is initialized and ready.
+						});
+					};
+				}
+				//VideoBox.addEventListener("playing", Controller.PlayClick);
+				//VideoBox.addEventListener("pause", Controller.PauseClick);
+			};
+			
+			Controller.ToggleClick = function(){
+				if (VideoBox.playing){
+					Controller.PauseClick();
+				}
+				else{					
+					Controller.PlayClick();
+				}
+			}
+			
+			Controller.PlayClick = function(){
+				if (!VideoBox.playing && Controller.StartProtection()){
+					//VideoBox.play();
+					PlayerBox.add(".playing");
+					VideoBox.playing = true;
+				}
+			}
+			
+			Controller.PauseClick = function(){
+				if (VideoBox.playing){
+					//VideoBox.pause();			
+					Controller.StopProtection();
+					PlayerBox.del(".playing");
+					//VideoBox.playing = false;
+				}
+			}
+			
+			Controller.WTop = 270;
+			Controller.WBottom = 300;
+			Controller.WLeft = 100;
+			Controller.WRight = 300;
+			
+			Controller.Colors = ['#036', '#593', '#651','#0dd','#ffa','#faf', '#aff', '#aca', '#ccf', '#fff'];
+			
+			Controller.StartProtection = function(){
+				if (!protectionBox) PlayerBox.del();
+				if (!protectionBox.get(".watermark")){
+					var wm = protectionBox.div(".watermark");
+					wm.textContent = (Math.random() + "").substring(2, 6);
+					wm.xpos = 100;
+					wm.ypos = 240;
+					wm.ticks = 0;
+				}
+				Controller.protectionInterval = setInterval(Controller.ProtectTick, 100);	
+				return true;
+			}
+			
+			Controller.StopProtection = function(){
+				clearInterval(Controller.protectionInterval);	
+			}
+			
+			Controller.ProtectTick = function(){		
+				if (!protectionBox) PlayerBox.del();
+				var wm = protectionBox.get(".watermark");
+				if (!wm) PlayerBox.del();
+				wm.ticks++;
+				if (wm.ticks > 30 + (Math.random() * 20)){
+					wm.ticks = 0;
+					wm.xpos += 20 - Math.random() * 40;
+					wm.style.color = Controller.Colors[parseInt((Math.random() * Controller.Colors.length))];
+				}
+				if (wm.xpos > Controller.WRight){
+					wm.dir = "back";	
+				}
+				if (wm.xpos < Controller.WLeft){
+					wm.dir = "fwd";	
+				}
+				if (wm.ypos > Controller.WBottom){
+					wm.ypos = Controller.WTop;
+				}
+				if (wm.ypos < Controller.WTop){
+					wm.ypos = Controller.WBottom;
+				}
+				if (wm.dir == "back"){
+					wm.xpos--;
+					wm.ypos--;			
+				}
+				else{
+					wm.xpos++;
+					wm.ypos++;
+				}
+				wm.style.left = wm.xpos + "px";
+				wm.style.top = wm.ypos + "px";
+			}
+			
+			WS.DOMload(Controller.Init);
+		</script>
+		
+	</body>
+</html>

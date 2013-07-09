@@ -126,29 +126,35 @@ try{
 	VideoServer.Users = {};
 	
 	VideoServer.OnConnect = function(req, res){
+		console.log("Connect");
 		var url = Url.parse(req.url, true);
 		//console.log(url);
 		var fpath = Path.resolve(Server.Config.basepath + 'store/' + url.pathname);
 		var cookie = req.headers.cookie;
-		var vre = /VideoKey=([0-9a-f]+)/ig;
-		var vCookie = vre.exec(cookie);
+		var rkRegex = /RandomKey=([0-9a-f]+)/ig;
+		var rKey = rkRegex.exec(cookie);
+		rKey = rKey
 		var sKey = url.query.key;
 		if (!sKey || sKey.length <= 1){
 			console.log("errkey: " + sKey);
 			res.setHeader("Content-Type", "text/plain; charset=utf-8");
 			res.writeHead(403);
-			res.end("error key");	
+			res.end("error key", 'utf8');	
 			return;
 		}
 		Auth.RetreiveUser(sKey, function(user){
-			if (!user || !user.sessionKey){
-				console.log("user: " + user);
-				res.setHeader("set-cookie", "AuthKey=null;VideoKey=null;");
+			if (rKey && rKey.length > 1) rKey = rKey[1];
+			else rKey = null;
+			if (!user || !user.sessionKey || user.randomKey != rKey){
+				if (user){
+					console.log("user: " + user.sessionKey + " " + user.randomKey + " " + rKey);
+				}
 				res.setHeader("Content-Type", "text/plain; charset=utf-8");
 				res.writeHead(401);
 				res.end();	
 				return;
 			}
+			console.log(user.login);
 			fs.stat(fpath, function(err, stat){
 				if (err || !stat){
 					console.log(err);
@@ -168,7 +174,7 @@ try{
 						return;
 					}				
 					var range = req.headers.range;
-					var chunksize = 100000;
+					var chunksize = 10000;
 					if (range){
 						var parts = range.replace(/bytes=/, "").split("-");
 					}
@@ -177,45 +183,50 @@ try{
 					}
 					var partialstart = parts[0];
 					var partialend = parts[1];
-					var start = parseInt(partialstart, 0);
-					var end = partialstart + chunksize;
+					res.startRange = parseInt(partialstart, 0);
+					res.finishRange = partialstart + chunksize;
 					
-					var uKey = VideoServer.Users[user.login];
-					var newKey = "";
-					for (var i = 0; i < 20; i++){
-						newKey += Math.floor(Math.random(16)*16).toString(16);
-					}
-					if (!uKey || start == 0){
-						uKey = VideoServer.Users[user.login] = newKey; 	
-						res.setHeader("Set-Cookie", "VideoKey=" + newKey);
-					}
-					else{		
-						if (!vCookie || vCookie.length <= 1 || vCookie[1] != uKey){
-							console.log(uKey);
-							console.log(vCookie);
-							res.setHeader("Set-Cookie", "VideoKey=" + newKey);
-							res.setHeader("Content-Type", "text/plain; charset=utf-8");
-							res.writeHead(403);
-							res.end();	
-							return;
+					var headers = { "Accept-Ranges": "bytes", "Content-Type": "video/mp4", pragma: "no-cache", "Cache-Control" : "no-cache", Expires : "01.01.2000" };
+					//headers["Content-Range"] = "bytes " + start + "-" + (start + bytesRead) + "/" + total;
+					headers["Content-Range"] = "bytes " + res.startRange + "-";
+					console.log("Send: " + res.startRange);
+					res.writeHead(200, headers);
+					
+					res.on("close", function(){
+						if (this.sendInterval){
+							console.log("request closed: " + sKey);
+							clearInterval(this.sendInterval);	
+							fs.close(file);
 						}
-						uKey = VideoServer.Users[user.login] = newKey; 	
-						res.setHeader("Set-Cookie", "VideoKey=" + newKey);
-					}								
-					var buf = new Buffer(chunksize);
-										
-					fs.read(file, buf, 0, chunksize, start, function(err, bytesRead, buffer){
-						if (err){
-							console.log(err);
-							res.setHeader("Content-Type", "text/plain; charset=utf-8");
-							res.writeHead(500);
-							res.end("video " + url.pathname + " readerror " + err);		
-							return;
-						}
-						console.log("Send: " + start);
-						res.writeHead(206, { "Content-Range": "bytes " + start + "-" + (start + bytesRead) + "/" + total, "Accept-Ranges": "bytes", "Content-Type": "video/mp4" });
-						res.end(buffer, 'binary');		
 					});
+					
+					res.sendInterval = setInterval(function(){
+						if (res.startRange != null && res.startRange < total){
+							var buf = new Buffer(chunksize);
+							fs.read(file, buf, 0, chunksize, res.startRange, function(err, bytesRead, buffer){
+								if (err){
+									console.log(err);
+									res.setHeader("Content-Type", "text/plain; charset=utf-8");
+									res.writeHead(500);
+									console.log(err);
+									res.startRange = null;
+									res.end("video " + url.pathname + " readerror " + err);		
+									return;
+								}
+								console.log("Send: " + res.startRange);
+								res.write(buffer, 'binary');								
+								res.startRange = res.startRange + chunksize;
+							});
+						}
+						else{							
+							clearInterval(res.sendInterval);
+							fs.close(file);
+							console.log("request closing by finishing: " + res.startRange  + " " + total);
+							res.end();
+						}
+					}, 400);
+					
+					res.writeContinue();
 				});		
 			});
 		});

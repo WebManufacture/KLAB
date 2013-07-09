@@ -15,6 +15,8 @@
 		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Modules.js"></script>
 		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Net.js"></script>
 		
+		<script type="text/javascript" src="http://Services.web-manufacture.net/Grids/SimpleGrids.js"></script>
+		<link type='text/css' rel='stylesheet' href="http://services.web-manufacture.net/Grids/Grids.css" />
 		<script type='text/javascript' src='CncTable.js' class='reloadable'>			
 		</script>
 		<script type='text/javascript' src='CncUI.js'>			
@@ -27,7 +29,6 @@
 		<include url='http://Services.web-manufacture.net/UI/UiUtils.htm'></include>
 		<include url='http://Services.web-manufacture.net/UI/Win.htm'></include>
 		<include url='http://Services.web-manufacture.net/UI/HtmlElements.htm'></include>
-		<include url='http://Services.web-manufacture.net/Grids/Grids.htm'></include>
 		
 		<div class='window invisible' id='MovingWindow' title='Moving window'>
 			<div id='TableMovises' style='position:relative; width: 200px; height: 200px;'>
@@ -81,72 +82,42 @@ Down</div>-->
 			</div>
 		</div>
 		<div class='window invisible' id='CncSettingsWindow' title='CNC Settings'>
-			<div class='grid allow-add default-theme' id='CncSettingsGrid' style='background: none;'>
-				
-				<div class='content'>					
-					<div class='table-header' >						
-						<div class='table-controls' >	
-							<div class='add-button small-object-button' title="Add new record" onclick="this.Get('^.grid').AddObjectAction()">	</div>
+			<div class='simple-grid grid allow-add default-theme deffered initialized file-storage' id='CncSettingsGrid' style='background: none;'>
+				<div class="prototype object-template">
+					<div class="content-line"  style='float: left; width: 450px;'>
+						<div class='name-field' field='id' style='width: 150px; color: navy;'>
+							
 						</div>
-					</div>
-					<div class='objects-container'>
-						
-					</div>
-				</div>	
-				
-				<div class="prototype table-object" extend='Grids.TableObject'>
-					<div class='object-header'>
-						
-					</div>
-					<div class='object-content'>
-						<div class='left-panel'>
-							<div class='panel control-panel'>
-								<div class='select-indicator indicator'></div>
-								<div class="edit-button small-object-button" onclick="this.Get('^.table-object').EditAction();" title="Edit"></div>
-								<div class="delete-button small-object-button" onclick="this.Get('^.table-object').DeleteAction();" title="Delete"></div>
-								<div class='add-button small-object-button' title="Add new" onclick="this.Get('^.table-object').AddAction();">	</div>
-							</div>
-						</div>					
-						<div class='content-panel'>
-							<div class="content-line">
-								<div class='name-field' field='name'>
-									
-								</div>
-								<div class='value-field' field='value'>
-									
-								</div>
-							</div>
-						</div>
-						<div class='right-panel'>
+						<div class='value-field' field='value' style='width: 300px;'>
 							
 						</div>
 					</div>
-					<div class="object-footer">
+					<div class='control-panel' style='float: right; width: 70px;'>
+						<div class="edit-button small-object-button" onclick="this.Get('^.object-item ').EditAction();" title="Edit"></div>
+						<div class="delete-button small-object-button" onclick="this.Get('^.object-item ').DeleteAction();" title="Delete"></div>
+					</div>		
+					<div class='clear'>
 						
-					</div>			
+					</div>
 				</div>
 				
-				<div class='edit-object-form prototype' extend='Grids.EditFormActions'>
-					<div class='object-header'>
-						
-					</div>
+				<div class='edit-template prototype' extend='Grids.EditFormActions'>
 					<div class='object-content'>
-						<div class='name-field' field='name'>
-							<span>Ключ:</span>
-							<input type='text'  field='name'/>						
-						</div>
-						<div class='value-field' field='value'>
-							<span>Значение:</span>
-							<input type='text'  field='value'/>							
-						</div>
+						<span>Ключ:</span>
+						<input type='text'  field='id'/>						
+						<span>Значение:</span>
+						<input type='text'  field='value'/>							
 					</div>
 					<div class='object-footer controls-panel'>
-						<div class='btn-ira ok ' title='OK' onclick = 'this.Get("^.edit-object-form").Save();'> OK </div>
-						<div class='btn-ira cancel ' onclick = 'this.Get("^.edit-object-form").Cancel();' title='Cancel' > Cancel </div>
+						<div class='btn-ira ok ' title='OK' onclick = 'this.get("^.edit-object-form").Save();'> OK </div>
+						<div class='btn-ira cancel ' onclick = 'this.get("^.edit-object-form").Cancel();' title='Cancel' > Cancel </div>
 					</div>
 					
 				</div>	
 			</div>
+			<div class='btn-ira apply' onclick='CncSettingsGrid.AddObjectAction()'>
+				Add
+			</div> 
 			<div class='btn-ira ok' onclick='CNC.SaveCncSettings()'>
 				Save
 			</div> 
