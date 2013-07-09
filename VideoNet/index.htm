@@ -6,24 +6,18 @@
 		
 		<title>Тест системы видео</title>
 		
-		<link type='text/css' rel='stylesheet' href="http://Services.web-manufacture.net/Styles/System.default.css"/>
 		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Utils.js"></script>
 		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/DOM.js"></script>
-		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Log.js"></script>
-		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Events.js"></script>
 		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Url.js"></script>
-		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Ajax.js"></script>
-		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Modules.js"></script>
-		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Jasp.js"></script>
-		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/ui.js"></script>
 		
 		<link href="http://vjs.zencdn.net/4.1/video-js.css" rel="stylesheet">
 		<script src="http://vjs.zencdn.net/4.1/video.js"></script>
-		<style type="text/css">
-			.vjs-control-bar { font-size: 67% }
-		</style>
 		
 		<style type='text/css'>
+			.invisible{
+				display: none!important;	
+			}
+			
 			#VideoBox{
 				width : 480px;
 				height : 360px;
@@ -74,11 +68,21 @@
 				top : 0;
 				left : 0;		
 				width : 480px;
-				height : 360px;
+				height : 320px;
 				background: none;
 				z-index: 5;
-				display: none;
 			}
+			
+			#PlayerBox.error{
+				background: #ccc;	
+			}
+			
+			#PlayerBox.error .error-box{
+				padding-top: 100px;
+				color: red;
+				font-size: 20px;
+			}
+			
 			
 			#protectionBox .watermark{
 				position: absolute;
@@ -87,32 +91,22 @@
 				color: white;
 				opacity: 0.5;
 			}
+			
+			.vjs-fullscreen-control{
+				display: none!important;	
+			}
+			
+			.vjs-control-bar{
+				padding-right: 10px;
+				font-size: 67%;
+			}
 		</style>
 	</head>
 	<body>
-		
-		<include url='http://services.web-manufacture.net/UI/Notification.htm'></include>
-		<include url='http://services.web-manufacture.net/Authentication/Authentication.htm'></include>
-		<include url='http://services.web-manufacture.net/UI/HtmlElements.htm'></include>
-		
-		
-		<div id='PlayerBox' class='invisible'>
+		<div id='PlayerBox' class='invisible' src="http://localhost:9000/BBB.mp4">
 			
-			<video id='VideoBox' src="http://video.web-manufacture.net:9000/BBB.mp4"  ></video>
-			
-			<video id="VideoBox" class="vjs-default-skin" controls='none' preload='none' buffered='none' width="640" height="264" poster="my_video_poster.png"
-				data-setup="{}">
-			</video>
-			
-			<div class='control-box invisible'>
-				<div class='btn-ira ok video-control play' onclick='Controller.PlayClick()'>
-					Play
-				</div>
-				<div class='btn-ira cancel video-control pause' onclick='Controller.PauseClick()'>
-					Pause
-				</div>
-			</div>
-			
+			<video id='VideoBox' class="vjs-default-skin"></video>
+						
 			<div id='protectionBox'>
 				
 			</div>
@@ -124,53 +118,65 @@
 			Controller = {};
 			
 			Controller.Init = function(){
+				protectionBox = DOM("#protectionBox");
+				PlayerBox = DOM("#PlayerBox");
+				VideoBox = DOM("#VideoBox");
 				//PlayerBox.onclick = Controller.ToggleClick;	
-				PlayerBox.get(".control-box").onclick = function(event){
-					event.stopPropagation();
-				}
 				protectionBox.addEventListener ("DOMNodeRemoved", function(){
 					PlayerBox.del();
-				}, false);
-				if (window.Auth && Auth.Authenticated){
+				}, false);				
+				if (Request.Params.userid && Request.Params.key){
+					var src = PlayerBox.get("@src");
 					PlayerBox.show();
+					VideoBox = videojs("VideoBox", {"controls": true, "autoplay": false, "preload": "none"}, function(){
+						// Player (this) is initialized and ready.
+					});
+					VideoBox.src(src + "?userid=" + Request.Params.userid + "&key=" + Request.Params.key);
+					VideoBox.on('fullscreenchange', function(){
+						VideoBox.cancelFullScreen();
+					});					
+					VideoBox.on("play", Controller.PlayClick);
+					VideoBox.on("pause", Controller.PauseClick);
+					VideoBox.on("error", function(err){
+						Controller.StopProtection();
+						Controller.ProtectTick = null;
+						PlayerBox.del(".playing");
+						DOM("#VideoBox").del();
+						protectionBox.hide();
+						PlayerBox.add(".error");
+						PlayerBox.div(".error-box", "Произошла ошибка при воспроизведении видео. Перезагрузите страницу, чтобы продолжить просмотр");
+					});
+					protectionBox.onclick = Controller.ToggleClick;
+					/*
+					VideoBox.set("@src", src + "?userid=" + Request.Params.userid + "&key=" + Request.Params.key);
+					VideoBox.set("@src", src + "?userid=" + Request.Params.userid + "&key=" + Request.Params.key);
+					VideoBox.addEventListener('fullscreenchange', function(){
+						VideoBox.cancelFullScreen();
+					});					
+					VideoBox.addEventListener("play", Controller.PlayClick);
+					VideoBox.addEventListener("pause", Controller.PauseClick);*/
+					protectionBox.hide();
 				}
-				else{
-					window.onAuth = function(login, key){
-						PlayerBox.show();
-						VideoBox.set("@src", VideoBox.get("@src") + "?key=" + key);
-						videojs("VideoBox", {}, function(){
-							// Player (this) is initialized and ready.
-						});
-					};
-				}
-				//VideoBox.addEventListener("playing", Controller.PlayClick);
-				//VideoBox.addEventListener("pause", Controller.PauseClick);
 			};
 			
 			Controller.ToggleClick = function(){
-				if (VideoBox.playing){
-					Controller.PauseClick();
+				if (PlayerBox.is(".playing")){
+					VideoBox.pause();
 				}
 				else{					
-					Controller.PlayClick();
+					VideoBox.play();
 				}
 			}
 			
 			Controller.PlayClick = function(){
-				if (!VideoBox.playing && Controller.StartProtection()){
-					//VideoBox.play();
+				if (Controller.StartProtection()){
 					PlayerBox.add(".playing");
-					VideoBox.playing = true;
 				}
 			}
 			
 			Controller.PauseClick = function(){
-				if (VideoBox.playing){
-					//VideoBox.pause();			
-					Controller.StopProtection();
-					PlayerBox.del(".playing");
-					//VideoBox.playing = false;
-				}
+				Controller.StopProtection();
+				PlayerBox.del(".playing");
 			}
 			
 			Controller.WTop = 270;
@@ -181,10 +187,11 @@
 			Controller.Colors = ['#036', '#593', '#651','#0dd','#ffa','#faf', '#aff', '#aca', '#ccf', '#fff'];
 			
 			Controller.StartProtection = function(){
-				if (!protectionBox) PlayerBox.del();
+				if (!window.protectionBox) PlayerBox.del();
+				protectionBox.show();
 				if (!protectionBox.get(".watermark")){
 					var wm = protectionBox.div(".watermark");
-					wm.textContent = (Math.random() + "").substring(2, 6);
+					wm.textContent = Request.Params.userid;
 					wm.xpos = 100;
 					wm.ypos = 240;
 					wm.ticks = 0;
@@ -195,10 +202,11 @@
 			
 			Controller.StopProtection = function(){
 				clearInterval(Controller.protectionInterval);	
+				//protectionBox.hide();
 			}
 			
 			Controller.ProtectTick = function(){		
-				if (!protectionBox) PlayerBox.del();
+				if (!window.protectionBox) PlayerBox.del();
 				var wm = protectionBox.get(".watermark");
 				if (!wm) PlayerBox.del();
 				wm.ticks++;
