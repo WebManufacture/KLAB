@@ -3,13 +3,13 @@
 			}
 			
 			#VideoBox{
-				width : 480px;
+				width : 640px;
 				height : 360px;
 			}
 			
 			#PlayerBox {
 				position : relative;
-				width : 480px;
+				width : 640px;
 				height : 360px;
 				background: gray;
 			}
