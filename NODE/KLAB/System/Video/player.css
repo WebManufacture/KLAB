@@ -84,3 +84,8 @@
 				padding-right: 10px;
 				font-size: 67%;
 			}
+
+.vjs-big-play-button {
+	top: 36%;
+	left: 38%;
+}
