@@ -78,6 +78,7 @@ Auth.Logout = function (){
 	AuthForm.passField.value = "";
 	AuthForm.Login = null;
 	clearInterval(Auth.sessionKeepTimeout);
+	window.location = window.location;
 };
 
 Auth.Hash = function(login, pwd) {
@@ -102,7 +103,7 @@ Auth.KeepReqest = function(login, sessionkey){
 	xmlhttp.sessionkey = sessionkey;
 	var url = Request.GetUrl('/Auth', {login: login, key : sessionkey});
 	xmlhttp.open('Get', url, true);
-	xmlhttp.onload = Auth.AuthSessionComplete;
+	xmlhttp.onload = Auth.KeepSessionComplete;
 	xmlhttp.onerror = Auth.AuthError;
 	xmlhttp.send(null);
 };
@@ -113,7 +114,7 @@ Auth.SessionReqest = function(login, sessionkey){
 	xmlhttp.sessionkey = sessionkey;
 	var url = Request.GetUrl('/Auth', {login: login, key : sessionkey});
 	xmlhttp.open('Get', url, true);
-	xmlhttp.onload = Auth.AuthComplete;
+	xmlhttp.onload = Auth.AuthSessionComplete;
 	xmlhttp.onerror = Auth.AuthError;
 	xmlhttp.send(null);
 };
@@ -156,6 +157,21 @@ Auth.Error = function(error){
 	AuthForm.add('.error');		
 };
 
+Auth.KeepSessionComplete = function(result){
+	if (this.status != 200) {		
+		Auth.Logout();
+		Auth.Error(this.status);
+		return;
+	};
+	if (this.responseText.length > 0){
+		Auth.Sessionkey = this.responseText;
+		localStorage.setItem('user-sessionkey', Auth.Sessionkey);
+		return;
+	};
+	Auth.Logout();
+	Auth.Error(0);	
+};
+
 Auth.AuthSessionComplete = function(result){
 	if (this.status != 200) {		
 		Auth.Logout();
@@ -163,8 +179,22 @@ Auth.AuthSessionComplete = function(result){
 		return;
 	};
 	if (this.responseText.length > 0){
-		Auth._sessionkey = this.responseText;
-		localStorage.setItem('user-sessionkey', Auth._sessionkey);
+		Auth.Sessionkey = this.responseText;
+		localStorage.setItem('user-sessionkey', Auth.Sessionkey);
+		if (!Auth.Authenticated){
+			Auth.Login = this.login;
+			localStorage.setItem('user-login', Auth.Login);
+			AuthForm.add('.authenticated');
+			AuthForm.userName.set('' + Auth.Login);
+			AuthForm.del('.error');
+			Auth.Authenticated = true;
+			if (typeof window.onAuth == 'function'){
+				window.onAuth(Auth.Login, Auth.Sessionkey);
+			}
+		}		
+		Auth.sessionKeepTimeout = setInterval(function(){
+			Auth.KeepReqest(Auth.Login, Auth.Sessionkey);
+		}, 15000);
 		return;
 	};
 	Auth.Logout();
@@ -177,31 +207,16 @@ Auth.AuthComplete = function(result){
 		Auth.Error(this.status);
 		return;
 	};
-	Auth.Login = this.login;
-	localStorage.setItem('user-login', Auth.Login);
 	
-	if (this.pwd){
-		Auth._password = this.pwd;
-		localStorage.setItem('user-pass', Auth._password);
-	};
 	if (this.responseText.length > 0){
-		Auth._sessionkey = this.responseText;
-		localStorage.setItem('user-sessionkey', Auth._sessionkey);
-	};
-	
-	AuthForm.add('.authenticated');
-	AuthForm.userName.set('' + Auth.Login);
-	AuthForm.del('.error');
-	
-	Auth.sessionKeepTimeout = setInterval(function(){
-		Auth.KeepReqest(Auth.Login, Auth._sessionkey);
-	}, 5000);
-	
-	window.authenticated = true;
-	if (typeof window.onAuth == "function"){
-		window.onAuth(Auth.Login, Auth._sessionkey);
-	}
-	
+		Auth.Login = this.login;
+		localStorage.setItem('user-login', Auth.Login);
+		Auth.Sessionkey = this.responseText;
+		localStorage.setItem('user-sessionkey', Auth.Sessionkey);
+		window.location = window.location;
+		return;
+	};	
+	Auth.Error(0);
 };
 
 Auth.InitAuth();

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <head>
 	
 	<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
@@ -7,6 +7,7 @@
 	<script type="text/javascript" src="http://services.web-manufacture.net/Base/v1.3/Url.js"></script>
 	<script type="text/javascript" src="http://services.web-manufacture.net/Base/v1.3/Events.js"></script>
 	<script type="text/javascript" src="http://services.web-manufacture.net/Base/v1.3/Log.js"></script>
+	<script type="text/javascript" src="http://services.web-manufacture.net/Base/v1.3/Ajax.js"></script>
 	<script type="text/javascript" src="http://services.web-manufacture.net/Base/v1.3/Net.js"></script>
 	
 	<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Jasp.js"></script>
@@ -73,7 +74,11 @@
 			//Drag.NoBodyDrop = true;
 			FS.server = {
 				browse: function(path, callback){
-					Net.get(path + "System.Handler.ashx?action=browse", callback);					
+					path += "System.Handler.ashx?action=browse";
+					if (Request.Params.SystemPath){
+						path += "&path=" + Request.Params.SystemPath;
+					}
+					Net.get(path, callback);					
 				}				
 			}
 			M.OnModuleRegistered.subscribe(FS.InitTags, "http://system.web-manufacture.net/system.tags.htm");
@@ -83,7 +88,14 @@
 		FS.ReloadSystem = function() {
 			FS.Loaded = false;
 			FS.Tree.clear();
-			FS.server.browse("/", FS.LoadTreeComplete);
+			var path = '/';
+			if (Request.Params.UserDomain){
+				path = Request.Params.UserDomain + "/";
+				if (!path.start("http://")){
+					path = "http://" + path;
+				}
+			}
+			FS.server.browse(path, FS.LoadTreeComplete);
 		};
 		
 		FS.GetActiveFiles = function() {
@@ -270,10 +282,23 @@
 			this.del('.selected');
 		};
 		
-		FS.LoadFile = function(file) {
+		FS.LoadFile = function(file) {			
+			var url = "/" + file.fileName;
+			var params = { file : file.fileName };
+			if (Request.Params.SystemPath){
+				url = "/" + Request.Params.SystemPath + url;
+				params.SystemPath = Request.Params.SystemPath;
+			}
+			if (Request.Params.UserDomain){
+				url = Request.Params.UserDomain + url;
+				if (!url.start("http://")){
+					url = "http://" + url;
+				}
+				params.UserDomain = Request.Params.UserDomain;
+			}
 			var url = "/" + file.fileName;
 			if (file.is(".css") || file.is(".htm") || file.is(".html") || file.is(".js") || file.is(".cs")) {
-				url = Url.Resolve("TextEditor.htm", {url : url});
+				url = Url.Resolve("TextEditor.htm", params);
 			}
 			window.open(url);
 		};

@@ -9,7 +9,7 @@ CNC.Init = function() {
 	CNC.CompileSettings = {};
 	CNC.CncSettings = {};
 	Storage = Net.GetTunnel("/storage/cnc_table");
-	Net = Net.GetTunnel("http://dfc-server/CncTable/");
+	Net = Net.GetTunnel("http://dfc-server:8008/CncTable/");
 	DOM.all(".tabs-container .tab-btn").each(function(elem){
 		elem.onclick = function(){
 			DOM.all(".tab-btn").del(".active");
@@ -89,7 +89,7 @@ public int? programLine;
 */
 
 CNC.GetProgram = function() {
-	var url = new Url("http://dfc-server/CncTable/State.ashx");
+	var url = new Url("http://dfc-server:8008/CncTable/State.ashx");
 	if (CNC.lastpoll) {
 		url.addParam("lastdate", CNC.lastpoll);
 	}
@@ -114,7 +114,7 @@ CNC.Save = function(){
 };
 
 CNC.GetState = function() {
-	var url = new Url("http://dfc-server/CncTable/State.ashx");
+	var url = new Url("http://dfc-server:8008/CncTable/State.ashx");
 	url.addParam("rnd", Math.random());
 	/*if (CNC.lastpoll) {
 url.addParam("lastdate", CNC.lastpoll);

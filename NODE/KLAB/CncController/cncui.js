@@ -11,9 +11,12 @@
 				}
 				if (result.defaultCnc){
 					CncUI.LoadCncSettings(result.defaultCnc, function(settings){
-						CNC.Init(settings);			
+						CNC.Init(settings);		
+						//CncSettingsGrid.set("@url", "storage/" + result.defaultCnc + ".json");
+						//CncSettingsGrid.del(".initialized");
+						//SGrid.InitGrid(CncSettingsGrid);
+						//CncSettingsGrid.ShowObjects(settings);
 					});
-					CncSettingsGrid.set("@handler", "storage/" + result.defaultCnc + ".json");
 				}
 			}
 		});
@@ -58,7 +61,7 @@
 	}
 	
 	CncUI.LoadSettings = function(callback){
-		Net.get("storage/ui_settings.json", function(result){
+		Net.get("storage/ui_settings.json?rnd=" + Math.random(), function(result){
 			if (result){			
 				CncUI.Settings = result;
 				callback(result);
@@ -75,23 +78,24 @@
 	}
 	
 	CncUI.LoadCncSettings = function(cncName, callback){
-		Net.get("storage/" + cncName + ".json", function(result){
+		Net.get("storage/" + cncName + ".json?rnd=" + Math.random(), function(result){
 			if (result){
+				/*if (!result.length) result = [ result ];
 				var settings = {};
 				for (var i = 0; i < result.length; i++){
-					settings[result[i].name] = result[i].value;
-				}
+					settings[result[i].id] = result[i].value;
+				}*/
 				callback(result);
 			}
 		});	
 	}
 	
 	CncUI.SaveCncSettings = function(cncName, settings){
-		var data = [];
+		/*var data = [];
 		for (var item in settings){
-			data.push({name: item, value : settings[item]});
-		}
-		Net.POST("storage/" + cncName + ".json", JSON.stringify(data), function(result){
+			data.push({id: item, value : settings[item]});
+		}*/
+		Net.POST("storage/" + cncName + ".json", JSON.stringify(settings), function(result){
 			
 		});	
 	}
