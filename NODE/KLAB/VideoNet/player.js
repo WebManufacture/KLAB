@@ -8,7 +8,7 @@ Controller.Init = function(){
 	protectionBox.addEventListener ("DOMNodeRemoved", function(){
 		PlayerBox.del();
 	}, false);		
-	if {window.video_params && 	video_params.userid && 	video_params.key){
+	if (window.video_params && 	video_params.userid && 	video_params.key){
 		var src = PlayerBox.get("@src");
 		PlayerBox.show();
 		VideoBox = videojs("VideoBox", {"controls": true, "autoplay": false, "preload": "none"}, function(){
