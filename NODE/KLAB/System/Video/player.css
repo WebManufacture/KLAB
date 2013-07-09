@@ -86,6 +86,6 @@
 }
 
 .vjs-big-play-button {
-	top: 36%;
-	left: 38%;
+	top: 36%!important;
+	left: 38%!important;
 }

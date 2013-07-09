@@ -38,7 +38,7 @@ VideoServer.Users = {};
 VideoServer.OnConnect = function(req, res){
 	var url = Url.parse(req.url, true);
 	//console.log(url);
-	var fpath = Path.resolve(config.VideoPath + '/' + url.pathname);
+	var fpath = Path.resolve(config.VideoPath.replace("{fname}",url.pathname));
 	var hash = url.query.key;
 	var uid = url.query.userid;
 	var referer = req.headers.referer;
@@ -81,7 +81,7 @@ VideoServer.OnConnect = function(req, res){
 		return;
 	}
 	var regex = new RegExp(config.RefererPage.replace("{uid}", uid.toLowerCase()).replace("{key}", user.hash.toLowerCase()));
-	if (!regex.test(referer.toLowerCase())){
+	if (!referer || !regex.test(referer.toLowerCase())){
 		console.log("UNAUTHORIZED ACCESS!!!: " + referer);
 		VideoServer.Users[uid] = null;
 		res.setHeader("Content-Type", "text/plain; charset=utf-8");
@@ -89,6 +89,7 @@ VideoServer.OnConnect = function(req, res){
 		res.end();	
 		return;
 	}
+	user.time = new Date();
 	fs.stat(fpath, function(err, stat){
 		if (err || !stat){
 			console.log(err);
@@ -127,7 +128,7 @@ VideoServer.OnConnect = function(req, res){
 		
 		var headers = { "Accept-Ranges": "bytes", "Content-Type": "video/mp4", "pragma": "no-cache", "Cache-Control" : "no-cache", "Expires" : "01.01.2000" };
 		headers["Content-Range"] = "bytes " + res.startRange + "-" + res.finishRange + "/" + total;
-		headers["Content-Length"] = (res.finishRange - res.startRange);
+		headers["Content-Length"] = (res.finishRange - res.startRange) + 1;
 		res.writeHead(206, headers);
 		var rs = fs.createReadStream(fpath, {autoclose: true, start: res.startRange, end: res.finishRange});
 		rs.on('open', function () {

@@ -1,86 +1,91 @@
 .invisible{
-				display: none!important;	
-			}
-			
-			#VideoBox{
-				width : 480px;
-				height : 360px;
-			}
-			
-			#PlayerBox {
-				position : relative;
-				width : 480px;
-				height : 360px;
-				background: gray;
-			}
-			
-			#PlayerBox .control-box{
-				position: absolute;
-				z-index: 10;		
-				width : 480px;
-				display: none;
-			}
-			
-			#PlayerBox:hover .control-box{
-				display : block;
-				position: absolute;
-				bottom: 0;
-				left: 0;
-				width : 480px;
-				height : 40px;
-				background-color: rgba(100, 120, 120, 0.4);
-			}
-			
-			#PlayerBox .control-box .video-control.play{
-				display: inline-block;	
-			}
-			
-			#PlayerBox.playing .control-box .video-control.play{
-				display: none;	
-			}
-			
-			#PlayerBox .control-box .video-control.pause{
-				display: none;	
-			}
-			
-			#PlayerBox.playing .control-box .video-control.pause{
-				display: inline-block;	
-			}
-			
-			#protectionBox{
-				position: absolute;
-				top : 0;
-				left : 0;		
-				width : 480px;
-				height : 320px;
-				background: none;
-				z-index: 5;
-			}
-			
-			#PlayerBox.error{
-				background: #ccc;	
-			}
-			
-			#PlayerBox.error .error-box{
-				padding-top: 100px;
-				color: red;
-				font-size: 20px;
-			}
-			
-			
-			#protectionBox .watermark{
-				position: absolute;
-				width: 80px;
-				height: 40px;
-				color: white;
-				opacity: 0.5;
-			}
-			
-			.vjs-fullscreen-control{
-				display: none!important;	
-			}
-			
-			.vjs-control-bar{
-				padding-right: 10px;
-				font-size: 67%;
-			}
+	display: none!important;	
+}
+
+#VideoBox{
+	width : 640px;
+	height : 360px;
+}
+
+#PlayerBox {
+	position : relative;
+	width : 640px;
+	height : 360px;
+	background: gray;
+}
+
+#PlayerBox .control-box{
+	position: absolute;
+	z-index: 10;		
+	width : 480px;
+	display: none;
+}
+
+#PlayerBox:hover .control-box{
+	display : block;
+	position: absolute;
+	bottom: 0;
+	left: 0;
+	width : 480px;
+	height : 40px;
+	background-color: rgba(100, 120, 120, 0.4);
+}
+
+#PlayerBox .control-box .video-control.play{
+	display: inline-block;	
+}
+
+#PlayerBox.playing .control-box .video-control.play{
+	display: none;	
+}
+
+#PlayerBox .control-box .video-control.pause{
+	display: none;	
+}
+
+#PlayerBox.playing .control-box .video-control.pause{
+	display: inline-block;	
+}
+
+#protectionBox{
+	position: absolute;
+	top : 0;
+	left : 0;		
+	width : 480px;
+	height : 320px;
+	background: none;
+	z-index: 5;
+}
+
+#PlayerBox.error{
+	background: #ccc;	
+}
+
+#PlayerBox.error .error-box{
+	padding-top: 100px;
+	color: red;
+	font-size: 20px;
+}
+
+
+#protectionBox .watermark{
+	position: absolute;
+	width: 80px;
+	height: 40px;
+	color: white;
+	opacity: 0.5;
+}
+
+.vjs-fullscreen-control{
+	display: none!important;	
+}
+
+.vjs-control-bar{
+	padding-right: 10px;
+	font-size: 67%;
+}
+
+.vjs-big-play-button {
+	top: 36%!important;
+	left: 38%!important;
+}
