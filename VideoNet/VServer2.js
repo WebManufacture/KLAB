@@ -1,1 +1,99 @@
-﻿var http=require("http");var Url=require("url");var fs=require("fs");var Path=require("path");Server=server={};Server.Init=function(){config=fs.readFileSync("config.json");console.log("Listening "+config);config=JSON.parse(config);Server.AuthServer=http.createServer(Server.OnAuth);Server.AuthServer.listen(config.AuthPort);Server.VideoServer=http.createServer(VideoServer.OnConnect);Server.VideoServer.listen(config.VideoPort)};Server.OnAuth=function(d,c){var b=Url.parse(d.url,true);var a=b.query.userid;var e=b.query.hash;if(a&amp;&amp;e){console.log("auth: "+a+" "+e);VideoServer.Users[a]={hash:e,time:new Date()};c.setHeader("Content-Type","text/plain; charset=utf-8");c.writeHead(200);c.end();return}c.setHeader("Content-Type","text/plain; charset=utf-8");c.writeHead(403);c.end()};VideoServer={};VideoServer.Users={};VideoServer.OnConnect=function(f,e){var b=Url.parse(f.url,true);var d=Path.resolve(config.VideoPath+"/"+b.pathname);var g=b.query.key;var c=b.query.userid;var h=f.headers.referer;if(!c||!g||g.length&lt;=1){console.log("errkey: "+g);e.setHeader("Content-Type","text/plain; charset=utf-8");e.writeHead(403);e.end();return}var a=VideoServer.Users[c];if(!a){console.log("User not found: "+a);e.setHeader("Content-Type","text/plain; charset=utf-8");e.writeHead(401);e.end();return}if((new Date()-a.time.valueOf())&gt;20*(60000)){console.log("User expired: "+a);VideoServer.Users[c]=null;e.setHeader("Content-Type","text/plain; charset=utf-8");e.writeHead(403);e.end();return}if(new Date()&gt;Date.parse("2013 july 20")){console.log("License expired: "+a);VideoServer.Users[c]=null;e.setHeader("Content-Type","text/plain; charset=utf-8");e.writeHead(403);e.end();return}if(h!=config.RefererPage+"?userid="+c+"&amp;key="+a.hash){console.log("UNAUTHORIZED ACCESS!!!: "+h);VideoServer.Users[c]=null;e.setHeader("Content-Type","text/plain; charset=utf-8");e.writeHead(403);e.end();return}fs.stat(d,function(k,m){if(k||!m){console.log(k);k="video "+b.pathname+" not found "+k;e.setHeader("Content-Type","text/plain; charset=utf-8");e.writeHead(404,{"Content-Length":k.length});e.end();return}var p=m.size;var n=f.headers.range;var r=config.ChunkSize;if(n){var l=n.replace(/bytes=/,"").split("-")}else{l=[0,r]}var q=l[0];var o=l[1];e.startRange=parseInt(q,0);e.finishRange=e.startRange+r;if(e.startRange==0){console.log("Send: "+b.pathname+" - "+p)}if(e.finishRange&gt;p-1){e.finishRange=p-1}e.on("close",function(){if(this.sendInterval){}console.log("closing: "+c)});var i={"Accept-Ranges":"bytes","Content-Type":"video/mp4","pragma":"no-cache","Cache-Control":"no-cache","Expires":"01.01.2000"};i["Content-Range"]="bytes "+e.startRange+"-"+e.finishRange+"/"+p;i["Content-Length"]=(e.finishRange-e.startRange);e.writeHead(206,i);var j=fs.createReadStream(d,{autoclose:true,start:e.startRange,end:e.finishRange});j.on("open",function(){j.pipe(e)});j.on("error",function(s){console.log(s);e.startRange=null;e.end()})})};Server.Init();
+var http = require('http');
+var Url = require('url');
+var fs = require('fs');
+var Path = require('path');
+Server = server = {};
+
+Server.Init = function(){
+	config = fs.readFileSync("config.json");
+	console.log("Listening " + config);
+	config = JSON.parse(config);
+	Server.AuthServer = http.createServer(Server.OnAuth);
+	Server.AuthServer.listen(config.AuthPort);
+	Server.VideoServer = http.createServer(VideoServer.OnConnect);
+	Server.VideoServer.listen(config.VideoPort);
+};
+
+Server.OnAuth = function(req, res){
+	var url = Url.parse(req.url, true);
+	var userid = url.query.userid;
+	var hash = url.query.hash;
+	if (userid && hash){
+		console.log("auth: " + userid + " " + hash);
+		VideoServer.Users[userid] = { hash : hash, time : new Date() };
+		res.setHeader("Content-Type", "text/plain; charset=utf-8");
+		res.writeHead(200);
+		res.end();	
+		return;
+	}
+	res.setHeader("Content-Type", "text/plain; charset=utf-8");
+	res.writeHead(403);
+	res.end();	
+};
+
+VideoServer = {};
+
+VideoServer.Users = {};
+
+VideoServer.OnConnect = function(req, res){
+	var url = Url.parse(req.url, true);
+	//console.log(url);
+	var fpath = Path.resolve(config.VideoPath + '/' + url.pathname);
+	fs.stat(fpath, function(err, stat){
+		if (err || !stat){
+			console.log(err);
+			err = "video " + url.pathname + " not found " + err;
+			res.setHeader("Content-Type", "text/plain; charset=utf-8");
+			res.writeHead(404, { "Content-Length": err.length } );
+			res.end();		
+			return;
+		}
+		var total = stat.size;
+		var range = req.headers.range;
+		var chunksize = config.ChunkSize;
+		if (range){
+			var parts = range.replace(/bytes=/, "").split("-");
+		}
+		else{
+			parts = [0, chunksize];	
+		}
+		var partialstart = parts[0];
+		var partialend = parts[1];
+		res.startRange = parseInt(partialstart, 0);
+		res.finishRange = res.startRange + chunksize;
+		if (res.startRange == 0){
+			console.log("Send: " + url.pathname + " - " + total);
+		}
+		if (res.finishRange > total - 1){
+			res.finishRange = total - 1;
+		}
+		res.on("close", function(){
+			if (this.sendInterval){
+				//console.log("request closed: " + sKey);
+				//clearInterval(this.sendInterval);	
+			}
+			console.log("closing: " + uid);
+		});				
+		
+		
+		var rs = fs.createReadStream(fpath, {autoclose: true, start: res.startRange, end: res.finishRange});
+		rs.on('open', function () {
+			var headers = { "Accept-Ranges": "bytes", "Content-Type": "video/mp4", "pragma": "no-cache", "Cache-Control" : "no-cache", "Expires" : "01.01.2000" };
+			headers["Content-Range"] = "bytes " + res.startRange + "-" + res.finishRange + "/" + total;
+			headers["Content-Length"] = (res.finishRange - res.startRange);
+			res.writeHead(206, headers);
+			rs.pipe(res);
+		});
+		
+		rs.on('error', function(err) {
+			console.log(err);
+			res.startRange = null;
+			res.writeHead(500);
+			res.end();
+		});
+	});		
+}
+
+
+Server.Init();
+

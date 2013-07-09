@@ -57,6 +57,13 @@ VideoServer.OnConnect = function(req, res){
 		res.end();	
 		return;
 	}
+	if (user.hash != hash){
+		console.log("Incorrect hash: " + hash);
+		res.setHeader("Content-Type", "text/plain; charset=utf-8");
+		res.writeHead(403);
+		res.end();	
+		return;
+	}
 	if ((new Date() - user.time.valueOf()) > 20*(60000)){
 		console.log("User expired: " + user);
 		VideoServer.Users[uid] = null;
@@ -73,7 +80,8 @@ VideoServer.OnConnect = function(req, res){
 		res.end();	
 		return;
 	}
-	if (referer != config.RefererPage + "?userid=" + uid + "&key=" + user.hash){
+	var regex = new RegExp(config.RefererPage.replace("{uid}", uid.toLowerCase()).replace("{key}", user.hash.toLowerCase()));
+	if (!regex.test(referer.toLowerCase())){
 		console.log("UNAUTHORIZED ACCESS!!!: " + referer);
 		VideoServer.Users[uid] = null;
 		res.setHeader("Content-Type", "text/plain; charset=utf-8");
