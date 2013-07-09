@@ -66,7 +66,7 @@ Controller.StartProtection = function(){
 	protectionBox.show();
 	if (!protectionBox.get(".watermark")){
 		var wm = protectionBox.div(".watermark");
-		wm.textContent = Request.Params.userid;
+		wm.textContent = video_params.userid;
 		wm.xpos = 100;
 		wm.ypos = 240;
 		wm.ticks = 0;

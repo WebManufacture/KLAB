@@ -80,7 +80,7 @@ VideoServer.OnConnect = function(req, res){
 		rs.on('open', function () {
 			var headers = { "Accept-Ranges": "bytes", "Content-Type": "video/mp4", "pragma": "no-cache", "Cache-Control" : "no-cache", "Expires" : "01.01.2000" };
 			headers["Content-Range"] = "bytes " + res.startRange + "-" + res.finishRange + "/" + total;
-			headers["Content-Length"] = (res.finishRange - res.startRange);
+			headers["Content-Length"] = (res.finishRange - res.startRange) + 1;
 			res.writeHead(206, headers);
 			rs.pipe(res);
 		});
