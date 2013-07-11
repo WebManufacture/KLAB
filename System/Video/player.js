@@ -10,6 +10,8 @@ VideoController.InitBox = function(PlayerBox){
 	var VideoBox = PlayerBox.add("<video class='video-box vjs-default-skin'></video>");
 	VideoBox.set("@poster", PlayerBox.get("@poster"));
 	if (PlayerBox.get("@type")) VideoBox.set("@type", PlayerBox.get("@type"));
+	VideoBox.set("@width", PlayerBox.offsetWidth + "px");
+	VideoBox.set("@height", PlayerBox.offsetHeight + "px");
 	var protectionBox = PlayerBox.div(".protection-box");
 	protectionBox.addEventListener("DOMNodeRemoved", function(){
 		PlayerBox.del();
