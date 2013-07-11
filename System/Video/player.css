@@ -2,26 +2,26 @@
 	display: none!important;	
 }
 
-#VideoBox{
+.player-box .video-box{
 	width : 640px;
 	height : 360px;
 }
 
-#PlayerBox {
+.player-box {
 	position : relative;
 	width : 640px;
 	height : 360px;
 	background: gray;
 }
 
-#PlayerBox .control-box{
+.player-box .control-box{
 	position: absolute;
 	z-index: 10;		
 	width : 480px;
 	display: none;
 }
 
-#PlayerBox:hover .control-box{
+.player-box:hover .control-box{
 	display : block;
 	position: absolute;
 	bottom: 0;
@@ -31,23 +31,23 @@
 	background-color: rgba(100, 120, 120, 0.4);
 }
 
-#PlayerBox .control-box .video-control.play{
+.player-box .control-box .video-control.play{
 	display: inline-block;	
 }
 
-#PlayerBox.playing .control-box .video-control.play{
+.player-box.playing .control-box .video-control.play{
 	display: none;	
 }
 
-#PlayerBox .control-box .video-control.pause{
+.player-box .control-box .video-control.pause{
 	display: none;	
 }
 
-#PlayerBox.playing .control-box .video-control.pause{
+.player-box.playing .control-box .video-control.pause{
 	display: inline-block;	
 }
 
-#protectionBox{
+.player-box .protection-box{
 	position: absolute;
 	top : 0;
 	left : 0;		
@@ -57,18 +57,18 @@
 	z-index: 5;
 }
 
-#PlayerBox.error{
+.player-box.error{
 	background: #ccc;	
 }
 
-#PlayerBox.error .error-box{
+.player-box.error .error-box{
 	padding-top: 100px;
 	color: red;
 	font-size: 20px;
 }
 
 
-#protectionBox .watermark{
+.player-box protectionBox .watermark{
 	position: absolute;
 	width: 80px;
 	height: 40px;
@@ -76,16 +76,16 @@
 	opacity: 0.5;
 }
 
-.vjs-fullscreen-control{
+.player-box .vjs-fullscreen-control{
 	display: none!important;	
 }
 
-.vjs-control-bar{
+.player-box .vjs-control-bar{
 	padding-right: 10px;
 	font-size: 67%;
 }
 
-.vjs-big-play-button {
+.player-box .vjs-big-play-button {
 	top: 36%!important;
 	left: 38%!important;
 }
