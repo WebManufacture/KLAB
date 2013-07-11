@@ -20,17 +20,32 @@ VideoController.InitBox = function(PlayerBox){
 		var src = PlayerBox.get("@src");
 		PlayerBox.show();
 		VideoBox = videojs(VideoBox, {"controls": true, "autoplay": false, "preload": "none"}, function(){
-			// Player (this) is initialized and ready.
+			var video = PlayerBox.get("video");
+			video.set("@width", PlayerBox.offsetWidth);
+			video.set("@height", PlayerBox.offsetHeight);
+			this.src(src + "?userid=" + video_params.userid + "&key=" + video_params.key);
+			this.on('fullscreenchange', function(){
+				VideoBox.cancelFullScreen();
+			});					
+			this.on("play", function(){
+				if (PlayerBox.StartProtection()){
+					PlayerBox.add(".playing");		
+				} 
+			});	
+			this.on("pause", function(){
+				PlayerBox.StopProtection();
+				PlayerBox.del(".playing");		
+			});
+			this.on("error", function(err){
+				PlayerBox.StopProtection();
+				PlayerBox.ProtectTick = null;
+				PlayerBox.del(".playing");
+				PlayerBox.get("video").del();
+				protectionBox.hide();
+				PlayerBox.add(".error");
+				PlayerBox.div(".error-box", "Произошла ошибка при воспроизведении видео. Перезагрузите страницу, чтобы продолжить просмотр");
+			});
 		});
-		VideoBox.src(src + "?userid=" + video_params.userid + "&key=" + video_params.key);
-		VideoBox.on('fullscreenchange', function(){
-			VideoBox.cancelFullScreen();
-		});					
-		VideoBox.on("play", function(){
-			if (PlayerBox.StartProtection()){
-				PlayerBox.add(".playing");		
-			} 
-		});	
 		PlayerBox.WTop = 270;
 		PlayerBox.WBottom = 300;
 		PlayerBox.WLeft = 100;
@@ -85,19 +100,7 @@ VideoController.InitBox = function(PlayerBox){
 			wm.style.left = wm.xpos + "px";
 			wm.style.top = wm.ypos + "px";
 		}
-		VideoBox.on("pause", function(){
-			PlayerBox.StopProtection();
-			PlayerBox.del(".playing");		
-		});
-		VideoBox.on("error", function(err){
-			PlayerBox.StopProtection();
-			PlayerBox.ProtectTick = null;
-			PlayerBox.del(".playing");
-			PlayerBox.get("video").del();
-			protectionBox.hide();
-			PlayerBox.add(".error");
-			PlayerBox.div(".error-box", "Произошла ошибка при воспроизведении видео. Перезагрузите страницу, чтобы продолжить просмотр");
-		});
+		
 		protectionBox.onclick = function(){
 			if (PlayerBox.is(".playing")){
 				VideoBox.pause();
