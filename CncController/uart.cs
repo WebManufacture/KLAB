@@ -27,47 +27,54 @@ public class Startup
             {
                 if (action == "write")
                 {
-                    device.Send((byte[])input["data"]);
-                    return null;
+                    Task.Run<object>(() => { return device.Send((byte[])input["data"]); });
                 }
                 if (action == "command")
                 {
                     var obj = new MotorCommand();
 					if (input.ContainsKey("line"))
                     {
-                        obj.programLine = (byte)input["line"];
+                        obj.Line = Convert.ToInt32(input["line"]);
                     }
                     if (input.ContainsKey("command"))
                     {
-                        obj.command = (byte)input["command"];
+                        obj.Command = Convert.ToByte(input["command"]);
                     }
                     if (input.ContainsKey("speed"))
                     {
-                        obj.Speed = (ushort)input["speed"];
+                        obj.Speed = Convert.ToUInt16(input["speed"]);
                     }
                     if (input.ContainsKey("x"))
                     {
-                        obj.X = (int)input["x"];
+                        obj.X = Convert.ToInt32(input["x"]);
                     }
                     if (input.ContainsKey("y"))
                     {
-                        obj.Y = (int)input["y"];
+                        obj.Y = Convert.ToInt32(input["y"]);
                     }
                     if (input.ContainsKey("z"))
                     {
-                        obj.Z = (int)input["z"];
+                        obj.Z = Convert.ToInt32(input["z"]);
                     }
-                    device.Send(obj);
-                    return null;
+                    return  Task.Run<object>(() => { return device.Send(obj); });
                 }
                 if (action == "close")
                 {
                     device.Close();
-                    return null;
+                    Task.Run<object>(() => { return (object)null; });
                 }
                 if (action == "read")
                 {
-                    return Task.Run<object>(() => { return device.Read(); });
+                    return Task.Run<object>(() => { 
+						try{
+							var result = device.Read();
+							return result;
+						}
+						catch(Exception err){
+							//return err.StackTrace;
+							throw err;
+						}
+					});
                 }
                 if (action == "state")
                 {
@@ -115,12 +122,12 @@ public class Startup
 
 public class MotorCommand
 {
-    public byte command;
-    public uint? programLine;
-    public int? X;
-    public int? Y;
-    public int? Z;
-    public ushort? Speed;
+    public byte Command;
+    public int Line;
+    public int X;
+    public int Y;
+    public int Z;
+    public ushort Speed;
 }
 
 public class MotorState
@@ -135,8 +142,8 @@ public class MotorState
     public byte state;
     public byte stateA;
     public byte stateB;
-    public DateTime date = DateTime.Now;
-    public ushort line;
+    public string date;
+    public int line;
 }
 
 public enum ASCII : byte
@@ -196,7 +203,8 @@ public enum UARTReadingState
 {
     free,
     reading,
-    readingSized
+    readingSized,
+    error
 }
 
 
@@ -250,6 +258,7 @@ public class Device
             device.Close();
             State = EDeviceState.Unknown;
         }
+        device.Open();
         device.ReadTimeout = timeout;
         device.WriteTimeout = timeout;
     }
@@ -290,14 +299,15 @@ public class Device
 
     public MotorState Read()
     {
+        if (readState != UARTReadingState.free) return null;
         var readTimeout = device.ReadTimeout / 100;
         byte[] receivedBuf = null;
         int readingIndex = 0;
-        while (readTimeout > 0 && device.IsOpen)
+        while ((readTimeout > 0 || readState != UARTReadingState.free) && device.IsOpen)
         {
             readTimeout--;
             int bytesRead = device.BytesToRead;
-            if (bytesRead == 0)
+            if (bytesRead == 0 && readState == UARTReadingState.free)
             {
                 break;
             }
@@ -332,9 +342,9 @@ public class Device
                     else
                     {
                         State = EDeviceState.Error;
-                        break;
+                        readState = UARTReadingState.error;
+                        return null;
                     }
-                    readState = UARTReadingState.free;
                 }
                 else
                 {
@@ -343,6 +353,7 @@ public class Device
                 }
             }
         }
+        readState = UARTReadingState.free;
         return null;
     }
 
@@ -372,14 +383,14 @@ public class Device
         return true;
     }
 
-    public void Send(byte command)
+    public bool Send(byte command)
     {
-        Send(new byte[] { command });
+        return Send(new byte[] { command });
     }
 
-    public void Send(string str)
+    public bool Send(string str)
     {
-        Send(ASCIIEncoding.ASCII.GetBytes(str));
+        return Send(ASCIIEncoding.ASCII.GetBytes(str));
     }
 
     private static int loadInt(byte[] arr, int index)
@@ -399,20 +410,21 @@ public class Device
     public MotorState ConvertData(byte[] data)
     {
         if (data == null) return null;
-        if (data.Length >= 30)
+        if (data.Length >= 32)
         {
             MotorState obj = new MotorState();
+            obj.date = DateTime.Now.ToString("dd.MM.yyyy HH:mm:ss.") + DateTime.Now.Millisecond;
             obj.command = data[0];
             obj.state = data[1];
-            obj.line = (ushort)(data[2] * 256 + data[3]);
-            obj.x = loadInt(data, 4);
-            obj.y = loadInt(data, 8);
-            obj.z = loadInt(data, 12);
-            obj.xLimit = loadInt(data, 16);
-            obj.yLimit = loadInt(data, 20);
-            obj.zLimit = loadInt(data, 24);
-            obj.stateA = data[28];
-            obj.stateB = data[29];
+            obj.line = loadInt(data, 2);
+            obj.x = loadInt(data, 6);
+            obj.y = loadInt(data, 10);
+            obj.z = loadInt(data, 14);
+            obj.xLimit = loadInt(data, 18);
+            obj.yLimit = loadInt(data, 22);
+            obj.zLimit = loadInt(data, 26);
+            obj.stateA = data[30];
+            obj.stateB = data[31];
             return obj;
         }
         return null;
@@ -424,30 +436,14 @@ public class Device
         {
             return false;
         }
-        byte[] bytes = new byte[18];
-        bytes[0] = (byte)data.command;
-        if (data.Speed.HasValue)
-        {
-            bytes[1] = (byte)(data.Speed.Value / 256);
-            bytes[2] = (byte)(data.Speed % 256);
-        }
-        if (data.programLine.HasValue)
-        {
-            bytes[3] = (byte)(data.programLine.Value / 256);
-            bytes[4] = (byte)(data.programLine % 256);
-        }
-        if (data.X.HasValue)
-        {
-            saveInt(bytes, 5, data.X.Value);
-        }
-        if (data.Y.HasValue)
-        {
-            saveInt(bytes, 9, data.Y.Value);
-        }
-        if (data.Z.HasValue)
-        {
-            saveInt(bytes, 13, data.Z.Value);
-        }
+        byte[] bytes = new byte[20];
+        bytes[0] = (byte)data.Command;
+        bytes[1] = (byte)(data.Speed / 256);
+        bytes[2] = (byte)(data.Speed % 256);
+        saveInt(bytes, 3, data.Line);
+        saveInt(bytes, 7, data.X);
+        saveInt(bytes, 11, data.Y);
+        saveInt(bytes, 15, data.Z);
         Send(bytes);
         return true;
     }

@@ -1,0 +1,5 @@
+#rect.qcnc
+M X+[param1]m 
+M Y+[param1]m
+M X-[param1]m
+M Y-[param1]m

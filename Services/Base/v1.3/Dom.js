@@ -832,7 +832,7 @@ return element;
 			}
 		} else {
 			for (var func in DOM) {
-				if (func.indexOf("_") == 0) {
+				if (func.indexOf("_") == 0 || typeof(DOM[func]) != 'function') {
 					continue;
 				}
 				proto["_" + func] = DOM[func];

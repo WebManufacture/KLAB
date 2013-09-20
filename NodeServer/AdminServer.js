@@ -44,7 +44,6 @@ NodeProto = {
 			host : this.Host,
 			port : this.Port,
 			location : this.Location,
-			type : this.Type,
 			name : this.NodeName
 		}
 	},	
@@ -78,7 +77,7 @@ Server.Init = function(){
 	Server.ConfigTable = JSON.parse(rtable);
 	if (rtable && rtable.length > 0){
 		rtable = JSON.parse(rtable);
-		if (rtable[0].Type == "server"){
+		if (rtable[0].Location = "server"){
 			for (var item in rtable[0]){
 				var val = rtable[0][item];
 				if (cfg[item] == undefined){
@@ -89,13 +88,10 @@ Server.Init = function(){
 		var port = cfg.portStart;
 		for (var i = 0; i < rtable.length; i++){
 			var item = Server.ConfigTable[i];
-			if (item.Type != "server"){
-				if (item.Type == "simple"){
-					rtable[i].File = "./NodeServer/klabServer.js";
-				}
+			if (item.Location != "server"){
 				var rr = Server.InitFork(rtable[i], port);
 				if (rr){
-					if (item.Type == "automate" || item.Type == "simple" || item.Type == "proxied"){
+					if (item.Location == "automate"){
 						if (Server.RoutingTable[rr.Host] != null){
 							console.log("duplicate host ".warn + rr.Host);
 							rr.State = "idle";
@@ -104,7 +100,7 @@ Server.Init = function(){
 							Server.RoutingTable[rr.Host] = rr;	
 						}				
 						port++;
-					}	
+					}					
 					Server.Nodes[rr.id] = rr;
 				}			
 			}
@@ -122,6 +118,7 @@ Server.SaveConfig = function(){
 
 Server.InitFork = function(rr, port){
 	rr.__proto__ = NodeProto;
+	//console.log(rr);
 	if (!rr.Args) rr.Args = {};
 	if (rr.Host){
 		rr.Args.Host = rr.Host = rr.Host.toLowerCase();
@@ -130,7 +127,7 @@ Server.InitFork = function(rr, port){
 		if (!rr.Port) rr.Port = port;
 		rr.Args.Port = port;
 	}
-	rr.Fork = Forks.Create(path.resolve(rr.File), rr.Args, rr.id);
+	rr.Fork = Forks.Create(path.resolve(rr.File), null, rr.id);
 	if (!rr.id){
 		rr.id = rr.Fork.id;
 	}
@@ -153,11 +150,10 @@ Server.InitFork = function(rr, port){
 	if (rr.State == "working"){	
 		rr.Fork.start();
 		rr.State = "working";
-		console.log(rr.Type.yellow + " " + rr.NodeName.info + " '" + rr.File + "' - " + (rr.Host + ":" + rr.Port).info);
+		console.log(rr.NodeName.info + " '" + rr.File + "' - " + (rr.Host + ":" + rr.Port).info);
 	}
 	else{
 		rr.State = "idle";	
-		console.log(rr.Type.grey + " " + rr.NodeName.info + " '" + rr.File + "' - " + (rr.Host + ":" + rr.Port).info);
 	}
 	rr.Fork.on("/process/http-response", Server.ForkResponse);
 	return rr;
@@ -308,12 +304,12 @@ Server.RouteProxy = function(req, res){
 	}
 	if (rr){	
 		res.setHeader("NodeId", nodeId);			
-		res.setHeader("NodeType", rr.Type);
-		if (rr.Type == "proxied" || rr.Type == "simple"){
+		res.setHeader("NodeType", rr.Location);
+		if (rr.Location == "localhost"){
 			proxy.proxyRequest(req, res, { host: "127.0.0.1", port: rr.Port });
 			return true;
 		}
-		if (rr.Type == "managed"){
+		if (rr.Location == "managed"){
 			return Server.RouteChannel(rr, req, res, url);
 		}
 	}

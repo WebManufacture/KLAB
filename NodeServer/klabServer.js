@@ -1,14 +1,14 @@
-var http = require('http');
+﻿var http = require('http');
 var Url = require('url');
 var fs = require('fs');
 var Path = require('path');
 try{
-	require("./Modules/Node/Utils.js");
-	require("./Modules/Channels.js");
-	require("./Modules/Node/ChildProcess.js");
-	var RouterModule = require("./Modules/Node/Router.js");
-	var Files = require("./Modules/Node/Files.js");
-	require('./Modules/Node/Logger.js');
+	require(Path.resolve("./Modules/Node/Utils.js"));
+	require(Path.resolve("./Modules/Channels.js"));
+	require(Path.resolve("./Modules/Node/ChildProcess.js"));
+	var RouterModule = require(Path.resolve("./Modules/Node/Router.js"));
+	var Files = require(Path.resolve("./Modules/Node/Files.js"));
+	require(Path.resolve('./Modules/Node/Logger.js'));
 
 	process.on('SIGTERM', function() {
 
@@ -18,10 +18,13 @@ try{
 		Server.HTTPServer.close();
 	});
 	
-	
 	Server = server = {};
-	
-	Server.Config = JSON.parse(process.argv[2]);
+	var args = {};
+	if (process.argv[2]){
+		args = process.argv[2];
+		args = JSON.parse(args);
+	}
+	Server.Config = args;
 		
 	Server.Process = function(req, res){
 		res.setHeader("Access-Control-Allow-Origin", "*");
@@ -109,7 +112,7 @@ try{
 					   "/<": filesRouter
 				   });
 		
-		console.log("KLab server v "  + 1.3);
+		console.log("KLab server v "  + 1.3 + " on " + config.Host + ":" + config.Port);
 		//console.log("Listening " +  config.Host + ":" + config.Port + "");
 		Server.HTTPServer = http.createServer(Server.Process);
 		Server.HTTPServer.listen(config.Port);

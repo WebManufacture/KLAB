@@ -105,7 +105,15 @@ Fork.prototype = {
 			args = JSON.parse(args);	
 		}
 		if (args) this.args = args;
-		var cp = this.process = ChildProcess.fork(this.path, args, { silent: false, cwd: process.cwd(), env : { workDir: paths.dirname(this.path), isChild : true } });
+		var cwd =  process.cwd();
+		if (args.cwd){
+			cwd = args.cwd;
+		}
+		var wd =  paths.dirname(this.path);
+		if (args.wd){
+			wd = args.wd;
+		}
+		var cp = this.process = ChildProcess.fork(this.path, args, { silent: false, cwd: cwd, env : { workDir: wd, isChild : true } });
 		this.logger.debug("fork started " + this.path);
 		this.code = Fork.STATUS_WORKING;	
 		if (callback){
@@ -235,9 +243,6 @@ var ForksRouter = {
 	Create: function(fpath, args, channelTags){
 		cf = new Fork(fpath, args, channelTags);
 		ForksRouter.Forks[cf.id] = cf;
-		if (args){
-			cf.start(args);
-		}
 		return cf;
 	},
 	

@@ -1,8 +1,11 @@
-[{"Port":80,"portStart":1000,"Location":"server","adminHost":"config.web-manufacture.net"},
- {"NodeName":"KLAB","Host":"klab.web-manufacture.net","Location":"localhost","File":"server.js","Args":{"value":1},"id":2,"State":"working"},
- {"NodeName":"Services","Host":"services.web-manufacture.net","Location":"localhost","File":"server.js","Args":{"basepath":"./services"},"id":3,"State":"working"},
- {"NodeName":"System","Host":"system.web-manufacture.net","Location":"localhost","File":"server.js","Args":{"basepath":"./system"},"id":4,"State":"working"},
- {"NodeName":"Video","Host":"video.web-manufacture.net","Location":"localhost","File":"VideoNet/server.js","Args":{"basepath":"./VideoNet", "ver":"0.12"},"id":"video","State":"working"},
- {"NodeName":"Identification", "id" : "identification", "Location":"managed", "File":"identification/ServerIPC.js","Args":{"value":3},"State":"working"},
- {"NodeName":"CncController", "id" : "cnccontroller", "Location":"managed", "File":"cnccontroller/CncController.js","Args":{},"State":"working"}
+[
+ {"Location":"server","Port":80,"portStart":1000, "Type":"server", "adminHost":"config.web-manufacture.net"},
+ {"NodeName":"Default","Host":"web-manufacture.net","Type":"simple","Args":{"basepath":"./Default"}, "id":"default","State":"working"},
+ {"NodeName":"KLAB","Host":"klab.web-manufacture.net","Type":"simple","id":"KLab","State":"working"},
+ {"NodeName":"Services","Host":"services.web-manufacture.net","Type":"simple","Args":{"basepath":"./services"},"id":"Services","State":"working"},
+ {"NodeName":"System","Host":"system.web-manufacture.net","Type":"simple","Args":{"basepath":"./system"},"id":"System","State":"working"},
+ {"NodeName":"eBox","Host":"ebox.web-manufacture.net", "id" : "ebox", "Type":"simple","Args":{"basepath":"./ebox"},"State":"working"},
+ {"NodeName":"Video","Host":"video.web-manufacture.net","Type":"automate","File":"VideoNet/server.js","Args":{"basepath":"./VideoNet", "ver":"0.12"},"id":"video","State":"idle"},
+ {"NodeName":"Identification", "id" : "identification", "Type":"managed", "File":"identification/ServerIPC.js","Args":{"value":3},"State":"idle"},
+ {"NodeName":"CncController", "id" : "cnccontroller", "Type":"managed", "File":"cnccontroller/CncController.js","Args":{},"State":"idle"}
 ]

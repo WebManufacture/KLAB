@@ -46,7 +46,7 @@ if (global.Channels){
 			for (var i = 1; i < arguments.length; i++){
 				params.push(arguments[i]);
 			}
-			console.log("<- " + pattern);
+			//console.log("<- " + pattern);
 			process.send({ type : "channelMessage", args : params });
 		});
 	};
