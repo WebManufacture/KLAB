@@ -116,6 +116,7 @@
 				var log = args[1];		
 				args.splice(2);
 				var logDiv = DOM.get('#logsMonitor');
+				if (log.type == "?") log.type = "log";
 				var proto = logDiv.get(".prototype." + log.type);
 				if (!proto){
 					proto = logDiv.get(".prototype.log");	

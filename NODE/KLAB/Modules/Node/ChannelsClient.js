@@ -24,7 +24,6 @@ HttpChannelsClient = {
 					//if (arguments[i].length && arguments[i].length > 100) params.push("Long param: " + arguments[i].length);
 					params.push(arguments[i]);
 				}
-				//console.log("--->" + message);
 				response.write(JSON.stringify(params) + "\n");
 			}
 			catch(e){

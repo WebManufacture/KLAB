@@ -24,25 +24,53 @@ try{
 	
 	Uart = {};
 		
+	MotorCommand = function(command){
+    	this.command = command;
+    	this.line = 0;
+    	this.x = 0;
+    	this.y = 0;
+    	this.z = 0;
+    	this.speed = 0;
+	}
+		
 	Uart.Write = function(data, callback){
 		if (!Uart.initialized) return;
 		data.action = 'command';
-		uartFunc(data, null); 
+		if (data.line){
+			//console.log(data.line + ": " + Symbols[data.command]);
+		}
+		uartFunc(data, function(err, result){
+			data.sended = true;	
+		}); 
 		//Uart.waitResponse(data.command);
+	};
+	
+	Uart.Command = function(command, callback){
+		if (!Uart.initialized) return;
+		command = new MotorCommand(command);
+		command.action = 'command';
+		console.log(command);
+		uartFunc(command, function(err, result){
+			command.sended = true;	
+		}); 
+		return command;
 	};
 	
 	Uart.Read = function(){
 		if (!Uart.initialized) return;
+		log("reading started");
 		var readFunc = function(){
 			uartFunc({action: "read"}, function(err, result){
-				if (err || !result){
-					setTimeout(readFunc, 200);	
+				if (err){
+					//log(err);
+					console.log(err);
+					setTimeout(readFunc, 2000);
+					return;
 				}
-				else{
-					if (typeof Uart.onMessage == 'function'){
-						Uart.onMessage(result);
-					}
+				if (result && result.command){
+					Channels.emit("uart.device", result);
 				}
+				setTimeout(readFunc, 200);
 			});
 		}	
 		setTimeout(readFunc, 200);
@@ -76,6 +104,7 @@ try{
 					log("UART initialized!");
 					Uart.initialized = true;
 					Uart.Read();
+					Uart.Command(Commands.State);
 				}
 			});
 		}	
@@ -110,9 +139,9 @@ try{
 		var config = Server.Config;
 		Server.InitDB();
 		Uart.Init();
-		Uart.onMessage = function(message){
-			Channels.emit("message", message);
-		}
+		Channels.on("uart.output", function(message, command){
+			Uart.Write(command);
+		});
 		Channels.on("/http-request.get/storage", function(route, id, url, headers, data){ 
 			fs.readFile(path + ".json", "utf8", function(err, result){   
 				if (err){
@@ -139,20 +168,35 @@ try{
 		Channels.on("/http-request.get/state", function(route, id, url, headers, data){ 
 			if (this.processsed) return;
 			Uart.GetState(function(result){
+				log("state ready");
+				Uart.Command(Commands.State);
 				Server.SendResponse(id, 200, result, null);
 			});
 			return false;
 		});	
 		Channels.on("/http-request.post/program", function(route, id, url, headers, data){ 
 			if (this.processsed) return;
-			Uart.Write(data);
-			return false;
+			var data = JSON.parse(data);
+			if (Server.program){
+				Server.program.close();	
+			}
+			Server.program = new CncProgram(data, Uart);
+			Server.program.Start();
+			Server.SendResponse(id, 200, data.length, null);
+			return true;
 		});		
 		Channels.on("/http-request.post/command", function(route, id, url, headers, data){ 
 			if (this.processsed) return;
-			Uart.Write(data);
-			return false;
+			var data = JSON.parse(data);
+			if (data.command == Commands.Stop && Server.program){
+				Server.program.Stop();
+			}
+			Channels.emit("uart.output", data);
+			Server.SendResponse(id, 200, data, null);
+			return true;
 		});
+		log("Uart channel ready");
+		console.log("Uart channel ready");
 	};
 	
 	Server.Finalize = function(context){		
@@ -228,4 +272,5 @@ catch(e){
 		throw(e);
 	}
 }
+
 

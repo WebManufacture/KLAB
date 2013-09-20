@@ -1,217 +1,178 @@
-function MotorState()
-{
-	this.command = 0;
-	this.x = null;
-	this.y = null;
-	this.z = null;
-	this.xLimit = null;
-	this.yLimit = null;
-	this.zLimit = null;
-	this.state = 0;
-	this.line = 0;
+function MotorState() {
+    this.command = 0;
+    this.x = null;
+    this.y = null;
+    this.z = null;
+    this.xLimit = null;
+    this.yLimit = null;
+    this.zLimit = null;
+    this.state = 0;
+    this.line = 0;
 }
 
-global.CommandType = 
+global.Commands = global.CommandType =
 {
-	Null : 0,
-	Go : 1,
-	Rebase : 2,
-	Stop : 3,
-	State : 4,
-	Pause : 6,
-	Resume : 7,
-	Error : 16
+    Null: 0,
+    Go: 1,
+    Rebase: 2,
+    Stop: 3,
+    State: 4,
+	Move: 5,
+    Pause: 6,
+    Resume: 7,
+    Error: 16
 }
 
-/*
-    public enum CncProgramState : byte
-    {
-        NotStarted,
-        Running,
-        Paused,
-        Completed,
-        Aborted
-    }
+global.Symbols = ['N', 'G', 'B', 'S', 'I', 'M', 'P', 'R'];
+Symbols[16] = 'E';
 
-    public class CncProgram
-    {
-        private static CncProgramState _state;
-        public static CncProgramState State
-        {
-            get { return _state; }
-            set
-            {
-                _state = value;
-                if (OnStateChange != null)
-                {
-                    OnStateChange(value);
-                }
-            }
+CncProgramState =
+{
+    NotStarted: 0,
+    Running: 1,
+    Paused: 2,
+    Completed: 3,
+    Aborted: 4
+}
+
+CncProgram = function (commands, uart) {
+    this.CurrentLine = 0;
+    this.uart = uart;
+    this.Commands = commands;
+    this._state = CncProgramState.NotStarted;
+	program = this;
+	var messageFunc = function(message, obj){
+		program.OnMessage(obj);	
+	}
+	this.close = function(){
+		Channels.clear("uart.device", messageFunc);
+	}
+	Channels.on("uart.device", messageFunc);
+	this.send = function(command){
+		Channels.emit("uart.output", command);	
+	}
+}
+
+CncProgram.prototype =
+{
+    _state: CncProgramState.NotStarted,
+
+    Exists: function () {
+        return this.Commands.length > 0;
+    },
+
+    InProgress: function () {
+        return _state > CncProgramState.NotStarted && _state < CncProgramState.Completed;
+    },
+
+    Commands: [],
+    CurrentLine: 0,
+    DebugMode: false,
+
+    Stop: function () {
+        this._state = CncProgramState.Aborted;
+		log("CNC Stop");
+    },
+
+    Start: function () {
+        this.CurrentLine = 1;
+		this._state = CncProgramState.Running;
+		this.Send(this.CurrentLine);
+		log("CNC Start");
+    },
+
+    Pause: function (obj) {
+        if (this._state < CncProgramState.Completed) {
+            this._state = CncProgramState.Paused;
+			var command = this.Commands[obj.line];
+			if (command && command.sended){
+				command.sended = false;
+			}
         }
+    },
 
-        public static  bool Exists
-        {
-            get { return Commands.Count > 0; }
+    Resume: function (obj) {
+        if (this._state < CncProgramState.Completed) {
+            this._state = CncProgramState.Running;
+			var command = this.Commands[obj.line];
+			if (command && command.sended){
+				command.sended = false;
+			}
         }
+    },
 
-        public static bool InProgress
-        {
-            get { return _state > CncProgramState.NotStarted && _state < CncProgramState.Completed; }
+	OnMessage : function(obj){
+		if (obj.command == 3) {
+            this.Stop();
+			this.close();
+            return;
         }
-
-        public static List<MotorCommand> Commands;
-        public static int CurrentLine;
-        public static bool DebugMode = false;
-
-        public static event ProgramStateHandler OnStateChange;
-        public static event CommandHandler OnCommand;
-
-        static CncProgram()
-        {
-            CurrentLine = 0;
-            Commands = new List<MotorCommand>();
-            _state = CncProgramState.NotStarted;
-            CncController.OnMessage += CncControllerOnOnMessage;
-        }
-
-        private static void CncControllerOnOnMessage(MotorState obj)
-        {
-            if (obj.command == 3)
-            {
-                CncProgram.Stop();
-                return;
-            }
-            if (CncProgram.Exists && CncProgram.InProgress && obj.line > 0)
-            {
-                if (obj.state == 1)
-                {
-                    CncProgram.Prepare(obj);
-                }
-                if (obj.state == 2)
-                {
-                    CncProgram.Next(obj);
-                }
-            }
-        }
-
-        public static void NewProgram(MotorCommand[] commands)
-        {
-            CurrentLine = 0;
-            Commands = new List<MotorCommand>(commands);
-            State = CncProgramState.NotStarted;
-        }
-
-        public static void NewProgram(List<MotorCommand> commands)
-        {
-            CurrentLine = 0;
-            Commands = commands;
-            State = CncProgramState.NotStarted;
-        }
-
-        public static  void Stop()
-        {
-            State = CncProgramState.Aborted;
-        }
-
-        public static void Run()
-        {
-            CurrentLine = 1;
-            if (DebugMode)
-            {
-                State = CncProgramState.Paused;
-            }
-            else
-            {
-                State = CncProgramState.Running;
-                Next(null);
-            }
-        }
-
-        public static void Pause()
-        {
-            if (State < CncProgramState.Completed)
-            {
-                State = CncProgramState.Paused;
-            }
-        }
-
-        public static void Resume()
-        {
-            if (State < CncProgramState.Completed)
-            {
-                State = CncProgramState.Running;
-            }
-        }
-
-        public static bool Next(MotorState state)
-        {
-            if (State > CncProgramState.Running)
-            {
-                return false;
-            }
-            if (CurrentLine > 0 && CurrentLine <= Commands.Count)
-            {
-                var command = Commands[CurrentLine - 1];
-                command.programLine = (uint)CurrentLine;
-                CurrentLine++;
-                if (command.Command == CommandType.Pause)
-                {
-                    Pause();
-                }
-                if (command.Command == CommandType.Resume)
-                {
-                    Resume();
-                }
-                if (!command.Sended)
-                {
-                    CncController.SendCommand(command);
-                }
-                if (OnCommand != null)
-                {
-                    try
-                    {
-                        OnCommand(command);
-                    }
-                    catch (Exception)
-                    {
-
-                    }
-                }
-                if (DebugMode) Pause();
-                return true;
-            }
-            if (State == CncProgramState.Running)
-            {
-                State = CncProgramState.Completed;
-            }
-            return false;
-        }
-
-        public static bool Prepare(MotorState state)
-        {
-            if (State > CncProgramState.Running)
-            {
-                return false;
-            }
-            if (CurrentLine > 0 && CurrentLine < Commands.Count) // CurrentLine 1...N, тут нужно иметь возможность выбрать еще 1 комманду
-            {
-                var command = Commands[CurrentLine - 1];
-                if (command.Sended) return true;
-                command.programLine = (uint)CurrentLine;
-                if (command.Command == CommandType.Go) //Отсылаем только комманды мотору
-                {
-                    CncController.SendCommand(command);
-                }
-                return true;
-            }
-            return false;
-        }
-
-        public override string ToString()
-        {
-            return JsonConvert.SerializeObject(this);
-        }
-
-    }
-*/
+		if (obj.command == 6) {
+			this.Pause(obj);
+			return;
+		}
+		if (obj.command == 7) {
+			this.Resume(obj);
+			return;
+		}
+		if (this.Exists && this.InProgress && obj.line > 0) {
+			if (obj.command == 1 || obj.command == 5) {
+				if (obj.state == 1) {
+					var command = this.Commands[obj.line - 1];
+					command.line = obj.line;
+					this.CurrentLine = obj.line;
+					this.Send(obj.line + 1);
+				}
+				if (obj.state == 2 || obj.state == 3) {
+					if (this._state == CncProgramState.Running && obj.line == this.Commands.length - 1) {
+						log("Program complete");
+						this._state = CncProgramState.Completed;
+						return;
+					}
+					var command = this.Commands[obj.line - 1];
+					command.line = obj.line;
+					command.completed = true;
+					if (obj.state == 2){
+						this.Send(obj.line + 1);
+					}
+				}
+				if (obj.state == 4) {
+					this.Stop();
+				}
+			}
+			else{
+				if (this._state == CncProgramState.Running && obj.line == this.Commands.length - 1) {
+					log("Program complete");
+					this._state = CncProgramState.Completed;
+					return;
+				}
+				var command = this.Commands[obj.line - 1];
+				command.line = obj.line;
+				command.completed = true;
+				this.Send(obj.line + 1);
+			}
+		}
+	},
 	
+    Send: function (line) {
+        if (this._state > CncProgramState.Running) {
+            return false;
+        }
+		if (line > 0 && line <= this.Commands.length){
+            var command = this.Commands[line - 1];
+            command.line = line;
+			if (!command.sended && !command.completed){
+				if (command.command == CommandType.Pause) {
+					Pause();
+					return true;
+				}
+				if (command.command == CommandType.Resume) {
+					Resume();
+				}			
+				this.send(command);
+			}
+            return true;
+        }        
+        return false;
+    },
+}

@@ -1,1 +1,5 @@
-{"MessagesUrl" : "http://config.web-manufacture.net/monitoring/cnccontroller.uart","CodeUrl" : "http://web-manufacture.net/CncController"}
+{   "MessagesUrl" : "http://web-manufacture.net/monitoring/cnccontroller/process/uart",
+	"StateUrl":"http://web-manufacture.net/CncController/State",
+	"CommandUrl":"http://web-manufacture.net/CncController/Command",
+	"ProgramUrl":"http://web-manufacture.net/CncController/Program",
+		"xSpeed" : 7000, "ySpeed" : 9000, "zSpeed" : 9500, "speed" : 8000}
