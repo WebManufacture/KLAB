@@ -118,6 +118,72 @@ try{
 		Server.HTTPServer.listen(config.Port);
 	};
 	
+		
+	Server.CreateMap = function(routerMapNode){
+		if (!routerMapNode) return;
+		var mapObj = null;
+		for (var item in routerMapNode){
+			if (item != "//"){
+				var node = routerMapNode[item];
+				if (node instanceof Array){
+					if (node.length > 0) {
+						if (!mapObj) mapObj = {};
+						if (node.length > 1) {
+							mapObj[item] = [];
+							for (var i = 0; i < node.length; i++)
+							{
+								var to = typeof(node[i]);
+								if (to == "object"){
+									to = (node[i]._ModuleName ? node[i]._ModuleName : "")  + "{" 
+									+ (node[0].GET ? "GET," : "")
+									+ (node[0].POST ? "POST," : "")
+									+ (node[0].PUT ? "PUT," : "")
+									+ (node[0].DELETE ? "DEL," : "")
+									+ (node[0].SEARCH ? "SRCH," : "")   
+									+ (node[0].HEAD ? "HEAD," : "")
+									+ (node[0].OPTIONS ? "OPTS," : "");
+									to = to.trim(",") + "}";
+									
+								}
+								if (to == "function"){
+									to += " " + node[i].name;
+								}
+								mapObj[item].push(to);
+							}
+						}
+						else{
+							var to = typeof(node[0]);
+							if (to == "object"){
+								to = (node[0]._ModuleName ? node[0]._ModuleName : "")  + "{" 
+								+ (node[0].GET ? "GET," : "")
+								+ (node[0].POST ? "POST," : "")
+								+ (node[0].PUT ? "PUT," : "")
+								+ (node[0].DELETE ? "DEL," : "")
+								+ (node[0].SEARCH ? "SRCH," : "")   
+								+ (node[0].HEAD ? "HEAD," : "")
+								+ (node[0].OPTIONS ? "OPTS," : "");
+								to = to.trim(",") + "}";
+								
+							}
+							if (to == "function"){
+								to += " " + node[0].name;
+							}
+							mapObj[item] = to;
+						}
+					}
+				}
+				else{
+					var value = Server.CreateMap(node);
+					if (value){
+						if (!mapObj) mapObj = {};
+						mapObj[item] = value;
+					}
+				}
+			}
+		}
+		return mapObj;
+	};
+	
 	Server.Init();
 }
 catch(e){
