@@ -38,7 +38,7 @@ HttpChannelsClient = {
 			context.break = true;
 			return false;
 		}
-		else{
+		else{		
 			context.finish(403, "handler not registered");
 			return true;
 		}

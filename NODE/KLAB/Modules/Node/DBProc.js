@@ -3,7 +3,12 @@ var Path = require('path');
 require(Path.resolve("./Modules/Node/Mongo.js"));
 
 module.exports = function(config, collection, logger){
-	log = logger;
+	if (logger){
+		var log = logger;
+	}
+	else{
+		log = require(Path.resolve("./Modules/Node/Logger.js")).primaryLogger;
+	}
 	if (!config){
 		return null;	
 	}
@@ -11,7 +16,7 @@ module.exports = function(config, collection, logger){
 	if (config.dbconf){
 		replicaSet(config.dbconf, config.dbname, function(err, database){
 			if (err){
-				error(err);	
+				log.error(err);	
 			}
 			DBProc.db = database;
 			DBProc.InitDB();
@@ -22,7 +27,7 @@ module.exports = function(config, collection, logger){
 		if (!config.dbport) config.dbport = 20000;
 		replicaSet([{host : config.dbhost, port : config.dbport}], config.dbname, function(err, database){
 			if (err){
-				error(err);	
+				log.error(err);	
 			}
 			DBProc.db = database;
 			DBProc.InitDB();
