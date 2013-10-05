@@ -11,6 +11,10 @@ function MapNode(parentPath){
 Router = {
 	HandlersIndex : [],	
 	Handlers : {},
+	WaitingContexts : {},
+	WaitingContextsCount : 0,
+	ProcessingContexts : {},
+	ProcessingContextsCount : 0,
 	
 	"for" : function(phase, path, handler){
 		if (!this.Handlers[phase]){
@@ -37,6 +41,9 @@ Router = {
 	},
 	
 	Process: function(context){
+		this.ProcessingContextsCount++;
+		this.ProcessingContexts[context.id] = context;
+		context.router = this;
 		for (var i = 0; i < this.HandlersIndex.length; i++){
 			var phase = this.HandlersIndex[i];
 			context.phases.push(phase);
@@ -237,11 +244,18 @@ Context.prototype = {
 					}
 				}
 				else{
-					if (!this.break){
-						setTimeout(function(){					
+					if (!this._aborted){
+						if (!this.router.WaitingContexts[this.id]){
+							this.router.WaitingContexts[this.id] = this;
+							this.router.WaitingContextsCount++;
+						}
+						this._currentTimeout = setTimeout(function(){					
 							context.log("New Phase ", phaseNum, " [", context.phases[phaseNum], "] WAITING!", numSpaces);
 							context.callPhaseChain(phaseNum, numSpaces + 1);
 						}, 10);
+					}
+					else{
+						this._abortProcessing();
 					}
 				}
 			}
@@ -251,12 +265,26 @@ Context.prototype = {
 		}
 		else
 		{
-			setTimeout(function(){					
-				context.log("Last Phase ", phaseNum, " [", context.phases[phaseNum], "] WAITING!", numSpaces);
-				context.callPhaseChain(phaseNum, numSpaces + 1);
-			}, 10);
+			if (!this._aborted){
+				if (!this.router.WaitingContexts[this.id]){
+					this.router.WaitingContexts[this.id] = this;
+					this.router.WaitingContextsCount++;
+				}
+				this._currentTimeout = setTimeout(function(){					
+					context.log("Last Phase ", phaseNum, " [", context.phases[phaseNum], "] WAITING!", numSpaces);
+					context.callPhaseChain(phaseNum, numSpaces + 1);
+				}, 10);
+			}
+			else{
+				this._abortProcessing();
+			}
 		}
 		this.log("Phase ", phaseNum, " Exited");
+	},
+	
+	"abort" : function(){
+		this._aborted = true;
+		clearTimeout(this._currentTimeout);
 	},
 	
 	"continue" : function(){
@@ -274,6 +302,10 @@ Context.prototype = {
 				if (result == false)
 				{
 					context.waiting = true;
+					return false;
+				}
+				if (context._aborted){
+					context.phaseProcessed = true;
 					return false;
 				}
 			}
@@ -313,8 +345,36 @@ Context.prototype = {
 		this.encoding = encoding;
 	},
 	
+	_abortProcessing : function(){
+		if (this.router){
+			this.log("Context aborted");
+			if (this.router.WaitingContexts[this.id]){
+				delete(this.router.WaitingContexts[this.id]);
+				this.router.WaitingContextsCount--;
+			}
+			if (this.router.ProcessingContexts[this.id]){
+				delete(this.router.ProcessingContexts[this.id]);
+				this.router.ProcessingContextsCount--;
+			}
+			delete(this.router);
+		}
+		delete(this.callPlans);
+	},
+	
 	_finish : function(status, result){
-		//console.log("finishing" + this.completed + " " + this.finalized);
+		if (this.router){
+			if (this.router.WaitingContexts[this.id]){
+				delete(this.router.WaitingContexts[this.id]);
+				this.router.WaitingContextsCount--;
+			}
+			if (this.router.ProcessingContexts[this.id]){
+				delete(this.router.ProcessingContexts[this.id]);
+				this.router.ProcessingContextsCount--;
+			}
+			delete(this.router);
+		}
+		delete(this.callPlans);
+		
 		if (this.req.method == 'HEAD' || this.req.method == "OPTIONS"){
 			return this._finishHead(status, result);
 		}

@@ -18,7 +18,7 @@ global.Fork = function(path, args, id, channelTags){
 	}	
 	if (!channelTags) channelTags = "";
 	this.channelId = "/" + this.id + channelTags;
-	this.logger = logModule(this.channelId + "/log");
+	this.logger = logModule.create(this.channelId + "/log");
 	this.subscribers = {};
 	var fork = this;
 	if (global.Channels){
