@@ -4,46 +4,43 @@ var fs = require('fs');
 var paths = require('path');
 var edge = require('edge');
 
-try{
+require(paths.resolve("./Modules/Node/Utils.js"));
+require(paths.resolve("./Modules/Channels.js"));
+require(paths.resolve('./Modules/Node/Logger.js'));
+require(paths.resolve('Uart/Uart.js'));
 
-	require(paths.resolve("./Modules/Node/Utils.js"));
-	require(paths.resolve("./Modules/Channels.js"));
-	require(paths.resolve('./Modules/Node/Logger.js'));
-	
-	UartServer = {};
-	UartServer.Path = process.env.workDir;
-	require(UartServer.Path + '/Uart.js');
+UartServer = {};
 
+UartPorts = {};
 
-	UartPorts = {};
-
-	UartServer.Init = function(){
-		var config = Server.Config;
-		Channels.on("uart.open", function(message, data, url, headers){
-			var port = this.path;
-			console.log('connecting ' + port);
-			port = UartPorts[port];
-			if (port){
-				if (!port.opened){
-					port.Open(data.speed, data.timeout);
-				}
-			}
-			else{
-				port = UartPorts[port] = new Uart(port, data.speed, data.timeout);
-				port.Open(data.speed, data.timeout);
-			}
-		});
-	};
-
-	UartServer.Init();
-
-}
-catch(e){
-	if (global.error){
+UartServer.Init = function(config, globalConfig, logger){
+	if (config){
+		UartServer.Config = config;
+	}
+	if (UartServer.Config.ProxyPort) UartServer.Config.ProxyPort = UartServer.Config.Port;
+	if (!module){
+		setTimeout(UartServer.Start, 100);
+	}
+};
+		
+UartServer.ProcessContext = function(context){
+	context.setHeader("Access-Control-Allow-Origin", "*");
+	context.setHeader("Access-Control-Allow-Methods", "GET, DELETE, PUT, POST, HEAD, OPTIONS, SEARCH");
+	context.setHeader("Access-Control-Allow-Headers", "debug-mode,origin,content-type");
+	context.setHeader("Access-Control-Max-Age", "12000");
+	context.setHeader("Access-Control-Expose-Headers", "content-type,debug-mode,Content-Type,ETag,Finish,Date,Start,Load");		
+	context.setHeader("Content-Type", "text/plain; charset=utf-8");
+	if (context.req.method == 'OPTIONS'){
+		context.finish(200, "OK");	
+		return true;
+	}
+	try{
+		return true;
+	}
+	catch (e){
 		error(e);
-		process.exit();
 	}
-	else{
-		throw(e);
-	}
-}
+	return true;
+};
+
+module.exports = UartServer;

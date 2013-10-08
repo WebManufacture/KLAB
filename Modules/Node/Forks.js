@@ -66,10 +66,10 @@ global.Fork = function(path, args, id, channelTags){
 	return this;
 };
 
-Fork.Statuses = ["new", "stoped", "exited", "reserved", "reserved", "reserved", "reserved", "working"];
+Fork.Statuses = ["new", "stopped", "exited", "reserved", "reserved", "reserved", "reserved", "working"];
 
 Fork.STATUS_NEW = 0;
-Fork.STATUS_STOPED = 1;
+Fork.STATUS_STOPPED = 1;
 Fork.STATUS_EXITED = 2;
 Fork.STATUS_WORKING = 7;
 
@@ -113,16 +113,16 @@ Fork.prototype = {
 		if (args.wd){
 			wd = args.wd;
 		}
-		var cp = this.process = ChildProcess.fork(this.path, args, { silent: false, cwd: cwd, env : { workDir: wd, isChild : true } });
+		var cp = this.process = ChildProcess.fork(this.path, [JSON.stringify(args)], { silent: false, cwd: cwd, env : { workDir: wd, isChild : true } });
 		this.logger.debug("fork started " + this.path);
 		this.code = Fork.STATUS_WORKING;	
 		if (callback){
 			var fork = this;
-			this.once(".status", function(){
+			this.once("/state", function(){
 				callback.call(fork, Fork.Statuses[fork.code]);	
 			});
 		}
-		this.emit(".status." + Fork.Statuses[this.code], Fork.Statuses[this.code]);
+		this.emit("/state." + Fork.Statuses[this.code], Fork.Statuses[this.code]);
 		var fork = this;
 		cp.on("exit", function(){
 			fork._exitEvent.apply(fork, arguments);
@@ -148,7 +148,7 @@ Fork.prototype = {
 			});
 		}
 		this.process.kill();
-		this.logger.debug("fork stoped " + this.path);
+		this.logger.debug("fork stopped " + this.path);
 		return this.process;
 	},
 	
@@ -162,7 +162,7 @@ Fork.prototype = {
 	
 	_exitEvent : function(signal){
 		this.code = Fork.STATUS_EXITED;
-		this.emit(".status." + Fork.Statuses[this.code], Fork.Statuses[this.code]);
+		this.emit("/state." + Fork.Statuses[this.code], Fork.Statuses[this.code]);
 		this.emit(".exit", signal);
 		this.logger.debug("fork exited " + this.path);
 	},

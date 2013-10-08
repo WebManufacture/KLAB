@@ -92,7 +92,8 @@
 				width: 250px;
 			}
 			
-			#NodesBlock .object-item[data-state='exited']{
+			#NodesBlock .object-item[data-state='exited'],
+			#NodesBlock .object-item[data-state='stopped']{
 				background-color: rgba(62, 112, 203, 0.5);
 			}
 			
@@ -106,6 +107,14 @@
 						
 			#NodesBlock .object-item[data-state='broken']{
 				background-color: rgba(166,155,0,0.5);
+			}
+			
+			#NodesBlock .object-item.proxied{
+				border: solid 2px navy;
+			}
+			
+			#NodesBlock .object-item.managed{
+				border: solid 2px yellow;
 			}
 			
 			#NodesBlock .object-item .node-host{
@@ -124,12 +133,17 @@
 				float: left;
 			}
 			
-			#NodesBlock .object-item.localhost .node-icon{
+			#NodesBlock .object-item.internal .node-icon{
+				background: url("http://www.iconsearch.ru/uploads/icons/realistik-new/128x128/memory.png") no-repeat center;
+				background-size: 90px;
+			}
+			
+			#NodesBlock .object-item.isolated .node-icon{
 				background: url("http://www.iconsearch.ru/uploads/icons/crystalclear/128x128/network_local.png") no-repeat center;
 				background-size: 90px;
 			}
 			
-			#NodesBlock .object-item.remote .node-icon{
+			#NodesBlock .object-item.external .node-icon{
 				background: url("http://www.iconsearch.ru/uploads/icons/glaze/128x128/network.png") no-repeat center;
 				
 				background-size: 90px;
@@ -180,7 +194,7 @@
 		<include url='http://services.web-manufacture.net/UI/HtmlElements.htm'></include>
 		<include url="http://services.web-manufacture.net/ui/Toolbars.htm"></include>
 		<div id='serverVer'></div>
-		<div class="simple-grid block" url='/nodes' id="NodesBlock" oninit="ConfManager.InitTable();">
+		<div class="simple-grid block" url='nodes/' id="NodesBlock" oninit="ConfManager.InitTable();">
 			<div class='object-template prototype'>
 				<div class='node-icon'></div>
 				<div class='node-host' field='host'>
@@ -253,7 +267,7 @@
 			
 			ConfManager.Init = function(){
 				Server = new KLabTunnel(null, false);
-				Server.channel = new HttpChannel("/monitoring/*", true);
+				Server.channel = new HttpChannel("/channels/*/state", true);
 				Server.channel.onRead.subscribe(function(messages, arg){
 					Notify.ShowMessage(messages);
 				});
@@ -310,16 +324,18 @@
 			};
 			
 			ConfManager.FormatNodeItem = function(item){
-				item.location = item.get("@data-location").toLowerCase(); 
-				item.add("." + item.location);
+				item.routingType = item.get("@data-nodeType").toLowerCase(); 
+				item.add("." + item.routingType);
+				item.processType = item.get("@data-processType").toLowerCase(); 
+				item.add("." + item.processType);
 				item.key = item.get("@key");
-				item.readChannel = new HttpChannel("/monitoring/" + item.key + ".status", true);
-				item.writeChannel = new HttpChannel("/monitoring/" + item.key + "/control", false);
+				item.readChannel = new HttpChannel("/channels/" + item.key + "/state", true);
+				item.writeChannel = new HttpChannel("/channels/" + item.key + "/control", false);
 				Server.Nodes[item.key] = item.channel;
 				item.readChannel.onRead.subscribe(function(messages){
 					if (messages.length >= 2 ){
 						var message = messages[0];
-						if (message.source.indexOf("/" + item.key + ".status") == 0){
+						if (message.source.indexOf("/" + item.key + "/state") == 0){
 							var arg = messages[1];
 							if (arg){
 								ConfManager.UpdateItem(item, arg);				

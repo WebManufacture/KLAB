@@ -1,13 +1,13 @@
 var http = require('http');
 var Url = require('url');
-var path = require('path');
-require(path.resolve("./Modules/Node/Utils.js"));
-var logger = require(path.resolve("./Modules/Node/Logger.js"));
-var Forks = require(path.resolve("./Modules/Node/Forks.js"));
-var Files = require(path.resolve("./Modules/Node/Files.js"));
-require(path.resolve("./Modules/Channels.js"));
-var channelsClient = require(path.resolve("./Modules/Node/ChannelsClient.js"));
-var DBProc = require(path.resolve("./Modules/Node/DBProc.js"));
+var Path = require('path');
+require(Path.resolve("./Modules/Node/Utils.js"));
+var logger = require(Path.resolve("./Modules/Node/Logger.js"));
+var Forks = require(Path.resolve("./Modules/Node/Forks.js"));
+var Files = require(Path.resolve("./Modules/Node/Files.js"));
+require(Path.resolve("./Modules/Channels.js"));
+var channelsClient = require(Path.resolve("./Modules/Node/ChannelsClient.js"));
+var DBProc = require(Path.resolve("./Modules/Node/DBProc.js"));
 var fs = require('fs');
 var httpProxy = require('http-proxy');
 var colors = require('colors');
@@ -32,15 +32,17 @@ NodeProto = {
 		return {
 			key : this.config.id,
 			id : this.config.id,
-			fork : this.Fork.toString(),
+			fork : this.Fork ? this.Fork.toString() : null,
 			args : this.config.Args,
 			state : this.config.State,
 			file : this.config.File,
 			host : this.config.Host,
 			port : this.config.Port,
-			localPort : this.config.localPort,
-			nodeType : this.config.Type,
-			name : this.config.NodeName
+			localPort : this.ProxyPort,
+			nodeType : this.type,
+			processType : this.process,
+			name : this.config.id,
+			url: this.url
 		}
 	},	
 	
@@ -50,40 +52,57 @@ NodeProto = {
 }
 
 InternalNode = function(item, config){
-	this.id = (rr.id + "").toLowerCase();
-	this.module = require(path.resolve(item.File));	
-	this.logger = logger.create(item.id + "/log");
-	if (this.module.Init){
-		this.module.Init(item, config, logger);
-	}
-	var node = this;
-	Channels.on(this.id + "/control.start", function(){
-		node.Start();
-	});
-	Channels.on(this.id + "/control.stop", function(){
-		node.Stop();
-	});	
-	Channels.on(this.id + "/control.reset", function(){
-		node.Reset();
-	});
-	return rr;
+	this.id = (item.id + "").toLowerCase();
+	this.config = item;
 }
 
 InternalNode.prototype = {
-	Init : function(){
+	Init : function(){	
+		var item = this.config;
+		this.logger = logger.create(this.id + "/log");
+		try{
+			this.module = require(Path.resolve(item.execFile));	
+			if (typeof(this.module) == "function"){
+				this.module = this.module(item);
+			}
+		}
+		catch (e){
+			error(e);
+			this.State = "exited";
+		}		
+		if (!this.module){
+			return;
+		}	
+		var module = this.module;
+		var node = this;		
 		if (this.type == "proxied" && this.module.ProcessRequest){
-			var module = this.module;
 			var serv = ILabRouter.AddNode(this, function(req, res, context){
-				module.ProcessRequest(req, res);
-				return false;
+				res.setHeader("Node", node.type + ":" + node.process + ":" + node.id);
+				return module.ProcessRequest(req, res);
 			});
 		}
-		if (this.type == "managed" && this.module.ProcessContext){
-			var module = this.module;
-			var serv = ILabRouter.AddNode(this, function(req, res, context){
+		if (this.type == "managed"){
+			var serv = ILabRouter.AddNode(this, function(context){
+				context.res.setHeader("Node", node.type + ":" + node.process + ":" + node.id);
 				return module.ProcessContext(context);
 			});
 		}
+		if (this.module.Init){
+			this.module.Init(item, ILab.Config, logger, serv ? serv.router : null);
+		}
+		var node = this;
+		Channels.on("/" + this.id + "/control.start", function(){
+			console.log("Starting: " + node.id);
+			node.Start();
+		});
+		Channels.on("/" + this.id + "/control.stop", function(){
+			console.log("Stopping: " + node.id);
+			node.Stop();
+		});	
+		Channels.on("/" + this.id + "/control.reset", function(){
+			console.log("Reset: " + node.id);
+			node.Reset();
+		});
 	},
 	
 	Start : function(){
@@ -91,11 +110,13 @@ InternalNode.prototype = {
 			var node = this;
 			this.module.Start(function(){
 				node.State = "working";
-				Channels.emit(node.id + "/state.working");			
+				console.log(node.id + " working".green);
+				Channels.emit("/" + node.id + "/state.working", "working");			
 			});
 		}
 		catch (e){
-			this.logger.error(e);
+			console.log(e);
+			Channels.emit("/" + node.id + "/state.error", "error");	
 		}
 	},	
 	
@@ -103,24 +124,26 @@ InternalNode.prototype = {
 		try{
 			var node = this;
 			this.module.Stop(function(){
-				node.State = "stoped";
-				Channels.emit(node.id + "/state.stoped");
+				node.State = "stopped";
+				console.log(node.id + " Stopped".yellow);
+				Channels.emit("/" + node.id + "/state.stopped", "stopped");
 			});			
 		}
 		catch (e){
-			this.logger.error(e);
+			Channels.emit("/" + node.id + "/state.error", "error");	
+			console.log(e);
 		}
 	},
 	
 	Reset : function(){
 		try{
 			if (this.State == "working"){
-				this.module.Stop();
+				this.Stop();
 			}
-			this.module.Start();
+			this.Start();
 		}
 		catch (e){
-			this.logger.error(e);
+			console.log(e);
 		}
 	}, 
 	
@@ -130,25 +153,25 @@ InternalNode.prototype = {
 }
 
 IsolatedNode = function(rr, config){
-	var fork = this.Fork = Forks.Create(path.resolve(rr.File), rr.Args, rr.id);
+	var fork = this.Fork = Forks.Create(rr.execFile, null, rr.id);
 	this.id = (rr.id + "").toLowerCase();
 	var node = this;
 	if (!rr.Args) rr.Args = {};
-	fork.args = JSON.stringify(rr.Args);
+	fork.args = JSON.stringify(rr);
 	fork.args = JSON.parse(fork.args);
 	fork.on(".status", function(message, state){
 		node.State = state;
 		if (state == "working"){
-			console.log(rr.Type.yellow + " " + rr.NodeName.info + " '" + rr.File + "' - " + (rr.Host + ":" + rr.Port).info);
+			console.log(rr.id + " working".info);
 		}
 	});
 	fork.on(".exit", function(message){
 		node.State = "exited";
-		console.log(" '" + rr.File + "' - " + (rr.Host + ":" + rr.Port) + " exited".warn);
+		console.log(rr.id + " '" + rr.execFile + "' - " + (rr.Host + ":" + node.ProxyPort) + " exited".warn);
 	});
 	fork.on(".error", function(cmessage, error){
 		node.State = "error";
-		console.log(" '" + rr.File + "' - " + (rr.Host + ":" + rr.Port) + " error".error);
+		console.log(rr.id + " '" + rr.execFile + "' - " + (rr.Host + ":" + node.ProxyPort) + " error".error);
 		//console.log(error);
 	});
 }
@@ -157,11 +180,24 @@ IsolatedNode.prototype = {
 	Init : function(item){
 		if (!item.Args) item.Args = {};
 		var pp = this.ProxyPort = ILabRouter.ProxyPort;
-		this.fork.args.ProxyPort = pp;
-		var serv = ILabRouter.AddNode(this, function(req, res){
-			proxy.proxyRequest(req, res, { host: "127.0.0.1", port: pp });
-			return false;
-		});
+		this.Fork.args.Host = "localhost";
+		this.Fork.args.ProxyPort = pp;
+		var node = this;
+		if (this.type == "managed"){
+			var serv = ILabRouter.AddNode(this, function(context){
+				context.res.setHeader("Node", node.type + ":" + node.process + ":" + node.id);
+				proxy.proxyRequest(context.req, context.res, { host: "localhost", port: pp });
+				context.abort();
+				return true;
+			});
+		}
+		if (this.type == "proxied"){
+			var serv = ILabRouter.AddNode(this, function(req, res){
+				res.setHeader("Node", node.type + ":" + node.process + ":" + node.id);
+				proxy.proxyRequest(req, res, { host: "localhost", port: pp });
+				return false;
+			});
+		}
 		ILabRouter.ProxyPort++;
 	},
 
@@ -218,7 +254,7 @@ ILab = {};
 
 ILab.Init = function(){
 	console.log(process.cwd().prompt);
-	var cfg = { ver: "0.1.4", cfgFile : "Config.json", routingFile: "RoutingTable.json" };
+	var cfg = { ver: "0.1.4", Port : 80, PortStart : 7000, cfgFile : "Config.json", routingFile: "RoutingTable.json" };
 	
 	for (var i = 2; i < process.argv.length; i++){
 		var arg = process.argv[i];
@@ -246,28 +282,58 @@ ILab.Init = function(){
 	var rtable = fs.readFileSync(cfg.routingFile, 'utf8');
 	ILab.ConfigSource = rtable = JSON.parse(rtable);
 	if (rtable && rtable.length > 0){
-		if (!cfg.Port) cfg.Port = 80;
 		ILabRouter.ProxyPort = cfg.PortStart;
 		for (var i = 0; i < rtable.length; i++){
 			var item = rtable[i];
 			if (!item.Process){item.Process = "internal"};
-			if (!item.id || Server.Nodes[item.id]) item.id = "node" + i;
+			if (!item.id || ILab.Nodes[item.id]) item.id = "node" + i;
+			item.id = item.id.toLowerCase();
 			if (item.Frame){
-				if (!item.Args) item.Args = {} ;
-				item.Args.File = item.File;
-				item.File = item.Frame + ".js"
+				item.execFile = item.Frame + ".js"
 			}
+			else{
+				item.execFile = item.File;
+			}			
+			if (!item.Type) item.Type = "inner";
 			if (item.Process == "internal") var node = new InternalNode(item, cfg);
 			if (item.Process == "isolated") var node = new IsolatedNode(item, cfg);
 			if (item.Process == "external") var node = new ExternalNode(item, cfg);
 			node.config = item;
 			node.process = item.Process;
 			node.type = item.Type;
-			node.Init(item, cfg);
-			ILab.Nodes[item.id] = node;
-			if (item.State == "working"){
-				node.Start();
+			if (!item.Path) item.Path = "/>";
+			node.Init(item, cfg);			
+			var port = item.Port;
+			if (node.ProxyPort) port = node.ProxyPort;
+			var itemPath = ((item.Host ? item.Host : "default") + ":" + (port ? port : cfg.Port));
+			if (node.path){
+				itemPath += node.path;
 			}
+			console.log((item.State == "working" ? node.type.yellow : node.type.grey) + " " + item.Process.cyan + " " + node.id.info + " " + (itemPath));
+			itemPath = ((item.Host ? item.Host : "default") + ":" + (item.Port ? item.Port : cfg.Port));
+			if (node.path){
+				itemPath += node.path;
+			}
+			if (cfg.ExternalHost){
+				itemPath = itemPath.replace("default", cfg.ExternalHost);
+			}
+			else{
+				itemPath = itemPath.replace("default", "localhost");
+			}
+			itemPath = itemPath.replace(">", "").replace("<", "");
+			node.url = "http://" + itemPath;
+			console.log((" '" + (item.Frame ? item.Frame  + " " : "") + item.File + "'").grey);
+			ILab.Nodes[item.id] = node;
+		}
+	}
+	ILab.Start();
+};
+
+ILab.Start = function(){
+	for (var id in ILab.Nodes){
+		var node = ILab.Nodes[id];
+		if (node.config.State == "working"){
+			node.Start();
 		}
 	}
 };
@@ -279,72 +345,11 @@ ILab.SaveConfig = function(){
 };
 
 ILabRouter = {
-	
+	Servers : {}
 };
-
-ILabRouter.ManagedProcess = function(req, res, url){
-	try{
-		var context = this.router.GetContext(req, res, "");
-		this.router.Process(context);	
-	}
-	catch (e){
-		if (context){
-			context.error(e);
-		}
-		throw e;
-	}
-	return true;
-};
-
-ILabRouter.CreateServer = function (Port){
-	console.log("ILAB server v "  + config.ver + " Listening " + Port + "");
-	http.createServer(function(req, res){
-		var port = Port;
-		var host = req.headers.host;
-		var url = "http://" + host + ":" + port + req.url;
-		url = Url.parse(url.toLowerCase(), true);
-		if (!Servers[port]){
-			res.end(404, "No Servers for this port");
-			return false;
-		}
-		res.setHeader("Access-Control-Expose-Headers", "content-type,debug-mode,Content-Type,ETag,Finish,ServerUrl,ServiceUrl,ManageUrl,Date,Start,Load,NodeId, NodeType");
-		if (global.ILab){
-			res.setHeader("ServiceUrl", global.ILab.ServiceUrl);
-		}
-		if (!Servers[port][host]){
-			if (!Servers[port]["default"]){
-				res.end(404, "No hosts handler for this port");
-				return false;
-			}
-			else{
-				return Servers[port]["default"].Process(req, res, url, host, port);
-			}
-		}
-		else{
-			return Servers[port][host].Process(req, res, url, host, port);
-		}
-	}).listen(Port);
-}
-
-
-ILabRouter.CreateRouter = function(port, host, config){
-	var router = require(Path.resolve("./Modules/Node/Router.js"));
-	router.map("Security", {});
-	router.map("Main", 
-			   {
-				   "/map": {
-					   GET : function(context){
-						   context.res.setHeader("Content-Type", "application/json; charset=utf-8");
-						   context.finish(200, JSON.stringify(Server.CreateMap(router.Handlers.mainMap)));
-					   }
-				   }
-				   "/<" channelsClient
-			   });
-	return router;
-}
 
 ILabRouter.CreateMap = function(routerMapNode){
-	if (!routerMapNode) return;
+	if (!routerMapNode) return "Undefined node";
 	var mapObj = null;
 	for (var item in routerMapNode){
 		if (item != "//"){
@@ -397,7 +402,7 @@ ILabRouter.CreateMap = function(routerMapNode){
 				}
 			}
 			else{
-				var value = CreateMap(node);
+				var value = ILabRouter.CreateMap(node);
 				if (value){
 					if (!mapObj) mapObj = {};
 					mapObj[item] = value;
@@ -422,7 +427,115 @@ ILabRouter.CreateChannelMap = function(channel, count){
 		}
 		else{
 			if (typeof(node) == "object"){
-				var value = CreateChannelMap(node, count + 1);
+				var value = ILabRouter.CreateChannelMap(node, count + 1);
+				if (value){			
+					mapObj[item] = value;
+				}
+			}
+			else{
+				mapObj[item] = node;
+			}
+		}
+	}
+	return mapObj;
+};
+
+ILabRouter.ManagedProcess = function(req, res, url){
+	try{
+		var context = this.router.GetContext(req, res, "");
+		this.router.Process(context);	
+	}
+	catch (e){
+		if (context){
+			context.error(e);
+		}
+		throw e;
+	}
+	return true;
+};
+
+ILabRouter.CreateServer = function (Port){
+	console.log("ILAB server v "  + ILab.Config.ver + " Listening " + Port + "");
+	var httpServer = http.createServer(function(req, res){
+		var port = Port;
+		var host = req.headers.host;
+		var url = "http://" + host + ":" + port + req.url;
+		url = Url.parse(url.toLowerCase(), true);
+		if (!ILabRouter.Servers[port]){
+			res.statusCode = 404;
+			res.end("No Servers for this port");
+			return false;
+		}
+		res.setHeader("Access-Control-Allow-Headers", "debug-mode,origin,content-type");
+		res.setHeader("Access-Control-Expose-Headers", "content-type,debug-mode,Content-Type,ETag,Finish,Server,ServerUrl,ServiceUrl,ManageUrl,Date,Start,Load,Node,NodeId, NodeType");
+		if (global.ILab){
+			res.setHeader("ServiceUrl", global.ILab.ServiceUrl);
+			res.setHeader("Server", "ILab " + ILab.Config.ver);
+		}
+		var handler = ILabRouter.Servers[port][host];
+		if (!handler){
+			var handler = ILabRouter.Servers[port]["default"];
+		}
+		if (handler){
+			return handler.Process(req, res, url, host, port);
+		}
+		else{
+			res.statusCode = 404;
+			res.end("No hosts handler for this port");
+			return false;
+		}
+	}).listen(Port);
+	return {
+		_httpServer : httpServer
+	};
+}
+
+ILabRouter.CreateRouter = function(port, host, config){
+	var router = require(Path.resolve("./Modules/Node/Router.js"))();
+	router.map("Security", {});
+	router.map("Main", 
+			   {
+				   "/map": {
+					   GET : function(context){
+						   context.res.setHeader("Content-Type", "application/json; charset=utf-8");
+						   context.finish(200, JSON.stringify(ILabRouter.CreateMap(router.Handlers.Main)));
+					   }
+				   },
+				   "/routing" : {
+						GET : function(context){
+							var obj = {
+								waiting : router.WaitingContextsCount,
+								processing : router.ProcessingContextsCount,
+							}
+							context.res.setHeader("Content-Type", "application/json; charset=utf-8");
+							context.finish(200, JSON.stringify(obj));
+						}
+				   },
+				   "/channelsMap" : {
+					   GET : function(context){
+							   context.res.setHeader("Content-Type", "application/json; charset=utf-8");
+							   context.finish(200, JSON.stringify(ILabRouter.CreateChannelMap(Channels.routes)));
+						}
+				   },
+				   "/channels/>" : channelsClient
+			   });
+	return router;
+}
+
+ILabRouter.CreateChannelMap = function(channel, count){
+	if (!count) count = 1;
+	//if (count > 10) return null;
+	if (!channel) return;
+	var mapObj = null;
+	for (var item in channel){
+		var node = channel[item];
+		if (!mapObj) mapObj = {};
+		if (Array.isArray(node)){
+			mapObj[item] = "[" + node.length + "]";
+		}
+		else{
+			if (typeof(node) == "object"){
+				var value = ILabRouter.CreateChannelMap(node, count + 1);
 				if (value){			
 					mapObj[item] = value;
 				}
@@ -437,34 +550,36 @@ ILabRouter.CreateChannelMap = function(channel, count){
 
 
 ILabRouter.AddManagedNode = function(node, host, port, path, callback){
-	if (Servers[port] == null) {
-		Servers[port] = CreateServer(port);
+	if (!port) throw "Port undefined: " + host + " " + node;
+	if (!ILabRouter.Servers[port]) {
+		ILabRouter.Servers[port] = ILabRouter.CreateServer(port);
 	}
-	var hosts = Servers[port];
+	var hosts = ILabRouter.Servers[port];
 	if (!host) host = "default";
-	if (!path) path = "/<";
+	if (!path || path == "") path = "/<";
+	node.path = path;
 	if (!hosts[host]){
 		hosts[host] = {
-			router : CreateRouter(port, host);
+			router : ILabRouter.CreateRouter(port, host),
 			host : host,
 			port : port,
+			path: path,
 			Process : ILabRouter.ManagedProcess			
 		}
 	}
 	var router = hosts[host].router;
-	router.for("Main", path,  function(context){
-		if (!callback.call(node, context.req, context.res)){
-			context.abort();
-		};
-	});
+	router.for("Main", path, callback);
 	return hosts[host];
 }
 
 ILabRouter.AddProxiedNode = function(node, host, port, path, callback){
-	if (Servers[port] == null) {
-		Servers[port] = CreateServer(port);
+	if (!port) throw "Port undefined: " + host + " " + node;
+	if (!ILabRouter.Servers[port]) {
+		ILabRouter.Servers[port] = ILabRouter.CreateServer(port);
 	}
-	var hosts = Servers[port];
+	var hosts = ILabRouter.Servers[port];
+	if (!path || path == "") path = "/<";
+	node.path = path;
 	if (!host) host = "default";
 	if (hosts[host]){
 		console.log(("Proxied Node " + node.id + " on " + host + ":" + port + " OVERLAP other server!").warn);
@@ -474,6 +589,7 @@ ILabRouter.AddProxiedNode = function(node, host, port, path, callback){
 		node : node,
 		host : host,
 		port : port,
+		path : path,
 		Process : function(req, res){
 			callback.call(node, req, res);
 		}
@@ -483,33 +599,33 @@ ILabRouter.AddProxiedNode = function(node, host, port, path, callback){
 
 ILabRouter.AddNode = function(node, callback){
 	var host = "default";
-	var port = ILab.Config.DefaultPort;
+	var port = ILab.Config.Port;
 	if (node.config.Host){
 		host = node.config.Host;
 	}
 	if (node.config.Port){
 		port = node.config.Port;
 	}
-	path = node.config.Path;
+	var path = node.config.Path.trim();
 	if (node.type == "managed"){
-		return AddManagedNode(node, host, port, path, callback);
+		return ILabRouter.AddManagedNode(node, host, port, path, callback);
 	}
 	if (node.type == "proxied"){
-		return AddProxiedNode(node, host, port, path, callback);
+		return ILabRouter.AddProxiedNode(node, host, port, path, callback);
 	}
 	return null;
 };
 
 process.on('SIGTERM', function() {
 	for (var item in ILab.Nodes){
-		console.log("EXITING: " + item.id.info);
+		console.log("EXITING: " + item.info);
 		ILab.Nodes[item].Stop();
 	}
 });
 
 process.on('exit',function(){
 	for (var item in ILab.Nodes){
-		console.log("EXITING: " + item.id.info);
+		console.log("EXITING: " + item.info);
 		ILab.Nodes[item].Stop();
 	}
 });

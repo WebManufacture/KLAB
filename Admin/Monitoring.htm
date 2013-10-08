@@ -65,7 +65,7 @@
 				Monitor.ForkId = Request.Params.fork;
 				if (!Monitor.ForkId.start("/")) Monitor.ForkId = "/" + Monitor.ForkId;
 				DOM("#urlBar").set(Monitor.ForkId);
-				Monitor.Url = "/monitoring" + Monitor.ForkId;
+				Monitor.Url = "/channels" + Monitor.ForkId;
 				
 				Server = new HttpChannel(Monitor.Url + "/control", false);
 				Server.Start = function(item){
@@ -78,7 +78,7 @@
 					this.send(".reset");
 				}				
 				
-				StatusChannel = new HttpChannel(Monitor.Url + ".status", true);
+				StatusChannel = new HttpChannel(Monitor.Url + "/state", true);
 				StatusChannel.onRead.subscribe(function(message){
 					if (message.length >= 2 ){
 						var arg = message[1];
@@ -88,11 +88,12 @@
 						}
 					}
 				});
-				LogsChannel = new HttpChannel(Monitor.Url + "/process/log", true);
-				LogsChannel.onRead.subscribe(Monitor.LogMessage);
 				
-				Net.get("/nodes" + Monitor.ForkId, function (result, status){
+				
+				Net.get("/config/nodes" + Monitor.ForkId, function (result, status){
 					if (status == 200){
+						LogsChannel = new HttpChannel(result.url + "channels/log", true);
+						LogsChannel.onRead.subscribe(Monitor.LogMessage);
 						Monitor.ServerStatus(result.state);	
 					}
 					else{

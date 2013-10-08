@@ -8,20 +8,22 @@ function MapNode(parentPath){
 	this["//"] = parentPath;
 };
 
-Router = {
-	HandlersIndex : [],	
-	Handlers : {},
-	WaitingContexts : {},
-	WaitingContextsCount : 0,
-	ProcessingContexts : {},
-	ProcessingContextsCount : 0,
-	
+Router = function(){
+	this.HandlersIndex = [];
+	this.Handlers = {};
+	this.WaitingContexts = {};
+	this.WaitingContextsCount = 0;
+	this.ProcessingContexts = {};
+	this.ProcessingContextsCount = 0;
+};
+
+Router.prototype = {
 	"for" : function(phase, path, handler){
 		if (!this.Handlers[phase]){
 			this.HandlersIndex.push(phase);
 			this.Handlers[phase] = new MapNode("/");
 		}
-		this._addHandler(this.Handlers[phase], path, handler);
+		this._addHandler(this.Handlers[phase], path.toLowerCase(), handler);
 	},
 	
 	map : function(phase, map){
@@ -31,7 +33,7 @@ Router = {
 		}
 		if (map){
 			for (var path in map){
-				this._addHandler(this.Handlers[phase], path, map[path]);
+				this._addHandler(this.Handlers[phase], path.toLowerCase(), map[path]);
 			}
 		}
 	},
@@ -106,9 +108,9 @@ Router = {
 	},
 };
 
-
-module.exports = Router;
-
+module.exports = function(){
+	return new Router();
+};
 
 function Context(req, res, rootPath){
 	this.id = (Math.random() + "").replace("0.", "");
@@ -121,12 +123,12 @@ function Context(req, res, rootPath){
 	this.query = this.url.query;
 	this.debugMode = req.headers["debug-mode"];
 	this.logs = [];
-	this.pathname = this.url.pathname;
+	this.pathname = this.url.pathname.toLowerCase();
 	if (!this.url.pathname.end("/")) this.url.pathname += "/";
 	//console.log(this.url.pathname);
-	this.pathName = this.url.pathname;
+	this.pathName = this.url.pathname.toLowerCase();
 	if (rootPath){
-		this.rootPath = rootPath.remove(0);
+		this.rootPath = rootPath.toLowerCase().substring(1).replace(">","").replace("<","");
 		this.pathName = this.pathName.replace(this.rootPath, "");
 	}
 	this.paths = this.pathName.split('/');
@@ -201,7 +203,7 @@ Context.prototype = {
 	getHandlerFunc : function(handler, mapNode, path){
 		return function(context){
 			context.path = mapNode["//"];
-			context.pathTail = context.url.pathname.replace(context.path, "");
+			context.pathTail = context.pathname.replace(context.path, "");
 			context.log("Calling ", context.path + path, ' with ', context.pathTail);
 			return handler(context);
 		}
@@ -324,17 +326,25 @@ Context.prototype = {
 	
 	finishHandler : function(context){
 		context.log("complete: ", new Date());
-		if (context.completed){
-			context._finish(context.endStatus, context.endResult);
-		}
-		else{
-			context._finish(404, "No handlers found for path " + context.url.pathname);
+		if (!this._aborted){
+			if (context.completed){
+				context._finish(context.endStatus, context.endResult);
+			}
+			else{
+				context._finish(404, "No handlers found for path " + context.pathName);
+			}
 		}
 	},
 	
 	write : function(result){
 		if (!this.endResult) this.endResult = "";
 		this.endResult += result;
+	},
+	
+	
+	setHeader : function(header, value){		
+		if (this.finalized) return;
+		this.res.setHeader(header, value);
 	},
 	
 	finish : function(status, result, encoding){
@@ -395,7 +405,6 @@ Context.prototype = {
 		this.completed = true;
 		this.finalized = true;
 		result = result + "";
-		this.res.setHeader("Server", "Klab ver 1.2.4");
 		this.res.setHeader("Start", this.startTime.valueOf());
 		this.res.setHeader("Finish", new Date().valueOf());
 		this.res.setHeader("Load", (new Date() - this.startTime) + " ms");

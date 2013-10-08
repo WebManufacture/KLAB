@@ -14,7 +14,7 @@ try{
 
 	});
 		
-	ProxiedServer = function(){;
+	ChannelsServer = function(){;
 		var args = {
 			Port: 80
 		};
@@ -39,7 +39,7 @@ try{
 		}
 	}
 		
-	ProxiedServer.prototype.Init = function(config, globalConfig, logger){
+	ChannelsServer.prototype.Init = function(config, globalConfig, logger){
 		if (config){
 			this.Config = config;
 		}
@@ -59,7 +59,7 @@ try{
 		}
 	};
 	
-	ProxiedServer.prototype.Start = function(callback){
+	ChannelsServer.prototype.Start = function(callback){
 		if (!module.parent){
 			console.log("Proxied server v "  + 1.3 + " on " + this.Config.Host + ":" + this.Config.ProxyPort + " with " + this.Config.File);
 			if (!this.HTTPServer){
@@ -80,7 +80,7 @@ try{
 	};
 	
 	
-	ProxiedServer.prototype.Stop = function(callback){
+	ChannelsServer.prototype.Stop = function(callback){
 		if (!module.parent){
 			if (this.HTTPServer){
 				this.HTTPServer.close();
@@ -98,9 +98,9 @@ try{
 		}
 	};
 	
-	ProxiedServer.prototype._ProcessRequest = function(req, res){
+	ChannelsServer.prototype._ProcessRequest = function(req, res){
 		res.setHeader("Access-Control-Allow-Origin", "*");
-		res.setHeader("Access-Control-Allow-Methods", "GET, DELETE, PUT, POST, HEAD, OPTIONS, SEARCH");
+		res.setHeader("Access-Control-Allow-Methods", "GET, POST, HEAD, OPTIONS");
 		res.setHeader("Access-Control-Max-Age", "12000");
 		res.setHeader("Content-Type", "text/plain; charset=utf-8");
 		if (req.method == 'OPTIONS'){
@@ -111,29 +111,12 @@ try{
 		var url = Url.parse(req.url);
 		try{
 			if (this.Enabled){
-				var serv = this.module;
-				if (serv){
-						if (typeof serv.Process == "function"){
-							setTimeout(function(){		
-								serv.Process(req, res, url);
-							}, 10);
-							return false;
-						}
-						if (typeof serv.Process == "object"){
-							if (typeof serv.Process[req.method] == "function"){
-							setTimeout(function(){		
-								serv.Process[req.method](req, res, url);
-							}, 10);
-							return false;
-						}						
-					}
-					res.statusCode = 500;
-					res.end("Handler error");
-				}	
-				else{
-					res.statusCode = 500;
-					res.end("Module error");	
-				}
+				if (typeof channelsClient[req.method] == "function"){
+					channelsClient[req.method](context);
+					return false;
+				}						
+				res.statusCode = 500;
+				res.end("Handler error");
 			}
 			else{
 				res.statusCode = 403;
@@ -151,29 +134,14 @@ try{
 		return true;
 	};
 	
-	ProxiedServer.prototype._ProcessContext = function(context){
+	ChannelsServer.prototype._ProcessContext = function(context){
 		var req = context.req;
 		var res = context.res;
 		var url = Url.parse(req.url);
-		if (ProxiedServer.Enabled){
-			var serv = this.module;
-			if (serv){
-				if (typeof serv.Process == "function"){
-					context.abort();
-					setTimeout(function(){			
-						serv.Process(req, res, url);
-					},10);
-					return false;
-				}
-				if (typeof serv.Process == "object"){
-					if (typeof serv.Process[req.method] == "function"){
-						context.abort();
-						setTimeout(function(){		
-							serv.Process[req.method](req, res, url);
-						}, 10);
-						return false;
-					}						
-				}
+		if (ChannelsServer.Enabled){
+			if (typeof channelsClient[req.method] == "function"){
+				channelsClient[req.method](context);
+				return false;
 			}	
 		}
 		return true;
@@ -181,11 +149,11 @@ try{
 	
 	if (module.parent){
 		module.exports = function(){
-			return new ProxiedServer();
+			return new ChannelsServer();
 		}
 	}
 	else{
-		var ms = new ProxiedServer();
+		var ms = new ChannelsServer();
 		ms.Init();
 	}
 }
