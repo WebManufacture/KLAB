@@ -84,9 +84,11 @@
 			return FS.Tree.all(".File.selected");
 		};
 		
-		FS.LoadTreeComplete = function(result, status) {
+		FS.LoadTreeComplete = function(files, status) {
 			if (status == 200){
-				var files = JSON.parse(result);
+				if (typeof files == 'string'){
+					files = JSON.parse(files);
+				}
 				if (FS.CurrentDir != "/"){
 					var fname = "..";
 					var file = FS.Tree.div();

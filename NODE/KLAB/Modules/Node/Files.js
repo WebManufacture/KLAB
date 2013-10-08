@@ -9,18 +9,13 @@ require(paths.resolve('./Modules/Node/Logger.js'));
 module.exports = function(config, server){
 	cfg = config;
 	if (!config) cfg = {};
-	if (!cfg.basepath){
-	    cfg.basepath = ".";
-	}
-	if (cfg.basepath.end("\\")){
-	    cfg.basepath = cfg.basepath.substr(0, cfg.basepath.length - 1);
-	}
-	return FilesRouter;
+	var router = new FilesRouter(cfg);
+	return router;
 };
 
-LastFiles = {};
+Files = {
 
-Files = {};
+};
 
 Files.MimeTypes = {
 	htm : "text/html; charset=utf-8",
@@ -36,23 +31,68 @@ Files.MimeTypes = {
 
 Files.channel = Channels.on("/file-system", new Channel("/file-system"));
 
-FilesRouter = {};
+FilesRouter = function(cfg){
+	if (!cfg.basepath){
+	    cfg.basepath = ".";
+	}
+	if (cfg.basepath.end("\\")){
+	    cfg.basepath = cfg.basepath.substr(0, cfg.basepath.length - 1);
+	}
+	this.config = cfg;
+	this.ProcessRequest = function(req, res, url){
+		if (!url){
+			url = Url.parse(req.url);
+		}
+		var context = {
+			req: req,
+			res: res,
+			url: url,
+			pathTail : url.pathname,
+			finish: function(header, body, ext){
+				this.res.statusCode = header;
+				this.res.end(body, ext);
+			},
+			"continue" : function(){}
+		}
+		if (typeof this[req.method] == "function"){
+			return this[req.method](context);
+		}
+		return null;
+	};
+	var router = this;
+	this.GET = function(context){
+		return router._GET(context);
+	}
+	this.POST = function(context){
+		return router._POST(context);
+	}
+	this.PUT = function(context){
+		return router._PUT(context);
+	}
+	this.HEAD = function(context){
+		return router._HEAD(context);
+	}
+	this.SEARCH = function(context){
+		return router._SEARCH(context);
+	}
+	this.LastFiles = {};
+};
 
-function FormatPath(fpath){
+FilesRouter.prototype.FormatPath = function(fpath){
     fpath = fpath.replace(/\//g, "\\");
 	if (!fpath.start("\\")) fpath = "\\" + fpath;
-	
-	fpath = cfg.basepath + fpath;
+	fpath = this.config.basepath + fpath;
+	fpath = fpath.replace(/\//g, "\\");
 	if (fpath.end("\\")) fpath = fpath.substr(0, fpath.length - 1);
 	return fpath.toLowerCase();
 }
 
-FilesRouter.GET = FilesRouter.HEAD = function(context){	
+FilesRouter.prototype._GET = FilesRouter.prototype._HEAD = function(context){	
 	if (context.completed) return true;
-	var fpath = FormatPath(context.pathTail);
+	var fpath = this.FormatPath(context.pathTail);
 	var inm = context.req.headers["if-none-match"];
 	//console.log("Cache: " + inm + " " +  LastFiles[fpath]);
-	if (inm && LastFiles[fpath] == inm){
+	if (inm && this.LastFiles[fpath] == inm){
 	    context.finish(304, null);
 	    return;
 	}
@@ -66,7 +106,8 @@ FilesRouter.GET = FilesRouter.HEAD = function(context){
 		context.res.setHeader("Content-Type", ext);	    
 	}
 	ext = 'binary';
-	fs.readFile(fpath, ext, function(err, result){
+	var router = this;
+	fs.readFile(paths.resolve(fpath), ext, function(err, result){
 		if (err){
 			context.finish(500, "File " + fpath + " read error " + err);
 			return;
@@ -76,10 +117,10 @@ FilesRouter.GET = FilesRouter.HEAD = function(context){
 		    context.res.setHeader("Content-Length", result.length);
 		}	
 		var dnow = new Date();
-		var etag = LastFiles[fpath];
+		var etag = router.LastFiles[fpath];
 		if (!etag){
             var etag = (Math.random() + "").replace("0.", "");
-		   	LastFiles[fpath] = etag;
+		   	router.LastFiles[fpath] = etag;
 			//console.log(etag);
 		}		
 		context.res.setHeader("Expires", new Date(dnow.valueOf() + 1000 * 3600).toString());
@@ -92,10 +133,10 @@ FilesRouter.GET = FilesRouter.HEAD = function(context){
 	return false;
 };
 
-FilesRouter.SEARCH = function(context){
+FilesRouter.prototype._SEARCH = function(context){
 	if (context.completed) return true;
-	var fpath = FormatPath(context.pathTail);
-	fs.readdir(fpath, function(err, files){
+	var fpath = this.FormatPath(context.pathTail);
+	fs.readdir(paths.resolve(fpath), function(err, files){
 		if (err){
 			context.finish(500, "readdir " + fpath + " error " + err);
 			return;
@@ -113,11 +154,11 @@ FilesRouter.SEARCH = function(context){
 	return false;
 };
 
-FilesRouter.DELETE = function(context){
+FilesRouter.prototype._DELETE = function(context){
 	if (context.completed) return true;
-	var fpath = FormatPath(context.pathTail);
-	delete LastFiles[fpath];
-	fs.exists(fpath, function(exists){
+	var fpath = this.FormatPath(context.pathTail);
+	delete this.LastFiles[fpath];
+	fs.exists(paths.resolve(fpath), function(exists){
 		if (!exists){
 			context.finish(404, "file " + fpath + " not found");
 			return;
@@ -138,18 +179,18 @@ FilesRouter.DELETE = function(context){
 	return false;
 };
 
-FilesRouter.POST = FilesRouter.PUT = function(context){
+FilesRouter.prototype._POST = FilesRouter.prototype._PUT = function(context){
 	if (context.completed) return true;
-	var fpath = FormatPath(context.pathTail);
+	var fpath = this.FormatPath(context.pathTail);
 	var fullData = "";
-	//console.log("updating cache: " + fpath + " " + LastFiles[fpath]);
-	delete LastFiles[fpath];
+	//console.log("updating cache: " + fpath + " " + this.LastFiles[fpath]);
+	delete this.LastFiles[fpath];
 	context.req.on("data", function(data){
 		fullData += data;		
 	});
 	context.req.on("end", function(){
 		info("Writing " + fpath);
-		fs.writeFile(fpath, fullData, 'utf8', function(err, result){
+		fs.writeFile(paths.resolve(fpath), fullData, 'utf8', function(err, result){
 			if (err){
 				context.finish(500, "File " + fpath + " write error " + err);
 				Files.channel.emit("action.write.error", fpath, err);
@@ -162,3 +203,4 @@ FilesRouter.POST = FilesRouter.PUT = function(context){
 	});
 	return false;
 };
+

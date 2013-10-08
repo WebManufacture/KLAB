@@ -31,15 +31,17 @@ HttpChannelsClient = {
 			}
 		}
 		request.on("close", function(){
+			//console.log("<< Channel unsubscribe: " + path);
 			Channels.clear(path, handler);
 		});
 		if (Channels.on(path, handler)){
 			response.setHeader("Content-Type", "application/json; charset=utf-8");		
-			context.break = true;
+			console.log(">> Channel subscribe: " + path);
+			context.abort();
 			return false;
 		}
 		else{		
-			context.finish(403, "handler not registered");
+			context.finish(403, "Channel not registered");
 			return true;
 		}
 	},
@@ -60,7 +62,7 @@ HttpChannelsClient = {
 			fullData += data;		
 		});
 		request.on("end", function(){
-			console.log(path);
+			console.log("Emit: " + path);
 			Channels.emit(path, fullData);
 			context.finish(200);
 			context.continue();
