@@ -1024,6 +1024,79 @@
 					
 				</div>			
 			</div>
+            <div class="edit-object-form prototype" extend="Grids.EditFormActions">
+                <div class="object-header">
+                    <div class='row'>
+                        <span class='label'>Исходная строка:</span>
+                        <span class='source-string'>г.Харьков,ул.Сумская,5,10</span>
+                    </div>
+                </div>
+                <div class="object-content">
+                    <div class='row'>
+                        <div class='half-row'>
+                            <div class='row'>
+                                <div class='input-wraper'>
+                                    <textarea>г.Харьков,ул.Сумская,5,10</textarea>
+                                </div>
+                            </div>
+                            <!--div class='row'>
+                                <div class='input-wraper'>
+                                    <span>г.Харьков</span>,<span>ул.Сумская</span>,<span>5</span>,<span>10</span>
+                                </div>
+                            </div-->
+                        </div>
+                        <div class='half-row'>
+                            <div class='row'>
+                                <span class='label'>Сеть:</span>
+                                <div class="input-wraper input-block">
+                                    <input field='parentId' />
+                                </div>
+                            </div>
+                            <div class='row'>
+                                <span class='label'>Клиент:</span>
+                                <div class="input-wraper input-block">
+                                    <input field='clientId' />
+                                </div>
+                            </div>
+                            <div class='row'>
+                                <span class='label'>Регион:</span>
+                                <div class="input-wraper input-block">
+                                    <input field='regionId' />
+                                </div>
+                            </div>
+                            <div class='row'>
+                                <span class='label'>Город:</span>
+                                <div class="input-wraper input-block">
+                                    <input field='cityId' />
+                                </div>
+                            </div>
+                            <div class='row'>
+                                <span class='label'>Улица:</span>
+                                <div class="input-wraper input-block">
+                                    <input field='streetId' />
+                                </div>
+                            </div>
+                            <div class='row'>
+                                <span class='label'>Дом</span>
+                                <div class="input-wraper input-block">
+                                    <input field='house' />
+                                </div>
+                            </div>
+                            <div class='row'>
+                                <span class='label'>Офис:</span>
+                                <div class="input-wraper input-block">
+                                    <input field='room' />
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="object-footer controls-panel">
+                    <div class="btn-ira ok " title="OK" onclick="this.Get(&quot;^.edit-object-form&quot;).Save(); event.stopPropagation();"> OK </div>
+                    <div class="btn-ira clear " onclick="this.Get(&quot;^.edit-object-form&quot;).Clear(); event.stopPropagation();" title="Clear"> Clear </div>
+                    <div class="btn-ira cancel " onclick="this.Get(&quot;^.edit-object-form&quot;).Cancel(); event.stopPropagation();" title="Cancel"> Cancel </div>
+                </div>
+            </div>
 		</div>
 		<script type='text/javascript'>
 			Regions = {};
@@ -1247,7 +1320,7 @@
 				</div>
 				<div class="edit-object-form prototype" extend="Grids.EditFormActions">
 					<div class="object-header">
-						
+
 					</div>
 					<div class="object-content">
 						<input class="field" field="Title" type='text'/>
