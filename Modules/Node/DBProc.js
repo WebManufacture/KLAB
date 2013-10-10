@@ -14,7 +14,7 @@ module.exports = function(config, collection, logger){
 	}
 	if (!config.dbname) config.dbname = "Accounts";
 	if (config.dbconf){
-		replicaSet(config.dbconf, config.dbname, function(err, database){
+		replicaSet([config.dbconf], config.dbname, function(err, database){
 			if (err){
 				log.error(err);	
 			}
