@@ -4,120 +4,115 @@ var Path = require('path');
 ObjectID = require('mongodb').ObjectID;
 var edge = require('edge');
 var uuid = require('node-uuid');
-try{
-	require(Path.resolve("./Modules/Node/Utils.js"));
-	require(Path.resolve("./Modules/Channels.js"));
-	require(Path.resolve("./Modules/Node/ChildProcess.js"));
-	require(Path.resolve('./Modules/Node/Logger.js'));
-	require(Path.resolve('./Modules/Node/Mongo.js'));
-	
-	Server = server = {};
-	
-	process.env.OWIN_SQL_CONNECTION_STRING = "Server=fias.web-manufacture.net;Database=fias;user id=fias;password=kladr98";
-	//process.env.OWIN_SQL_CONNECTION_STRING = "Server=localhost;Database=Unipharm;Integrated Security=SSPI";
-	
-	sql = edge.func('MSsql.csx');
-	
-	QuerySQL = function(query, callback){
-		sql(new Buffer(query, 'utf8'), function (err, results) {
-			if (err) error(err);
-			debug("SQL: " + query + " results " + JSON.stringify(results));
-			if (!results) {
-				callback([], err);
-				return;
-			}
-			var objects = [];
-			var fields = results[0];
-			for (var i = 1; i < results.length; i++){
-				var line = results[i];
-				var obj = {};
-				for (var col = 0; col < line.length; col++){
-					var colName = fields[col];
-					if (!colName) colName = "Column" + col;
-					colName = colName.toLowerCase();
-					obj[colName] = line[col];
-				}
-				objects.push(obj);
-			}
-			callback(objects, err);
-		});
-	};
-	
-	Server.InitDB = function (){
-		debug("connecting DB");
-		replicaSet([{host: "127.0.0.1", port : 20000}], "Identificator", function(err, database){
-			if (err){
-				error(err);	
-			}
-			global.db = database;
-		});
-	};
-	
-	Server.Config = JSON.parse(process.argv[2]);
 
-	Server.Init = function(){
-		var config = Server.Config;
-		Server.InitDB();
-		Channels.on("/http-request.post/fias", function(route, id, url, headers, data){ 
-			QuerySQL(data, function(result, err){
-				if (err){
-					Server.SendResponse(id, 500, err, {"Content-Type": "text/plain; charset=utf-8"});
-					return;
-				}		
-				Server.SendResponse(id, 200, JSON.stringify(result), {"Content-Type": "text/json; charset=utf-8"});
-			});
-			this.processsed = true;
-			return true;
-		});
-		Channels.on("/http-request.get/storage", function(route, id, url, headers, data){ 
-			var path = route.current.replace(/\//ig, "");
-			console.log(path);
-			fs.readFile(path + ".json", "utf8", function(err, result){   
-				if (err){
-					Server.SendResponse(id, 500, err);
-					return;
-				}		
-				Server.SendResponse(id, 200, result, {"Content-Type": "text/json; charset=utf-8"});
-			});
-			this.processsed = true;
-			return true;
-		});
-		Channels.on("/http-request.post/storage", function(route, id, url, headers, data){ 
-			var path = route.current.replace(/\//ig, "");
-			fs.writeFile(path + ".json", data, 'utf8', function(err, result){
-				if (err){
-					Server.SendResponse(id, 500, err);
-					return;
-				}		
-				Server.SendResponse(id, 200, "", {"Content-Type": "text/plain; charset=utf-8"});
-			});
-			this.processsed = true;
-			return true;
-		});
-		Channels.on("/http-request.put", function(route, id, url, headers, data){ 
-			if (this.processsed) return;
-			var path = route.current;
-			var context = Server.Context(id, url, path, headers, data);
-			if (context.url.query.action == 'all'){
-				return Server.All(context);
+require(Path.resolve("./Modules/Node/Utils.js"));
+require(Path.resolve("./Modules/Channels.js"));
+require(Path.resolve("./Modules/Node/ChildProcess.js"));
+require(Path.resolve('./Modules/Node/Logger.js'));
+require(Path.resolve('./Modules/Node/Mongo.js'));
+var DBProc = require(Path.resolve('./Modules/Node/DBProc.js'));
+var filesModule = require(Path.resolve('./Modules/Node/Files.js'));
+	
+IdentServer = {};
+	
+//process.env.OWIN_SQL_CONNECTION_STRING = "IdentServer=fias.web-manufacture.net;Database=fias;user id=fias;password=kladr98";
+process.env.OWIN_SQL_CONNECTION_STRING = "IdentServer=localhost;Database=fias;user id=fias;password=kladr98";
+
+sql = edge.func('./Sql/MSsql.csx');
+
+QuerySQL = function(query, callback){
+	sql(new Buffer(query, 'utf8'), function (err, results) {
+		if (err) error(err);
+		debug("SQL: " + query + " results " + JSON.stringify(results));
+		if (!results) {
+			callback([], err);
+			return;
+		}
+		var objects = [];
+		var fields = results[0];
+		for (var i = 1; i < results.length; i++){
+			var line = results[i];
+			var obj = {};
+			for (var col = 0; col < line.length; col++){
+				var colName = fields[col];
+				if (!colName) colName = "Column" + col;
+				colName = colName.toLowerCase();
+				obj[colName] = line[col];
 			}
-			if (context.url.query.action == 'get'){
-				return Server.Get(context);
-			}
-			if (context.url.query.action == 'set'){
-				return Server.Update(context);
-			}
-			if (context.url.query.action == 'add'){
-				return Server.Add(context);
-			}
-			if (context.url.query.action == 'del'){
-				return Server.Delete(context);
-			}
-			return Server.Finalize(context);
-		});		
+			objects.push(obj);
+		}
+		callback(objects, err);
+	});
+};
+	
+IdentServer.InitDB = function (){
+	debug("connecting DB");
+	replicaSet([{host: "127.0.0.1", port : 20000}], "Identificator", function(err, database){
+		if (err){
+			error(err);	
+		}
+		global.db = database;
+	});
+};
+	
+IdentServer.Init = function(config, router){
+		IdentServer.Config = config;
+		IdentServer.InitDB();
+		config.DBName = "Identificator";
+		//config.DBConf = {host: "127.0.0.1", port : 20000};
+		router.map("Main",{
+				"/fias/>" : {
+					POST: 
+						function(context){ 
+							QuerySQL(context.data, function(result, err){
+								if (err){
+									context.setHeader("Content-Type", "text/plain; charset=utf-8");
+									context.finish(500, err);
+									context.continue();
+									return;
+								}	
+								context.setHeader("Content-Type", "text/json; charset=utf-8");
+								context.finish(200,  JSON.stringify(result));
+								context.continue();
+							});
+							return false;
+						}
+				},
+				"/storage/>" : filesModule({basepath:"./identification/Storage"}),
+				"/<" : {
+					PUT : function(context){ 
+						if (this.finished) return true;
+						var fullData = "";
+						context.req.on("data", function(data){
+							fullData += data;		
+						});
+						context.req.on("end", function(){
+							context.data = fullData;
+							var path = context.pathThail;
+							if (context.url.query.action == 'all'){
+								IdentServer.All(context);
+							}
+							if (context.url.query.action == 'get'){
+								IdentServer.Get(context);
+							}
+							if (context.url.query.action == 'set'){
+								IdentServer.Update(context);
+							}
+							if (context.url.query.action == 'add'){
+								IdentServer.Add(context);
+							}
+							if (context.url.query.action == 'del'){
+								IdentServer.Delete(context);
+							}
+							context.continue();
+						});
+						return false;
+					}
+				},
+			});		
 	};
 	
-	Server.GetDataObj = function(context){
+	IdentServer.GetDataObj = function(context){
 		if (!context.data || !context.data.length) return null;
 		if (typeof context.data != 'string') return context.data;
 		var data = JSON.parse(context.data);
@@ -139,11 +134,11 @@ try{
 		return data;
 	};
 	
-	Server.All = function(context){		
+	IdentServer.All = function(context){		
 		context.setHeader("Content-Type", "text/plain; charset=utf-8");
 		try{
 			var collection = context.path;
-			var searchObj = Server.GetDataObj(context);
+			var searchObj = IdentServer.GetDataObj(context);
 			if (!searchObj){
 				searchObj = {};
 			}
@@ -180,11 +175,11 @@ try{
 		return true;
 	};
 	
-	Server.Get = function(context){		
+	IdentServer.Get = function(context){		
 		context.setHeader("Content-Type", "text/plain; charset=utf-8");
 		try{
 			var collection = context.path;
-			var searchObj = Server.GetDataObj(context);
+			var searchObj = IdentServer.GetDataObj(context);
 			if (!searchObj){
 				searchObj = {};
 			}
@@ -221,11 +216,11 @@ try{
 		return true;
 	};
 	
-	Server.Update = Server.Add = function(context){		
+	IdentServer.Update = IdentServer.Add = function(context){		
 		context.setHeader("Content-Type", "text/plain; charset=utf-8");
 		try{
 			var collection = context.path;
-			var doc = Server.GetDataObj(context);
+			var doc = IdentServer.GetDataObj(context);
 			if (doc){
 				db.collection(collection).save(doc, {safe : false}, function(err, result){
 					if (err){
@@ -254,11 +249,11 @@ try{
 		return true;
 	};
 	
-	Server.Delete = function(context){		
+	IdentServer.Delete = function(context){		
 		context.setHeader("Content-Type", "text/plain; charset=utf-8");
 		try{
 			var collection = context.path;
-			var doc = Server.GetDataObj(context);
+			var doc = IdentServer.GetDataObj(context);
 			debug("removing " + (doc ? JSON.stringify(doc) : "null"));
 			db.collection(collection).remove(doc, {safe : false}, function(err, result){
 					if (err){
@@ -282,18 +277,18 @@ try{
 		return true;
 	};	
 	
-	Server.Finalize = function(context){		
+	IdentServer.Finalize = function(context){		
 		context.setHeader("Content-Type", "text/plain; charset=utf-8");
 		context.finish(404, "URL not available");
 		return true;
 	};	
 	
-	Server.SendResponse = function(id, status, result, headers){
+	IdentServer.SendResponse = function(id, status, result, headers){
 		//console.log("response: id" + id);
 		Channels.emit("http-response.id" + id, id, status, result, headers);	
 	};
 	
-	Server.Context = function(id, url, path, headers, data){
+	IdentServer.Context = function(id, url, path, headers, data){
 		if (typeof(url) == "string") url = Url.parse(url, true);
 		context = { id : id, 
 				   url : url,
@@ -322,7 +317,7 @@ try{
 				if (encoding){
 					this.headers.encoding = encoding;
 				}
-				Server.SendResponse(this.id, status, result, this.headers);
+				IdentServer.SendResponse(this.id, status, result, this.headers);
 			}
 			catch(e){
 				console.log(e);	
@@ -331,15 +326,5 @@ try{
 		return context;
 	};
 	
-	Server.Init();
-}
-catch(e){
-	if (this.error){
-		error(e);	
-		process.exit();
-	}
-	else{
-		throw(e);
-	}
-}
-
+	
+module.exports = IdentServer;

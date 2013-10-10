@@ -4,7 +4,7 @@
  {"id":"Services","Host":"services.web-manufacture.net","Process":"internal","File":"StaticServer.js","Type":"proxied","basepath":"./services","State":"working"},
  {"id":"System","Host":"system.web-manufacture.net","Process":"internal","File":"StaticServer.js","Type":"proxied","basepath":"./system","State":"working"},
  {"id":"eBox","Host":"ebox.web-manufacture.net","Process":"internal","File":"StaticServer.js", "Type":"proxied","basepath":"./ebox","State":"working"},
- {"id":"Identification", "Host":"identification.web-manufacture.net","Process":"isolated", "Type":"proxied", "File":"identification/ServerIPC.js","State":"idle"},
+ {"id":"Identification", "Frame":"ManagedServer", "Path":"/identification/>","Process":"isolated", "Type":"managed", "File":"identification/ServerIPC.js","State":"idle"},
  {"id":"CncController", "Host":"cnc.web-manufacture.net", "Type":"proxied", "Process":"isolated","File":"cnccontroller/CncController.js","State":"idle"},
  {"id":"Uart", "Process":"internal", "File":"Uart/UartServer.js","State":"idle"}
 ]
