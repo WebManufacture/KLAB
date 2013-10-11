@@ -905,8 +905,11 @@
 				data.AddressUSource = Clients.GetCellValue(cells[6]);
 				data.INN = Clients.GetCellValue(cells[7]);
 				data.CityId = null;
+				data.StreetId = null;
 				data.RegionId = null;
 				data.Address = "";
+				data.House = "";
+				data.Room = "";
 				data.Client = "";
 				data.Comments = "";
 				data.Postal = null;
@@ -1049,31 +1052,31 @@
                             <div class='row'>
                                 <span class='label'>Сеть:</span>
                                 <div class="input-wraper input-block">
-                                    <input field='ParentClient' type='text' />
+                                    <input field='ParentClientId' type='text' />
                                 </div>
                             </div>
                             <div class='row'>
                                 <span class='label'>Клиент:</span>
                                 <div class="input-wraper input-block">
-                                    <input field='Client'  type='text'/>
+                                    <input field='ClientId'  type='text'/>
                                 </div>
                             </div>
                             <div class='row'>
                                 <span class='label'>Регион:</span>
                                 <div class="input-wraper input-block">
-                                    <input field='Region'  type='text'/>
+                                    <input field='RegionId'  type='text'/>
                                 </div>
                             </div>
                             <div class='row'>
                                 <span class='label'>Город:</span>
                                 <div class="input-wraper input-block">
-                                    <input field='City'  type='text'/>
+                                    <input field='CityId'  type='text'/>
                                 </div>
                             </div>
                             <div class='row'>
                                 <span class='label'>Улица:</span>
                                 <div class="input-wraper input-block">
-                                    <input field='Street'  type='text'/>
+                                    <input field='StreetId'  type='text'/>
                                 </div>
                             </div>
                             <div class='row'>
