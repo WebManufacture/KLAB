@@ -191,6 +191,9 @@ Grids._umGridMixin.EditObjectAction = function(obj) {
 		this.ObjectsContainer.ins(editForm);
 		return;
 	};
+	if (typeof editForm.Create == "function"){
+		editForm.Create(obj);
+	}
 	var allFields = obj.all('[field]');
 	for (var i = 0; i < allFields.length; i++) {
 		var field = allFields[i];
