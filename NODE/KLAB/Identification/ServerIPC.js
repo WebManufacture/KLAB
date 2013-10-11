@@ -69,7 +69,7 @@ IdentServer.Init = function(config, router){
 								fullData += data;		
 							});
 							context.req.on("end", function(){
-								QuerySQL(context.data, function(result, err){
+								QuerySQL(fullData, function(result, err){
 									if (err){
 										context.setHeader("Content-Type", "text/plain; charset=utf-8");
 										context.finish(500, err);
