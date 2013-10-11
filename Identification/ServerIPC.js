@@ -64,17 +64,23 @@ IdentServer.Init = function(config, router){
 				"/fias/>" : {
 					POST: 
 						function(context){ 
-							QuerySQL(context.data, function(result, err){
-								if (err){
-									context.setHeader("Content-Type", "text/plain; charset=utf-8");
-									context.finish(500, err);
-									context.continue();
-									return;
-								}	
-								context.setHeader("Content-Type", "text/json; charset=utf-8");
-								context.finish(200,  JSON.stringify(result));
-								context.continue();
+							var fullData = "";
+							context.req.on("data", function(data){
+								fullData += data;		
 							});
+							context.req.on("end", function(){
+								QuerySQL(context.data, function(result, err){
+									if (err){
+										context.setHeader("Content-Type", "text/plain; charset=utf-8");
+										context.finish(500, err);
+										context.continue();
+										return;
+									}	
+									context.setHeader("Content-Type", "text/json; charset=utf-8");
+									context.finish(200,  JSON.stringify(result));
+									context.continue();
+								});
+							});						
 							return false;
 						}
 				},
