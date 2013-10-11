@@ -23,7 +23,7 @@ if (!UsingDOM("KLabStorage")){
 		
 		_sendRequest : function(type, data, callback){
 			var storage = this;
-			return this.tunnel.PUT("?action=" + type, JSON.stringify(data), function(result){
+			return this.tunnel.POST("?action=" + type, JSON.stringify(data), function(result){
 				if (callback){
 					callback.call(this, result, storage);
 				}
