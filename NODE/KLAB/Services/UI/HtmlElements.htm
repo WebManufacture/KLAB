@@ -259,6 +259,165 @@ SearchBox.ShowSelectedByHint(search);
 	InputWDT.Context.Process = InputWDT.InitElement;
 	
 	C.Add(InputWDT.Context);
+	
+	LookupBox = {};
+	
+	LookupBox.InitElement = function(element){
+		var storageKey = element.get("@source");
+		element.storageKey = storageKey;
+		element.dataSource = new KLabTunnel(storageKey);
+		element.addEventListener("focus", LookupBox.ElementFocused);		
+		//element.addEventListener("keypress", LookupBox.KeyPressed);
+		element.addEventListener("keyup", LookupBox.KeyDown);
+		element.addEventListener("blur", LookupBox.ElementBlur);
+		var sb = element.LookupBox = DOM.div(".search-box.invisible");
+		if (element.nextElementSibling){
+			element.parentNode.insertBefore(sb, element.nextElementSibling);
+		}
+		else{			
+			element.parentNode.add(sb);
+		}
+		LookupBox.FillBox(element, sb);
+	};
+	
+	LookupBox.FillBox = function(element, searchBox){
+		element.dataSource.GET("?query=" + encodeURIComponent(element.value), function(result){
+			if (!result){
+				result = [];
+			};
+			//searchItems = searchItems.sort(LookupBox.SortByRatingAndAlfabet);
+			searchBox.del(".search-item");
+			for (var i = 0; i < result.length; i++){
+				LookupBox.AddSearchText(searchBox, result[i]);
+			};
+		});
+	};
+	
+	LookupBox.SortByRatingAndAlfabet = function(a, b){
+		if (a.rating == b.rating){
+			return a.query > b.query ? 1: -1;
+		};
+		return a.rating < b.rating ? 1 : -1;
+	};
+	
+	LookupBox.AddSearchText = function(elem, text){
+		var div = elem.div(".search-item");
+		div.textContent = text;
+		div.set("@search-value", text);
+		div.onclick = function(){
+			elem.value = this.textContent;	
+		}
+		return div;
+	};
+	
+	LookupBox.ElementFocused = function(){
+		this.LookupBox.show();
+		LookupBox.FilterByText(this.LookupBox, this.value);
+	};
+	
+	LookupBox.KeyPressed = function(){
+		LookupBox.FilterByText(this.LookupBox, this.value);
+	};
+	
+	LookupBox.KeyDown = function(event){
+		if (event.keyCode == 40){//down
+			var selected = this.LookupBox.get(".search-item.selected");
+			var next = null;
+			if (selected){
+				var next = selected.nextElementSibling;
+				while(next && next.is(".invisible")){
+					next = next.nextElementSibling;
+				}
+				selected.del(".selected");
+			}			
+			if (!next){
+				next = this.LookupBox.get(".search-item:not(.invisible)");
+			}
+			if (next){
+				next.add(".selected");
+				this.value = next.textContent;
+			}
+			return true;
+		}
+		if (event.keyCode == 38){ //up
+			var selected = this.LookupBox.get(".search-item.selected");
+			var next = null;
+			if (selected){
+				var next = selected.previousElementSibling;
+				while(next && next.is(".invisible")){
+					next = next.previousElementSibling;
+				}
+				selected.del(".selected");
+			}			
+			if (!next){
+				next = this.LookupBox.all(".search-item:not(.invisible)");
+				if (next.length > 0){
+					next = next[next.length - 1];	
+				}
+				else{
+					next = null;	
+				}
+			}
+			if (next){
+				next.add(".selected");
+				this.value = next.textContent;
+			}
+			return true;
+		}
+		if (event.keyCode == 13){ //up
+			var selected = this.LookupBox.get(".search-item.selected");
+			if (selected){
+				this.value = selected.textContent;				
+			}
+			LookupBox.ElementBlur.call(this);
+			return true;
+		}
+		LookupBox.FilterByText(this.LookupBox, this.value);
+	};
+	
+	LookupBox.ElementBlur = function(){
+		this.LookupBox.hide();
+		if (this.value == "" || this.is("empty")) return;
+		var elem = LookupBox.GetElemByText(this.LookupBox, this.value);
+		if (elem){
+			elem.Rating = (parseInt(elem.Rating) + 1) + "";
+		}
+		else{
+			LookupBox.AddSearchText(this.LookupBox, 0, this.value);
+		}
+		LookupBox.Save(this);
+	};
+	
+	LookupBox.GetElemByText = function(elem, text){
+		return elem.get(".search-item[search-value='" + text + "']");
+	};
+	
+	LookupBox.FilterByText = function(elem, text){
+		elem.all(".search-item.selected").del('.selected');
+		if (text == ""){
+			elem.all(".search-item").show();
+			return;
+		}
+		elem.all(".search-item").hide();
+		elem.all(".search-item[search-value^='" + text + "']").show();
+	};
+	
+	LookupBox.Save = function(inputObj){
+		var sitems = [];
+		var sbox = inputObj.LookupBox;
+		sbox.all(".search-item").each(function(item){
+			sitems.push({rating: item.Rating, query : item.innerHTML});
+		});
+		//localStorage.setItem(inputObj.storageKey, JSON.stringify(sitems));
+	};
+		
+	LookupBox.Context = { Condition: "ui-processing" };
+	LookupBox.Context.id = "UiLookupBoxContext";
+	LookupBox.Context.Selector = "input.lookup:not(.jasp-processed-UiLookupBoxContext)";
+	LookupBox.Context.Process = LookupBox.InitElement;
+	
+	C.Add(LookupBox.Context);
+	
 </script>
 
 <style type='text/css'>
