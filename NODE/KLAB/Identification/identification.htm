@@ -1052,25 +1052,25 @@
                             <div class='row'>
                                 <span class='label'>Сеть:</span>
                                 <div class="input-wraper input-block">
-                                    <input field='ParentClientId' type='text' />
+                                    <input field='ParentClient' type='text' />
                                 </div>
                             </div>
                             <div class='row'>
                                 <span class='label'>Клиент:</span>
                                 <div class="input-wraper input-block">
-                                    <input field='ClientId'  type='text'/>
+                                    <input field='ClientSource'  type='text'/>
                                 </div>
                             </div>
                             <div class='row'>
                                 <span class='label'>Регион:</span>
                                 <div class="input-wraper input-block">
-                                    <input field='RegionId'  type='text'/>
+                                    <input field='RegionSource'  type='text'/>
                                 </div>
                             </div>
                             <div class='row'>
                                 <span class='label'>Город:</span>
                                 <div class="input-wraper input-block">
-                                    <input field='CityId'  type='text'/>
+                                    <input field='CitySource'  type='text'/>
                                 </div>
                             </div>
                             <div class='row'>
@@ -1101,6 +1101,15 @@
                 </div>
             </div>
 		</div>
+        <script type='text/javascript'>
+            WS.DOMload(function(){
+                EV.AddHandler("OnModuleRegistered", function(){
+                    var formEditor = {};
+                    formEditor.prototype = Grids.EditFormActions;
+                    console.info(Grids);
+                }, 'http://services.web-manufacture.net/Grids/Grids.htm');
+            });
+        </script>
 		<script type='text/javascript'>
 			Regions = {};
 			
