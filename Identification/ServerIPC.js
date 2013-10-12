@@ -86,7 +86,7 @@ IdentServer.Init = function(config, router){
 				},
 				"/storage/>" : filesModule({basepath:"./identification/Storage"}),
 				"/<" : {
-					PUT : function(context){ 
+					POST : function(context){ 
 						if (this.finished) return true;
 						var fullData = "";
 						context.req.on("data", function(data){

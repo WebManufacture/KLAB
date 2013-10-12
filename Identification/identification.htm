@@ -1107,7 +1107,7 @@
                     var formEditor = {};
                     formEditor.prototype = Grids.EditFormActions;
                     console.info(Grids);
-                }, 'http://services.web-manufacture.net/Grids/Grids.htm');
+                }, 'http://services.web-manufacture.net/grids/grids.htm');
             });
         </script>
 		<script type='text/javascript'>
@@ -1302,7 +1302,7 @@
 			<div id='RegionsGrid' class='grid' storage-url='http://web-manufacture.net/identification/regions'>
 				<div class="content" >
 					<div class="table-header">			
-						<input class="search-input hintable" style="width:400px; align:center;">
+						<input class="search-input lookup" source='http://web-manufacture.net/identification/storage/regionsSrc.json' style="width:400px; align:center;">
 						<div class="table-controls">	
 							<div class="add-button small-object-button" title="Импорт клиентов" onclick="Regions.ShowImport();">	</div>
 						</div>
