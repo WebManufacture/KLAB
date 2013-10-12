@@ -294,18 +294,22 @@ SearchBox.ShowSelectedByHint(search);
 				//searchItems = searchItems.sort(LookupBox.SortByRatingAndAlfabet);
 				searchBox.del(".search-item");
 				for (var i = 0; i < result.length; i++){
-					LookupBox.AddSearchText(searchBox, result[i]);
+					LookupBox.AddSearchText.call(element, searchBox, result[i]);
 				};
 			});
 		}
 	};
 
-	LookupBox.AddSearchText = function(elem, text){
-		var div = elem.div(".search-item");
+	LookupBox.AddSearchText = function(searchBox, text){
+		var div = searchBox.div(".search-item");
 		div.textContent = text;
 		div.set("@search-value", text);
+		var elem = this;
 		div.onclick = function(){
-			elem.value = this.textContent;	
+			if (typeof elem.onHint == "function"){
+				if (elem.onHint(this)) return true;
+			}
+			elem.value = this.textContent;
 		}
 		return div;
 	};
@@ -467,7 +471,7 @@ SearchBox.ShowSelectedByHint(search);
 	
 	HintableBox.KeyDown = function(event){
 		if (event.keyCode == 40){//down
-			var selected = this.HintableBox.get(".search-item.selected");
+			var selected = this.HintsBox.get(".search-item.selected");
 			var next = null;
 			if (selected){
 				var next = selected.nextElementSibling;
@@ -477,7 +481,7 @@ SearchBox.ShowSelectedByHint(search);
 				selected.del(".selected");
 			}			
 			if (!next){
-				next = this.HintableBox.get(".search-item:not(.invisible)");
+				next = this.HintsBox.get(".search-item:not(.invisible)");
 			}
 			if (next){
 				next.add(".selected");
@@ -489,7 +493,7 @@ SearchBox.ShowSelectedByHint(search);
 			return true;
 		}
 		if (event.keyCode == 38){ //up
-			var selected = this.HintableBox.get(".search-item.selected");
+			var selected = this.HintsBox.get(".search-item.selected");
 			var next = null;
 			if (selected){
 				var next = selected.previousElementSibling;
@@ -499,7 +503,7 @@ SearchBox.ShowSelectedByHint(search);
 				selected.del(".selected");
 			}			
 			if (!next){
-				next = this.HintableBox.all(".search-item:not(.invisible)");
+				next = this.HintsBox.all(".search-item:not(.invisible)");
 				if (next.length > 0){
 					next = next[next.length - 1];	
 				}
@@ -517,7 +521,7 @@ SearchBox.ShowSelectedByHint(search);
 			return true;
 		}
 		if (event.keyCode == 13){ //up
-			var selected = this.HintableBox.get(".search-item.selected");
+			var selected = this.HintsBox.get(".search-item.selected");
 			if (selected){
 				this.value = selected.textContent;				
 			}
@@ -530,9 +534,9 @@ SearchBox.ShowSelectedByHint(search);
 	};
 	
 	HintableBox.ElementBlur = function(){
-		this.HintableBox.hide();
+		this.HintsBox.hide();
 		if (this.value == "" || this.is("empty")) return;
-		var elem = HintableBox.GetElemByText(this.HintableBox, this.value);
+		var elem = HintableBox.GetElemByText(this.HintsBox, this.value);
 		if (elem){
 			if (this.Controller && typeof this.Controller.OnHint){
 				if (this.Controller.OnHint.call(this, elem)) return true;
