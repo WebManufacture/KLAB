@@ -6,5 +6,5 @@
  {"id":"eBox","Host":"ebox.web-manufacture.net","Process":"internal","File":"StaticServer.js", "Type":"proxied","basepath":"./ebox","State":"working"},
  {"id":"Identification", "Frame":"ManagedServer", "Path":"/identification/>","Process":"isolated", "Type":"managed", "File":"identification/ServerIPC.js","State":"idle"},
  {"id":"CncController", "Host":"cnc.web-manufacture.net", "Type":"proxied", "Process":"isolated","File":"cnccontroller/CncController.js","State":"idle"},
- {"id":"Uart", "Process":"internal", "File":"Uart/UartServer.js","State":"idle"}
+ {"id":"Uart", "Frame":"ManagedServer", "Path":"/uart/>","Process":"isolated", "Type":"managed", "File":"Uart/UartServer.js","State":"idle"}
 ]
