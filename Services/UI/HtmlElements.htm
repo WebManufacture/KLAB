@@ -458,13 +458,13 @@ SearchBox.ShowSelectedByHint(search);
 	
 	HintableBox.ElementFocused = function(){
 		this.HintsBox.show();
-		if (this.Controller && typeof this.Controller.OnFocus){
+		if (this.Controller && typeof this.Controller.OnFocus == "function"){
 			this.Controller.OnFocus.call(this, this.HintsBox);
 		}
 	};
 	
 	HintableBox.KeyPressed = function(){
-		if (this.Controller && typeof this.Controller.OnFilter){
+		if (this.Controller && typeof this.Controller.OnFilter == "function"){
 			this.Controller.OnFilter.call(this, this.value, this.HintsBox);
 		}
 	};
@@ -485,7 +485,7 @@ SearchBox.ShowSelectedByHint(search);
 			}
 			if (next){
 				next.add(".selected");
-				if (this.Controller && typeof this.Controller.OnHint){
+				if (this.Controller && typeof this.Controller.OnHint == "function"){
 					if (this.Controller.OnHint.call(this, next)) return true;
 				}
 				this.value = next.textContent;
@@ -513,7 +513,7 @@ SearchBox.ShowSelectedByHint(search);
 			}
 			if (next){
 				next.add(".selected");
-				if (this.Controller && typeof this.Controller.OnHint){
+				if (this.Controller && typeof this.Controller.OnHint == "function"){
 					if (this.Controller.OnHint.call(this, next)) return true;
 				}
 				this.value = next.textContent;
@@ -528,7 +528,7 @@ SearchBox.ShowSelectedByHint(search);
 			HintableBox.ElementBlur.call(this);
 			return true;
 		}
-		if (this.Controller && typeof this.Controller.OnFilter){
+		if (this.Controller && typeof this.Controller.OnFilter == "function"){
 			this.Controller.OnFilter.call(this, this.value, this.HintsBox);
 		}
 	};
@@ -538,7 +538,7 @@ SearchBox.ShowSelectedByHint(search);
 		if (this.value == "" || this.is("empty")) return;
 		var elem = HintableBox.GetElemByText(this.HintsBox, this.value);
 		if (elem){
-			if (this.Controller && typeof this.Controller.OnHint){
+			if (this.Controller && typeof this.Controller.OnHint == "function"){
 				if (this.Controller.OnHint.call(this, elem)) return true;
 			}
 			this.value = elem.textContent;
