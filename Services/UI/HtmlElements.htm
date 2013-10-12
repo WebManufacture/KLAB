@@ -413,7 +413,7 @@ SearchBox.ShowSelectedByHint(search);
 		
 	LookupBox.Context = { Condition: "ui-processing" };
 	LookupBox.Context.id = "UiLookupBoxContext";
-	LookupBox.Context.Selector = "input.lookup:not(.jasp-processed-UiLookupBoxContext)";
+	LookupBox.Context.Selector = "input.lookup-box:not(.jasp-processed-UiLookupBoxContext)";
 	LookupBox.Context.Process = LookupBox.InitElement;
 	
 	C.Add(LookupBox.Context);
