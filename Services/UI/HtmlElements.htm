@@ -265,7 +265,9 @@ SearchBox.ShowSelectedByHint(search);
 	LookupBox.InitElement = function(element){
 		var storageKey = element.get("@source");
 		element.storageKey = storageKey;
-		element.dataSource = new KLabTunnel(storageKey);
+		if (storageKey){
+			element.dataSource = new KLabTunnel(storageKey);
+		}
 		element.addEventListener("focus", LookupBox.ElementFocused);		
 		//element.addEventListener("keypress", LookupBox.KeyPressed);
 		element.addEventListener("keyup", LookupBox.KeyDown);
@@ -281,16 +283,18 @@ SearchBox.ShowSelectedByHint(search);
 	};
 	
 	LookupBox.FillBox = function(element, searchBox){
-		element.dataSource.GET("?query=" + encodeURIComponent(element.value), function(result){
-			if (!result){
-				result = [];
-			};
-			//searchItems = searchItems.sort(LookupBox.SortByRatingAndAlfabet);
-			searchBox.del(".search-item");
-			for (var i = 0; i < result.length; i++){
-				LookupBox.AddSearchText(searchBox, result[i]);
-			};
-		});
+		if (element.dataSource){
+			element.dataSource.GET("?query=" + encodeURIComponent(element.value), function(result){
+				if (!result){
+					result = [];
+				};
+				//searchItems = searchItems.sort(LookupBox.SortByRatingAndAlfabet);
+				searchBox.del(".search-item");
+				for (var i = 0; i < result.length; i++){
+					LookupBox.AddSearchText(searchBox, result[i]);
+				};
+			});
+		}
 	};
 	
 	LookupBox.SortByRatingAndAlfabet = function(a, b){
@@ -312,11 +316,11 @@ SearchBox.ShowSelectedByHint(search);
 	
 	LookupBox.ElementFocused = function(){
 		this.LookupBox.show();
-		LookupBox.FilterByText(this.LookupBox, this.value);
+		LookupBox.FilterByText.call(this, this.LookupBox, this.value);
 	};
 	
 	LookupBox.KeyPressed = function(){
-		LookupBox.FilterByText(this.LookupBox, this.value);
+		LookupBox.FilterByText.call(this, this.LookupBox, this.value);
 	};
 	
 	LookupBox.KeyDown = function(event){
@@ -372,7 +376,7 @@ SearchBox.ShowSelectedByHint(search);
 			LookupBox.ElementBlur.call(this);
 			return true;
 		}
-		LookupBox.FilterByText(this.LookupBox, this.value);
+		LookupBox.FilterByText.call(this, this.LookupBox, this.value);
 	};
 	
 	LookupBox.ElementBlur = function(){
@@ -393,13 +397,18 @@ SearchBox.ShowSelectedByHint(search);
 	};
 	
 	LookupBox.FilterByText = function(elem, text){
-		elem.all(".search-item.selected").del('.selected');
-		if (text == ""){
-			elem.all(".search-item").show();
-			return;
+		if (typeof this.customFilter == "function"){
+			this.customFilter(elem);
 		}
-		elem.all(".search-item").hide();
-		elem.all(".search-item[search-value^='" + text + "']").show();
+		else{
+			elem.all(".search-item.selected").del('.selected');
+			if (text == ""){
+				elem.all(".search-item").show();
+				return;
+			}
+			elem.all(".search-item").hide();
+			elem.all(".search-item[search-value^='" + text + "']").show();
+		}
 	};
 	
 	LookupBox.Save = function(inputObj){
