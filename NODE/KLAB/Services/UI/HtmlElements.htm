@@ -394,12 +394,13 @@ SearchBox.ShowSelectedByHint(search);
 		if (this.value == "" || this.is("empty")) return;
 		var elem = LookupBox.GetElemByText(this.LookupBox, this.value);
 		if (elem){
-			elem.Rating = (parseInt(elem.Rating) + 1) + "";
+			if (typeof this.searchItemSelected == "function"){
+				this.searchItemSelected(elem);
+			}
+			else{
+				this.value = elem.textContent;
+			}
 		}
-		else{
-			LookupBox.AddSearchText(this.LookupBox, 0, this.value);
-		}
-		LookupBox.Save(this);
 	};
 	
 	LookupBox.GetElemByText = function(elem, text){
@@ -419,21 +420,148 @@ SearchBox.ShowSelectedByHint(search);
 		elem.all(".search-item[search-value^='" + text + "']").show();
 	};
 	
-	LookupBox.Save = function(inputObj){
-		var sitems = [];
-		var sbox = inputObj.LookupBox;
-		sbox.all(".search-item").each(function(item){
-			sitems.push({rating: item.Rating, query : item.innerHTML});
-		});
-		//localStorage.setItem(inputObj.storageKey, JSON.stringify(sitems));
-	};
-		
 	LookupBox.Context = { Condition: "ui-processing" };
 	LookupBox.Context.id = "UiLookupBoxContext";
 	LookupBox.Context.Selector = "input.lookup-box:not(.jasp-processed-UiLookupBoxContext)";
 	LookupBox.Context.Process = LookupBox.InitElement;
 	
 	C.Add(LookupBox.Context);
+	
+	
+	
+	HintableBox = {};
+	
+	HintableBox.InitElement = function(element){
+		element.addEventListener("focus", HintableBox.ElementFocused);		
+		//element.addEventListener("keypress", HintableBox.KeyPressed);
+		element.addEventListener("keyup", HintableBox.KeyDown);
+		element.addEventListener("blur", HintableBox.ElementBlur);
+		var sb = element.HintsBox = DOM.div(".search-box.invisible");
+		if (element.nextElementSibling){
+			element.parentNode.insertBefore(sb, element.nextElementSibling);
+		}
+		else{			
+			element.parentNode.add(sb);
+		}
+		element.AddSearchItem = HintableBox.AddSearchItem;
+		if (element.Controller && typeof element.Controller.Init == "function"){
+			element.Controller.Init.call(element, sb);
+		}
+	};
+			
+	HintableBox.AddSearchItem = function(text){
+		var div = this.HintsBox.div(".search-item");
+		div.textContent = text;
+		div.set("@search-value", text);
+		var elem = this;
+		div.onclick = function(){
+			if (elem.Controller && typeof elem.Controller.OnHint == "function"){
+				if (elem.Controller.OnHint.call(elem, this)) return;
+			}
+			elem.value = this.textContent;
+		}
+		return div;
+	};
+	
+	HintableBox.ElementFocused = function(){
+		this.HintsBox.show();
+		if (this.Controller && typeof this.Controller.OnFocus){
+			this.Controller.OnFocus.call(this, this.HintsBox);
+		}
+	};
+	
+	HintableBox.KeyPressed = function(){
+		if (this.Controller && typeof this.Controller.OnFilter){
+			this.Controller.OnFilter.call(this, this.value, this.HintsBox);
+		}
+	};
+	
+	HintableBox.KeyDown = function(event){
+		if (event.keyCode == 40){//down
+			var selected = this.HintableBox.get(".search-item.selected");
+			var next = null;
+			if (selected){
+				var next = selected.nextElementSibling;
+				while(next && next.is(".invisible")){
+					next = next.nextElementSibling;
+				}
+				selected.del(".selected");
+			}			
+			if (!next){
+				next = this.HintableBox.get(".search-item:not(.invisible)");
+			}
+			if (next){
+				next.add(".selected");
+				if (this.Controller && typeof this.Controller.OnHint){
+					if (this.Controller.OnHint.call(this, next)) return true;
+				}
+				this.value = next.textContent;
+			}
+			return true;
+		}
+		if (event.keyCode == 38){ //up
+			var selected = this.HintableBox.get(".search-item.selected");
+			var next = null;
+			if (selected){
+				var next = selected.previousElementSibling;
+				while(next && next.is(".invisible")){
+					next = next.previousElementSibling;
+				}
+				selected.del(".selected");
+			}			
+			if (!next){
+				next = this.HintableBox.all(".search-item:not(.invisible)");
+				if (next.length > 0){
+					next = next[next.length - 1];	
+				}
+				else{
+					next = null;	
+				}
+			}
+			if (next){
+				next.add(".selected");
+				if (this.Controller && typeof this.Controller.OnHint){
+					if (this.Controller.OnHint.call(this, next)) return true;
+				}
+				this.value = next.textContent;
+			}
+			return true;
+		}
+		if (event.keyCode == 13){ //up
+			var selected = this.HintableBox.get(".search-item.selected");
+			if (selected){
+				this.value = selected.textContent;				
+			}
+			HintableBox.ElementBlur.call(this);
+			return true;
+		}
+		if (this.Controller && typeof this.Controller.OnFilter){
+			this.Controller.OnFilter.call(this, this.value, this.HintsBox);
+		}
+	};
+	
+	HintableBox.ElementBlur = function(){
+		this.HintableBox.hide();
+		if (this.value == "" || this.is("empty")) return;
+		var elem = HintableBox.GetElemByText(this.HintableBox, this.value);
+		if (elem){
+			if (this.Controller && typeof this.Controller.OnHint){
+				if (this.Controller.OnHint.call(this, elem)) return true;
+			}
+			this.value = elem.textContent;
+		}
+	};
+	
+	HintableBox.GetElemByText = function(elem, text){
+		return elem.get(".search-item[search-value='" + text + "']");
+	};
+	
+	HintableBox.Context = { Condition: "ui-processing" };
+	HintableBox.Context.id = "UiHintableBoxContext";
+	HintableBox.Context.Selector = "input.hintable-box:not(.jasp-processed-UiHintableBoxContext)";
+	HintableBox.Context.Process = HintableBox.InitElement;
+	
+	C.Add(HintableBox.Context);
 	
 </script>
 
