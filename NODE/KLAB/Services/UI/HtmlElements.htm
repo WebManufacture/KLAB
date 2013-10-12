@@ -288,6 +288,9 @@ SearchBox.ShowSelectedByHint(search);
 				if (!result){
 					result = [];
 				};
+				if (typeof this.onData){
+				
+				}
 				//searchItems = searchItems.sort(LookupBox.SortByRatingAndAlfabet);
 				searchBox.del(".search-item");
 				for (var i = 0; i < result.length; i++){
@@ -296,14 +299,7 @@ SearchBox.ShowSelectedByHint(search);
 			});
 		}
 	};
-	
-	LookupBox.SortByRatingAndAlfabet = function(a, b){
-		if (a.rating == b.rating){
-			return a.query > b.query ? 1: -1;
-		};
-		return a.rating < b.rating ? 1 : -1;
-	};
-	
+
 	LookupBox.AddSearchText = function(elem, text){
 		var div = elem.div(".search-item");
 		div.textContent = text;
@@ -316,7 +312,6 @@ SearchBox.ShowSelectedByHint(search);
 	
 	LookupBox.ElementFocused = function(){
 		this.LookupBox.show();
-		LookupBox.FilterByText.call(this, this.LookupBox, this.value);
 	};
 	
 	LookupBox.KeyPressed = function(){
@@ -339,12 +334,11 @@ SearchBox.ShowSelectedByHint(search);
 			}
 			if (next){
 				next.add(".selected");
-				if (typeof this.searchItemSelected == "function"){
-					this.searchItemSelected(next);
+				this.selectedItem = next;
+				if (typeof this.onHint == "function"){
+					if (this.onHint(next)) return true;
 				}
-				else{
-					this.value = next.textContent;
-				}
+				this.value = next.textContent;
 			}
 			return true;
 		}
@@ -369,12 +363,11 @@ SearchBox.ShowSelectedByHint(search);
 			}
 			if (next){
 				next.add(".selected");
-				if (typeof this.searchItemSelected == "function"){
-					this.searchItemSelected(next);
+				this.selectedItem = next;
+				if (typeof this.onHint == "function"){
+					if (this.onHint(next)) return true;
 				}
-				else{
-					this.value = next.textContent;
-				}
+				this.value = next.textContent;
 			}
 			return true;
 		}
@@ -394,12 +387,11 @@ SearchBox.ShowSelectedByHint(search);
 		if (this.value == "" || this.is("empty")) return;
 		var elem = LookupBox.GetElemByText(this.LookupBox, this.value);
 		if (elem){
-			if (typeof this.searchItemSelected == "function"){
-				this.searchItemSelected(elem);
+			this.selectedItem = elem;
+			if (typeof this.onHint == "function"){
+				if (this.onHint(elem)) return;
 			}
-			else{
-				this.value = elem.textContent;
-			}
+			this.value = elem.textContent;
 		}
 	};
 	
@@ -408,9 +400,6 @@ SearchBox.ShowSelectedByHint(search);
 	};
 	
 	LookupBox.FilterByText = function(elem, text){
-		if (typeof this.customFilter == "function"){
-			if (!this.customFilter(elem)) return;
-		}
 		elem.all(".search-item.selected").del('.selected');
 		if (text == ""){
 			elem.all(".search-item").show();
@@ -444,8 +433,8 @@ SearchBox.ShowSelectedByHint(search);
 			element.parentNode.add(sb);
 		}
 		element.AddSearchItem = HintableBox.AddSearchItem;
-		if (element.Controller && typeof element.Controller.Init == "function"){
-			element.Controller.Init.call(element, sb);
+		if (element.Controller && typeof element.Controller.OnInit == "function"){
+			element.Controller.OnInit.call(element, sb);
 		}
 	};
 			
