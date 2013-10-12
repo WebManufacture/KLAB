@@ -408,17 +408,15 @@ SearchBox.ShowSelectedByHint(search);
 	
 	LookupBox.FilterByText = function(elem, text){
 		if (typeof this.customFilter == "function"){
-			this.customFilter(elem);
+			if (!this.customFilter(elem)) return;
 		}
-		else{
-			elem.all(".search-item.selected").del('.selected');
-			if (text == ""){
-				elem.all(".search-item").show();
-				return;
-			}
-			elem.all(".search-item").hide();
-			elem.all(".search-item[search-value^='" + text + "']").show();
+		elem.all(".search-item.selected").del('.selected');
+		if (text == ""){
+			elem.all(".search-item").show();
+			return;
 		}
+		elem.all(".search-item").hide();
+		elem.all(".search-item[search-value^='" + text + "']").show();
 	};
 	
 	LookupBox.Save = function(inputObj){
