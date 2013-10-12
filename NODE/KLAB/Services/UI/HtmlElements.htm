@@ -339,7 +339,12 @@ SearchBox.ShowSelectedByHint(search);
 			}
 			if (next){
 				next.add(".selected");
-				this.value = next.textContent;
+				if (typeof this.searchItemSelected == "function"){
+					this.searchItemSelected(next);
+				}
+				else{
+					this.value = next.textContent;
+				}
 			}
 			return true;
 		}
@@ -364,7 +369,12 @@ SearchBox.ShowSelectedByHint(search);
 			}
 			if (next){
 				next.add(".selected");
-				this.value = next.textContent;
+				if (typeof this.searchItemSelected == "function"){
+					this.searchItemSelected(next);
+				}
+				else{
+					this.value = next.textContent;
+				}
 			}
 			return true;
 		}
