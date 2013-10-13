@@ -264,15 +264,6 @@ SearchBox.ShowSelectedByHint(search);
 	
 	LookupBox.InitElement = function(element){
 		var storageKey = element.get("@source");
-		if (storageKey){
-			element.storageKey = storageKey;
-		}
-		else{
-			element.localKey = element.get("@local-source");
-			if (!element.localKey ){
-				element.dataSource = 
-			}
-		}
 		element.addEventListener("focus", LookupBox.ElementFocused);		
 		//element.addEventListener("keypress", LookupBox.KeyPressed);
 		element.addEventListener("keyup", LookupBox.KeyDown);
