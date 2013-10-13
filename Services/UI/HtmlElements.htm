@@ -264,9 +264,14 @@ SearchBox.ShowSelectedByHint(search);
 	
 	LookupBox.InitElement = function(element){
 		var storageKey = element.get("@source");
-		element.storageKey = storageKey;
 		if (storageKey){
-			element.dataSource = new KLabTunnel(storageKey);
+			element.storageKey = storageKey;
+		}
+		else{
+			element.localKey = element.get("@local-source");
+			if (!element.localKey ){
+				element.dataSource = 
+			}
 		}
 		element.addEventListener("focus", LookupBox.ElementFocused);		
 		//element.addEventListener("keypress", LookupBox.KeyPressed);
@@ -279,30 +284,47 @@ SearchBox.ShowSelectedByHint(search);
 		else{			
 			element.parentNode.add(sb);
 		}
-		LookupBox.FillBox(element, sb);
-	};
-	
-	LookupBox.FillBox = function(element, searchBox){
-		if (element.dataSource){
-			element.dataSource.GET("?query=" + encodeURIComponent(element.value), function(result){
-				if (!result){
-					result = [];
-				};
-				if (typeof this.onData){
-				
-				}
-				//searchItems = searchItems.sort(LookupBox.SortByRatingAndAlfabet);
-				searchBox.del(".search-item");
-				for (var i = 0; i < result.length; i++){
-					LookupBox.AddSearchText.call(element, searchBox, result[i]);
-				};
+		if (storageKey){
+			element.storageKey = storageKey;
+			NET.get(storageKey, function(result){
+				LookupBox.FillBox.call(element, result);
 			});
 		}
+		else{
+			element.localKey = element.get("@local-source");
+			if (!element.localKey ){
+				LookupBox.FillBox.call(element, result);
+			}
+		}
+	};
+	
+	LookupBox.FillBox = function(result){
+		var element = this;
+		var searchBox = this.LookupBox;
+		if (!result){
+			result = [];
+		};
+		if (typeof this.onData == "function"){
+			if (this.onData(result)) return;
+		}
+		//searchItems = searchItems.sort(LookupBox.SortByRatingAndAlfabet);
+		searchBox.del(".search-item");
+		for (var i = 0; i < result.length; i++){
+			LookupBox.AddSearchText.call(element, searchBox, result[i].id, result[i]);
+		};
 	};
 
-	LookupBox.AddSearchText = function(searchBox, text){
+	LookupBox.AddSearchText = function(searchBox, id, text){
 		var div = searchBox.div(".search-item");
-		div.textContent = text;
+		if (text.textContent){
+			div.textContent = text.textContent;
+		}
+		else{
+			div.textContent = text;
+		}
+		if (id){
+			div.id = "sItem" + id;
+		}
 		div.set("@search-value", text);
 		var elem = this;
 		div.onclick = function(){
