@@ -360,7 +360,7 @@ Grids.TableObject.createDataObj = function() {
 Grids.TableObject.update = function(dataObj) {
 	if (!dataObj) return;
 	var elem = this;	
-	if (!dataObj.id) {
+	if (dataObj.id === undefined || dataObj.id == null) {
 		dataObj.id = dataObj._id;
 	}
 	for (var key in dataObj) {
