@@ -284,7 +284,7 @@ SearchBox.ShowSelectedByHint(search);
 		else{
 			element.localKey = element.get("@local-source");
 			if (element.localKey){
-				LookupBox.FillBox.call(element, result);
+				LookupBox.FillBox.call(element, element.all("*"));
 			}
 		}
 	};
