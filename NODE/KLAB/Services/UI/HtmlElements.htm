@@ -286,7 +286,7 @@ SearchBox.ShowSelectedByHint(search);
 		}
 		if (storageKey){
 			element.storageKey = storageKey;
-			NET.get(storageKey, function(result){
+			Net.get(storageKey, function(result){
 				LookupBox.FillBox.call(element, result);
 			});
 		}
