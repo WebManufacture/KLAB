@@ -386,7 +386,9 @@ Grids.TableObject.update = function(dataObj) {
 		
 	};
 	this.key = dataObj.id;
-	this.id = 'obj' + dataObj.id;
+	if (this.key){
+		this.id = 'obj' + dataObj.id;
+	}
 	this.set('@key', dataObj.id);
 	this.data = dataObj;
 	var allFields = this.all('[field]').each(function (field) {
