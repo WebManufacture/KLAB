@@ -73,6 +73,7 @@
 	
 	SearchBox.KeyDown = function(event){
 		if (event.keyCode == 40){//down
+			this.del(".selected");
 			var selected = this.searchBox.get(".search-item.selected");
 			var next = null;
 			if (selected){
@@ -87,11 +88,13 @@
 			}
 			if (next){
 				next.add(".selected");
+				this.add(".selected");
 				this.value = next.textContent;
 			}
 			return true;
 		}
 		if (event.keyCode == 38){ //up
+			this.del(".selected");
 			var selected = this.searchBox.get(".search-item.selected");
 			var next = null;
 			if (selected){
@@ -99,6 +102,7 @@
 				while(next && next.is(".invisible")){
 					next = next.previousElementSibling;
 				}
+				this.add(".selected");
 				selected.del(".selected");
 			}			
 			if (!next){
@@ -112,6 +116,7 @@
 			}
 			if (next){
 				next.add(".selected");
+				this.add(".selected");
 				this.value = next.textContent;
 			}
 			return true;
@@ -119,11 +124,13 @@
 		if (event.keyCode == 13){ //up
 			var selected = this.searchBox.get(".search-item.selected");
 			if (selected){
-				this.value = selected.textContent;				
+				this.value = selected.textContent;	
+				this.add(".selected");				
 			}
 			SearchBox.ElementBlur.call(this);
 			return true;
 		}
+		this.del(".selected");
 		SearchBox.FilterByText(this.searchBox, this.value);
 	};
 	
@@ -442,17 +449,92 @@ SearchBox.ShowSelectedByHint(search);
 		//element.addEventListener("keypress", HintableBox.KeyPressed);
 		element.addEventListener("keyup", HintableBox.KeyDown);
 		element.addEventListener("blur", HintableBox.ElementBlur);
-		var sb = element.HintsBox = DOM.div(".search-box.invisible");
-		if (element.nextElementSibling){
-			element.parentNode.insertBefore(sb, element.nextElementSibling);
+		var bindSrc = element.get("@bind-source");
+		if (bindSrc){
+			var sb = element.HintsBox = DOM(bindSrc);
 		}
-		else{			
-			element.parentNode.add(sb);
+		else{
+			sb = element.HintsBox = DOM.div(".search-box.invisible");
+			if (element.nextElementSibling){
+				element.parentNode.insertBefore(sb, element.nextElementSibling);
+			}
+			else{			
+				element.parentNode.add(sb);
+			}
 		}
 		element.AddSearchItem = HintableBox.AddSearchItem;
 		if (element.Controller && typeof element.Controller.OnInit == "function"){
-			element.Controller.OnInit.call(element, sb);
+			if (element.Controller.OnInit.call(element, sb)) return;
 		}
+		if (bindSrc) {
+			if (element.Controller && typeof element.Controller.OnLoad == "function"){
+				if (element.Controller.OnLoad.call(element, sb)) return;
+			};
+			return;
+		}
+		var urlSrc = element.get("@url-source");
+		var lookupSrc = element.get("@lookup-source");
+		if (lookupSrc){
+			var src = DOM(lookupSrc);
+			if (src){
+				HintableBox.FillLookup.call(element, src.all("*"));
+			}
+		}
+		else{
+			if (urlSrc){
+				Net.get(urlSrc, function(result){
+					HintableBox.FillData.call(element, result);
+				});
+			}
+		}
+	};
+	
+	
+	HintableBox.FillLookup = function(result){
+		if (!result){ return; };
+		var element = this;
+		var searchBox = this.HintsBox;
+		searchBox.del(".search-item");
+		var textField = element.get("@lookup-field");
+		for (var i = 0; i < result.length; i++){
+			if (textField){
+				var div = element.AddSearchItem(result[i][textField]);
+			}
+			else{
+				var div = element.AddSearchItem(result[i].textContent);
+			}
+			if (this.Controller && typeof this.Controller.OnAdd == "function"){
+				if (this.Controller.OnAdd.call(this, div, result[i])) return;
+			}
+		};
+		if (element.Controller && typeof element.Controller.OnLoad == "function"){
+			if (element.Controller.OnLoad.call(element, sb)) return;
+		};
+	};
+	
+	
+	HintableBox.FillData = function(result){
+		var element = this;
+		var searchBox = this.HintsBox;
+		if (!result){
+			result = [];
+		};
+		searchBox.del(".search-item");
+		var textField = element.get("@lookup-field");
+		for (var i = 0; i < result.length; i++){
+			if (textField){
+				var div = element.AddSearchItem(result[i][textField]);
+			}
+			else{
+				var div = element.AddSearchItem(JSON.stringify(result[i]));
+			}
+			if (this.Controller && typeof this.Controller.OnAdd == "function"){
+				if (this.Controller.OnAdd.call(this, div, result[i])) return;
+			}
+		};
+		if (element.Controller && typeof element.Controller.OnLoad == "function"){
+			if (element.Controller.OnLoad.call(element, sb)) return;
+		};
 	};
 			
 	HintableBox.AddSearchItem = function(text){
@@ -460,20 +542,27 @@ SearchBox.ShowSelectedByHint(search);
 		div.textContent = text;
 		div.set("@search-value", text);
 		var elem = this;
-		div.onclick = function(){
-			if (elem.Controller && typeof elem.Controller.OnHint == "function"){
-				if (elem.Controller.OnHint.call(elem, this)) return;
+		div.onmousedown = function(){
+			elem.HintsBox.all(".selected").del(".selected");
+			this.add(".selected");
+			elem.add(".selected");
+			if (elem.Controller && typeof elem.Controller.OnApply == "function"){
+				if (elem.Controller.OnApply.call(elem, this)) return true;
 			}
 			elem.value = this.textContent;
-		}
+			/*setTimeout(function(){
+				elem.blur();
+			}, 100);*/
+		}		
 		return div;
 	};
 	
 	HintableBox.ElementFocused = function(){
 		this.HintsBox.show();
-		if (this.Controller && typeof this.Controller.OnFocus == "function"){
-			this.Controller.OnFocus.call(this, this.HintsBox);
+		if (this.Controller && typeof this.Controller.OnFilter == "function"){
+			this.Controller.OnFilter.call(this, this.value, this.HintsBox);
 		}
+		HintableBox.FilterByText(this, this.value);
 	};
 	
 	HintableBox.KeyPressed = function(){
@@ -484,6 +573,7 @@ SearchBox.ShowSelectedByHint(search);
 	
 	HintableBox.KeyDown = function(event){
 		if (event.keyCode == 40){//down
+			this.del(".selected");
 			var selected = this.HintsBox.get(".search-item.selected");
 			var next = null;
 			if (selected){
@@ -501,11 +591,13 @@ SearchBox.ShowSelectedByHint(search);
 				if (this.Controller && typeof this.Controller.OnHint == "function"){
 					if (this.Controller.OnHint.call(this, next)) return true;
 				}
+				this.add(".selected");
 				this.value = next.textContent;
 			}
 			return true;
 		}
 		if (event.keyCode == 38){ //up
+			this.del(".selected");
 			var selected = this.HintsBox.get(".search-item.selected");
 			var next = null;
 			if (selected){
@@ -529,6 +621,7 @@ SearchBox.ShowSelectedByHint(search);
 				if (this.Controller && typeof this.Controller.OnHint == "function"){
 					if (this.Controller.OnHint.call(this, next)) return true;
 				}
+				this.add(".selected");
 				this.value = next.textContent;
 			}
 			return true;
@@ -538,12 +631,37 @@ SearchBox.ShowSelectedByHint(search);
 			if (selected){
 				this.value = selected.textContent;				
 			}
-			HintableBox.ElementBlur.call(this);
+			if (this.Controller && typeof this.Controller.OnApply == "function"){
+				if (this.Controller.OnApply.call(this, selected)) return true;
+			}
+			var elem = this;
+			setTimeout(function(){
+					elem.blur();
+					HintableBox.ElementBlur.call(elem);
+				}, 400);
 			return true;
 		}
 		if (this.Controller && typeof this.Controller.OnFilter == "function"){
-			this.Controller.OnFilter.call(this, this.value, this.HintsBox);
+			if (this.Controller.OnFilter.call(this, this.value, this.HintsBox)) return;
 		}
+		HintableBox.FilterByText(this, this.value);
+	};
+	
+	HintableBox.FilterByText = function(elem, text){
+		var sbox = elem.HintsBox;
+		var selectedItem = sbox.get(".search-item.selected");
+		if (selectedItem){
+			if (selectedItem.textContent != text){
+				elem.del(".selected");
+				selectedItem.del(".selected");
+			}
+		}
+		if (text == ""){
+			sbox.all(".search-item").show();
+			return;
+		}
+		sbox.all(".search-item").hide();
+		sbox.all(".search-item[search-value*='" + text + "']").show();
 	};
 	
 	HintableBox.ElementBlur = function(){
@@ -554,6 +672,7 @@ SearchBox.ShowSelectedByHint(search);
 			if (this.Controller && typeof this.Controller.OnHint == "function"){
 				if (this.Controller.OnHint.call(this, elem)) return true;
 			}
+			this.add(".selected");
 			this.value = elem.textContent;
 		}
 	};

@@ -111,9 +111,10 @@ Grids._umGridMixin._onAddServerback = function(obj){
 			}
 			item = this.CreateObject(obj);
 			item.add(".new");
+			//item.show();
+			//item.update(obj);
 		}
 		else{
-			item.update(obj);
 			item.add(".error");
 		}
 	}
@@ -456,12 +457,13 @@ Grids.TableObject.update = function(dataObj) {
 Grids.TableObject.DeleteAction = function() {
 	var table = this.get("^.grid");
 	if (this.is(".deleted")) return;
-	if (window.Channel){
+	/*if (window.Channel){
 		table.Storage.del({_id: this.key});
 	}
 	else{
-		table.Storage.del({_id: this.key}, function(result){table._onDelServerback(result)});
-	}
+		
+	}*/
+	table.Storage.del({id: this.key, _id : this.key}, function(result){table._onDelServerback(result)});
 	//this.del();
 	this.add(".deleted");
 };
