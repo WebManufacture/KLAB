@@ -1027,7 +1027,7 @@
 					
 				</div>			
 			</div>
-            <div class="edit-object-form prototype" id='clientEditObj' extend="Grids.EditFormActions">
+            <div class="edit-object-form prototype" id='clientEditObj' extend="formEditor">
                 <div class="object-header">
                     <div class='row'>
                         <span class='label'>Исходная строка:</span>
@@ -1039,7 +1039,7 @@
                         <div class='half-row'>
                             <div class='row'>
                                 <div class='input-wraper'>
-                                    <textarea>г.Харьков,ул.Сумская,5,10</textarea>
+                                    <textarea onselect='console.info(arguments);getSelected(this);'>г.Харьков,ул.Сумская,5,10</textarea>
                                 </div>
                             </div>
                             <!--div class='row'>
@@ -1052,43 +1052,43 @@
                             <div class='row'>
                                 <span class='label'>Сеть:</span>
                                 <div class="input-wraper input-block">
-                                    <input field='ParentClient' type='text' />
+                                    <input fieldC='ParentClient' type='text' />
                                 </div>
                             </div>
                             <div class='row'>
                                 <span class='label'>Клиент:</span>
                                 <div class="input-wraper input-block">
-                                    <input field='ClientSource'  type='text'/>
+                                    <input fieldC='ClientSource'  type='text'/>
                                 </div>
                             </div>
                             <div class='row'>
                                 <span class='label'>Регион:</span>
                                 <div class="input-wraper input-block">
-                                    <input field='RegionSource'  type='text'/>
+                                    <input fieldC='RegionSource' class='hintable-box'  type='text'/>
                                 </div>
                             </div>
                             <div class='row'>
                                 <span class='label'>Город:</span>
                                 <div class="input-wraper input-block">
-                                    <input field='CitySource'  type='text'/>
+                                    <input fieldC='CitySource'  type='text'/>
                                 </div>
                             </div>
                             <div class='row'>
                                 <span class='label'>Улица:</span>
                                 <div class="input-wraper input-block">
-                                    <input field='StreetId'  type='text'/>
+                                    <input fieldC='StreetId'  type='text'/>
                                 </div>
                             </div>
                             <div class='row'>
                                 <span class='label'>Дом</span>
                                 <div class="input-wraper input-block">
-                                    <input field='House'  type='text'/>
+                                    <input fieldC='House'  type='text'/>
                                 </div>
                             </div>
                             <div class='row'>
                                 <span class='label'>Офис:</span>
                                 <div class="input-wraper input-block">
-                                    <input field='Room'  type='text'/>
+                                    <input fieldC='Room'  type='text'/>
                                 </div>
                             </div>
                         </div>
@@ -1097,16 +1097,57 @@
                 <div class="object-footer controls-panel">
                     <div class="btn-ira ok " title="OK" onclick="this.Get(&quot;^.edit-object-form&quot;).Save(); event.stopPropagation();"> OK </div>
                     <div class="btn-ira clear " onclick="this.Get(&quot;^.edit-object-form&quot;).Clear(); event.stopPropagation();" title="Clear"> Clear </div>
-                    <div class="btn-ira cancel " onclick="this.Get(&quot;^.edit-object-form&quot;).Cancel(); event.stopPropagation();" title="Cancel"> Cancel </div>
+                    <div class="btn-ira cancel " onclick="console.info(this.Get('^.edit-object-form')); this.Get(&quot;^.edit-object-form&quot;).Cancel(); event.stopPropagation();" title="Cancel"> Cancel </div>
                 </div>
             </div>
 		</div>
         <script type='text/javascript'>
+            function getSelected(elem){
+               // var range = elem.createTextRange();
+                /*range.setStart(elem, elem.selectionStart);
+                range.setEnd(elem, elem.selectionEnd);   */
+                console.info();
+                //alert(elem.value.substring(elem.selectionStart, elem.selectionEnd));
+            }
+            var formEditor = {};
             WS.DOMload(function(){
                 EV.AddHandler("OnModuleRegistered", function(){
-                    var formEditor = {};
-                    formEditor.prototype = Grids.EditFormActions;
-                    console.info(Grids);
+                    formEditor.__proto__ = Grids.EditFormActions;
+                    formEditor.Create = function(){
+                        C.Process(this, "ui-processing");
+                        var regionField = this.get('[fieldC="RegionSource"]');
+                        regionField.Controller = {
+                            OnFilter: function(str, searchBox){
+                                var self = this;
+                                if (str.length < 3) return;
+                                console.info(searchBox.all(".search-item"));
+                                console.info(searchBox, str.length);
+                                VerbTypes.region.query(str, function(results){
+                                    for (var i = 0; i < results.length; i++){
+                                        var result = results[i];
+                                        var item = self.AddSearchItem(result.formalname);
+                                        item.aoguid = result.aoguid;
+                                    }
+                                    //console.info(result);
+                                });
+                                //console.info(this, arguments);
+                            },
+                            OnApply: function(searchItem){
+                                this.aoguid = searchItem.aoguid;
+                                //alert(searchItem.aoguid);
+                                //console.info(this, arguments);
+                            }
+                        };
+                        /*regionField.OnFilter = function(){
+                            alert('');
+                        };  */
+                        /*regionField.customFilter = function(){
+                            VerbTypes.region.query(this.value, function(result){
+                                console.info(result);
+                            });
+                        }*/
+                        console.info(this, arguments, regionField);
+                    };
                 }, 'http://services.web-manufacture.net/grids/grids.htm');
             });
         </script>
@@ -1302,7 +1343,7 @@
 			<div id='RegionsGrid' class='grid' storage-url='http://web-manufacture.net/identification/regions'>
 				<div class="content" >
 					<div class="table-header">			
-						<input class="search-input lookup" source='http://web-manufacture.net/identification/storage/regionsSrc.json' style="width:400px; align:center;">
+						<input class="search-input hintable" style="width:400px; align:center;">
 						<div class="table-controls">	
 							<div class="add-button small-object-button" title="Импорт клиентов" onclick="Regions.ShowImport();">	</div>
 						</div>
