@@ -38,17 +38,38 @@ UartServer.Process = {
 			port.connections = 0;
 			port.Open(url.query.speed, url.query.timeout, url.query.parity);
 		}
+		else{
+			port = UartPorts[port];
+		}
 		port.connections++;
-		res.on("close", function(){
+		var handler = function(){
+			try{
+				var params = [];
+				for (var i = 0; i < arguments.length; i++){
+					//if (arguments[i].length && arguments[i].length > 100) params.push("Long param: " + arguments[i].length);
+					params.push(arguments[i]);
+				}
+				res.write(JSON.stringify(params) + "\n");
+			}
+			catch(e){
+				res.write(JSON.stringify(e) + "\n");
+			}	
+		}
+		res.on("close", function(){			
+			Channels.clear("/" + port.port + ".received", handler);
+			Channels.clear("/" + port.port + ".opened", handler);
+			Channels.clear("/" + port.port + ".closed", handler);
 			port.connections--;
 			if (port.connections <= 0){
 				port.Close();	
 				UartPorts[port.port] = null;
 			}
 		});
-		Channels.on("/" + port.port + ".received", function(message, result){
-			res.write(JSON.stringify(result));
-		});
+		res.write("[" + JSON.stringify(port) + "]");
+		Channels.on("/" + port.port + ".received", handler);
+		Channels.on("/" + port.port + ".opened", handler);
+		Channels.on("/" + port.port + ".closed", handler);
+		console.log(">> Subscribe to: "  + port.port);
 	},
 	
 	POST : function(req, res, url, data){

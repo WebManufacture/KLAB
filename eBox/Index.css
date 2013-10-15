@@ -4,27 +4,19 @@
 	height: 80%;
 }
 
-body[state='Running'] #StatusBar
+body[state='connected'] #StatusBar
 {
 	background-color: #CCFFAA;
 }
-body[state='Paused'] #StatusBar
-{
-	background-color: #FFEECC;
-}
-body[state='Aborted'] #StatusBar
+
+body[state='disconnected'] #StatusBar
 {
 	background-color: #FFD0FF;
 }
 
-body[state='Error'] #StatusBar
+body[state='error'] #StatusBar
 {
 	background-color: #FFD0D0;
-}
-
-body[state='Completed'] #StatusBar
-{
-	background-color: #CCEEFF;
 }
 
 .toolbar .menuitem.run
@@ -61,59 +53,8 @@ body[state='ready'] .menuitem.run
 	color: black;
 }
 
-#StatusBar .stateA{
-	color: Gray;	
-}
-
-div.x-coord
-{
-	color: blue;
-	padding-left: 5px;
-	display: inline-block;
-}
-div.y-coord
-{
-	color: darkmagenta;
-	padding-left: 5px;
-	display: inline-block;
-}
-div.z-coord
-{
-	color: green;
-	padding-left: 5px;
-	display: inline-block;
-}
-
-div.speed
-{
-	color: darkorange;
-	padding-left: 5px;
-	display: inline-block;
-}
-
-div.command
-{
-	color: navy;
-	font-weight: bold;
-	padding-left: 5px;
-	display: inline-block;
-}
-
-
-.line-num.error
-{
-	color: red;
-}
-
-.line-num
-{
-	width: 30px;
-	display: inline-block;
-	text-align: right;
-	padding-right: 5px;
-	padding-left: 10px;
-	color: #aaa;
-	font-weight: bold;
+#StatusBar .port-elem{
+	color: blue;	
 }
 
 #FilesBrowser{

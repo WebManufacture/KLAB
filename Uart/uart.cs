@@ -60,8 +60,7 @@ public class Startup
                 }
                 if (action == "close")
                 {
-                    device.Close();
-                    Task.Run<object>(() => { return (object)null; });
+                    return Task.Run<object>(() => { return device.Close(); });
                 }
                 if (action == "read")
                 {
@@ -256,6 +255,7 @@ public class Device
 
     public Device(string portName, int speed, int timeout, string parity)
     {
+		PortName = portName;
 		if (parity != null){
 			if (parity == "odd"){
 			   device = new SerialPort(portName, speed, Parity.Odd, 8, StopBits.One);
@@ -303,13 +303,15 @@ public class Device
         return State;
     }
 
-    public void Close()
+    public string Close()
     {
+		if (device == null) return "";
         if (device.IsOpen)
         {
             device.Close();
             State = EDeviceState.Offline;
         }
+		return PortName;
     }
 
     public MotorState Read()
