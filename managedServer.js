@@ -117,7 +117,6 @@ try{
 		res.setHeader("Access-Control-Allow-Origin", "*");
 		res.setHeader("Access-Control-Allow-Methods", "GET, DELETE, PUT, POST, HEAD, OPTIONS, SEARCH");
 		res.setHeader("Server", "Managed server");		
-		res.setHeader("Content-Type", "text/plain; charset=utf-8");
 		if (req.method == 'OPTIONS'){
 			res.statusCode = 200;
 			res.end("OK");	

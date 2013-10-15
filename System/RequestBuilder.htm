@@ -17,6 +17,194 @@
 		
 		
 		
+		
+		<style type="text/css">
+			body{
+				padding-top: 100px;
+				font-size: 12px;
+				font-family : monospace;
+			}
+			
+			.toolbar .status{
+				
+			}
+			
+			.menuitem.run-btn.executing      
+			{
+				background-color: red!important;
+			}
+			
+			.options-block
+			{
+				width: 150px;
+				float: left;
+				margin-right: 10px;
+			}
+			
+			.toolbar .menuitem.rtype:hover{
+				background-color: green;	
+			}
+			
+			.toolbar .menuitem.rtype{
+				font-size: 15px;	
+				font-weight: bold;
+				box-sizing : border-box;
+				-moz-box-sizing: border-box;
+			}
+			
+			.toolbar:hover .menuitem.rtype{
+				padding-top: 10px;
+			}
+			
+			.toolbar .menuitem.rtype.current
+			{
+				background-color: navy;				
+				color: white;
+			}
+			
+			.oline{
+				color: #666;
+			}
+			
+			.oline:not(.current):hover{
+				text-decoration: underline;
+				color: blue;
+				cursor: pointer;
+			}
+			
+			.oline.current{
+				color: black;
+				font-weight: bold;
+			}
+			
+			
+			
+			.request{
+				text-align: left;
+				padding-left: 20px;
+				font-size: 14px;
+				font-weight: bold;
+				padding-top: 20px;
+			}
+			
+			.request .status{
+				color: green;
+			}
+			
+			.request.error .status{
+				color: red;
+			}
+			
+			
+			.request-url .ru-line.method{
+				color: gray;
+				font-weight: bold;
+			}
+			
+			.request-url .ru-line.host{
+				color: #0C39A2;
+			}
+			
+			.request-url .ru-line.file{
+				color: #770088;
+			}
+			
+			.request-url .ru-line.url-param{
+				color: #FF554A;
+			}
+			
+			
+			.ru-line{
+				display: inline;
+			}
+			
+			.menuitem.active{
+				background-color: yellow;
+			}
+			
+			.results.error{
+				border: solid 1px red;
+			}
+			
+			.results .error-text{
+				color: red;
+			}
+			
+			#rqHistory{
+				background-color: white;
+				border: 1px solid navy;
+				border-radius: 10px 10px 10px 10px;
+				cursor: default;
+				font-size: 12px;
+				height: 300px;
+				overflow: hidden;
+				padding: 7px;
+				position: fixed;
+				right: 1%;
+				text-align: left;
+				top: 1%;
+				width:20%;
+				z-index: 20;
+			}
+			
+			#rqHistory .history-line div{
+				display: inline-block;	
+			}
+			
+			
+			#rqHistory .history-line .request-hits{
+				width: 20px;
+			}
+						
+			#rqHistory .history-line .request-method{
+				width: 80px;
+				font-weight: bold;
+				color: navy;
+			}
+			
+						
+			#rqHistory .history-line .request-url{
+				overflow: hidden;
+			}
+		</style>
+	</head>
+	<body>
+		<include url='http://services.web-manufacture.net/UI/Toolbars.htm'></include>
+		<include url='http://services.web-manufacture.net/UI/UiUtils.htm'></include>
+		<include url='http://services.web-manufacture.net/UI/HtmlElements.htm'></include>
+		<div class="header toolbar">
+			<div class="menuitem run-btn" tooltip="RUN" icon="http://cdn2.iconfinder.com/data/icons/oxygen/48x48/actions/exec.png"  onclick="RQB.Run()"></div>
+			<div class="menuitem text text-mode active" tooltip="TEXT" icon="text.png"  onclick="RQB.Results = 'text';  DOM.all('.menuitem.html-mode').rcs('active'); this.cls('active');">ТЕКСТ</div>
+			<div class="menuitem text html-mode" tooltip="HTML" icon="html.png"  onclick="RQB.Results = 'html';  DOM.all('.menuitem.text-mode').rcs('active'); this.cls('active');">HTML</div>
+			<div class="menuitem text json-mode" tooltip="JSON" icon="json.png"  onclick="RQB.Results = 'json';  DOM.all('.menuitem.text-mode').rcs('active'); this.cls('active');">JSON</div>
+			<div class="menuitem debug-mode" tooltip="DEBUG" icon="http://cdn4.iconfinder.com/data/icons/cc_mono_icon_set/blacks/48x48/bug.png"  onclick="RQB.Debug = !RQB.Debug; this.style.backgroundColor = RQB.Debug ? 'red' : '';"></div>
+			<div class="separator"></div>
+			<div class="menuitem text rtype rt-get current" rtype="GET">GET</div>
+			<div class="menuitem text rtype rt-post" rtype="POST">POST</div>
+			<div class="menuitem text rtype rt-put" rtype="PUT">PUT</div>
+			<div class="menuitem text rtype rt-delete" rtype="DELETE">DEL</div>
+			<div class="menuitem text rtype rt-option" rtype="OPTIONS">OPT</div>
+			<div class="menuitem text rtype rt-head" rtype="HEAD">HEAD</div>
+			<div class="menuitem text rtype rt-search" rtype="SEARCH">SRCH</div>
+		</div>
+		<div class='request-builder' style="width: 100%;">	
+			<div class="request">
+				<span class='request-url'></span>
+				<span class="request-result"></span>
+				
+				<div class="request-headers"></div>
+			</div>
+			<div class="request-params" style="width: 80%; float: left;">
+				
+				<label>URL:</label><input class="url-editor hintable" id='UrlInput' type="text" style="width: 100%;"/>
+				<label>Другие параметры запроса:</label><input class="params-editor" type="text" style="width: 100%;"/>
+				<label>Содержимое</label><textarea class="content-editor" style="width: 100%;"></textarea>
+			</div>
+			<div class="clear"></div>
+		</div>
+		<div class="results"></div>
+		<div id="rqHistory"></div>
+		
 		<script type="text/javascript" key="TextEditor">
 			RQB = {};    
 			
@@ -28,9 +216,9 @@
 			RQB.Debug = false;
 			
 			RQB.Init = function(){
-				DOM.all(".rtype").each(function(){ this.onclick = RQB.SelectMethod});
-				DOM.all(".rfile").each(function(){ this.onclick = RQB.SelectFile});
-				DOM.all(".jtype").each(function(){ this.onclick = RQB.SelectJType});
+				DOM.all(".rtype").each(function(item){ item.onclick = RQB.SelectMethod});
+				DOM.all(".rfile").each(function(item){ item.onclick = RQB.SelectFile});
+				DOM.all(".jtype").each(function(item){ item.onclick = RQB.SelectJType});
 				RQB.BaseUrl = DOM(".url-editor").value;
 				RQB.OParams = DOM(".params-editor").value;
 				DOM.get(".url-editor").onchange = RQB.OnFileChange;
@@ -295,193 +483,5 @@
 			WS.DOMload(RQB.Init);
 			WS.DOMload(RQH.Init);
 		</script>
-		
-		<style type="text/css">
-			body{
-				padding-top: 100px;
-				font-size: 12px;
-				font-family : monospace;
-			}
-			
-			.toolbar .status{
-				
-			}
-			
-			.menuitem.run-btn.executing      
-			{
-				background-color: red!important;
-			}
-			
-			.options-block
-			{
-				width: 150px;
-				float: left;
-				margin-right: 10px;
-			}
-			
-			.toolbar .menuitem.rtype:hover{
-				background-color: green;	
-			}
-			
-			.toolbar .menuitem.rtype{
-				font-size: 15px;	
-				font-weight: bold;
-				box-sizing : border-box;
-				-moz-box-sizing: border-box;
-			}
-			
-			.toolbar:hover .menuitem.rtype{
-				padding-top: 10px;
-			}
-			
-			.toolbar .menuitem.rtype.current
-			{
-				background-color: navy;				
-				color: white;
-			}
-			
-			.oline{
-				color: #666;
-			}
-			
-			.oline:not(.current):hover{
-				text-decoration: underline;
-				color: blue;
-				cursor: pointer;
-			}
-			
-			.oline.current{
-				color: black;
-				font-weight: bold;
-			}
-			
-			
-			
-			.request{
-				text-align: left;
-				padding-left: 20px;
-				font-size: 14px;
-				font-weight: bold;
-				padding-top: 20px;
-			}
-			
-			.request .status{
-				color: green;
-			}
-			
-			.request.error .status{
-				color: red;
-			}
-			
-			
-			.request-url .ru-line.method{
-				color: gray;
-				font-weight: bold;
-			}
-			
-			.request-url .ru-line.host{
-				color: #0C39A2;
-			}
-			
-			.request-url .ru-line.file{
-				color: #770088;
-			}
-			
-			.request-url .ru-line.url-param{
-				color: #FF554A;
-			}
-			
-			
-			.ru-line{
-				display: inline;
-			}
-			
-			.menuitem.active{
-				background-color: yellow;
-			}
-			
-			.results.error{
-				border: solid 1px red;
-			}
-			
-			.results .error-text{
-				color: red;
-			}
-			
-			#rqHistory{
-				background-color: white;
-				border: 1px solid navy;
-				border-radius: 10px 10px 10px 10px;
-				cursor: default;
-				font-size: 12px;
-				height: 300px;
-				overflow: hidden;
-				padding: 7px;
-				position: fixed;
-				right: 1%;
-				text-align: left;
-				top: 1%;
-				width:20%;
-				z-index: 20;
-			}
-			
-			#rqHistory .history-line div{
-				display: inline-block;	
-			}
-			
-			
-			#rqHistory .history-line .request-hits{
-				width: 20px;
-			}
-						
-			#rqHistory .history-line .request-method{
-				width: 80px;
-				font-weight: bold;
-				color: navy;
-			}
-			
-						
-			#rqHistory .history-line .request-url{
-				overflow: hidden;
-			}
-		</style>
-	</head>
-	<body>
-		<include url='http://services.web-manufacture.net/UI/Toolbars.htm'></include>
-		<include url='http://services.web-manufacture.net/UI/UiUtils.htm'></include>
-		<include url='http://services.web-manufacture.net/UI/HtmlElements.htm'></include>
-		<div class="header toolbar">
-			<div class="menuitem run-btn" tooltip="RUN" icon="http://cdn2.iconfinder.com/data/icons/oxygen/48x48/actions/exec.png"  onclick="RQB.Run()"></div>
-			<div class="menuitem text text-mode active" tooltip="TEXT" icon="text.png"  onclick="RQB.Results = 'text';  DOM.all('.menuitem.html-mode').rcs('active'); this.cls('active');">ТЕКСТ</div>
-			<div class="menuitem text html-mode" tooltip="HTML" icon="html.png"  onclick="RQB.Results = 'html';  DOM.all('.menuitem.text-mode').rcs('active'); this.cls('active');">HTML</div>
-			<div class="menuitem text json-mode" tooltip="JSON" icon="json.png"  onclick="RQB.Results = 'json';  DOM.all('.menuitem.text-mode').rcs('active'); this.cls('active');">JSON</div>
-			<div class="menuitem debug-mode" tooltip="DEBUG" icon="http://cdn4.iconfinder.com/data/icons/cc_mono_icon_set/blacks/48x48/bug.png"  onclick="RQB.Debug = !RQB.Debug; this.style.backgroundColor = RQB.Debug ? 'red' : '';"></div>
-			<div class="separator"></div>
-			<div class="menuitem text rtype rt-get current" rtype="GET">GET</div>
-			<div class="menuitem text rtype rt-post" rtype="POST">POST</div>
-			<div class="menuitem text rtype rt-put" rtype="PUT">PUT</div>
-			<div class="menuitem text rtype rt-delete" rtype="DELETE">DEL</div>
-			<div class="menuitem text rtype rt-option" rtype="OPTIONS">OPT</div>
-			<div class="menuitem text rtype rt-head" rtype="HEAD">HEAD</div>
-			<div class="menuitem text rtype rt-search" rtype="SEARCH">SRCH</div>
-		</div>
-		<div class='request-builder' style="width: 100%;">	
-			<div class="request">
-				<span class='request-url'></span>
-				<span class="request-result"></span>
-				
-				<div class="request-headers"></div>
-			</div>
-			<div class="request-params" style="width: 80%; float: left;">
-				
-				<label>URL:</label><input class="url-editor hintable" id='UrlInput' type="text" style="width: 100%;"/>
-				<label>Другие параметры запроса:</label><input class="params-editor" type="text" style="width: 100%;"/>
-				<label>Содержимое</label><textarea class="content-editor" style="width: 100%;"></textarea>
-			</div>
-			<div class="clear"></div>
-		</div>
-		<div class="results"></div>
-		<div id="rqHistory"></div>
-		
 	</body>
 </html>

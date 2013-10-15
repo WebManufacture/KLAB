@@ -34,8 +34,8 @@ NodeProto = {
 			id : this.config.id,
 			fork : this.Fork ? this.Fork.toString() : null,
 			args : this.config.Args,
-			state : this.config.State,
-			file : this.config.File,
+			state : this.State,
+			file : this.config.Frame ? this.config.Frame + ":" + this.config.File : this.config.File,
 			host : this.config.Host,
 			port : this.config.Port,
 			localPort : this.ProxyPort,
@@ -159,7 +159,7 @@ IsolatedNode = function(rr, config){
 	if (!rr.Args) rr.Args = {};
 	fork.args = JSON.stringify(rr);
 	fork.args = JSON.parse(fork.args);
-	fork.on(".status", function(message, state){
+	fork.on("/state", function(message, state){
 		node.State = state;
 		if (state == "working"){
 			console.log(rr.id + " working".info);
@@ -298,6 +298,7 @@ ILab.Init = function(){
 			if (item.Process == "internal") var node = new InternalNode(item, cfg);
 			if (item.Process == "isolated") var node = new IsolatedNode(item, cfg);
 			if (item.Process == "external") var node = new ExternalNode(item, cfg);
+			node.State = item.State
 			node.config = item;
 			node.process = item.Process;
 			node.type = item.Type;

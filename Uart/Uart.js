@@ -11,22 +11,29 @@ var uartFunc = edge.func({
 	
 global.Uart = function(port){
 	this.port = port;
-	this.speed = speed;
-	this.timeout = timeout;
 	var uart = this;
 	Channels.on(port + ".send", function(message, data){
 		uart.Write(data);
 	});
 };
 
+Uart.List = function(callback){
+	uartFunc({action : 'list'}, function(err, result){
+		callback(result);
+	}); 
+};
+	
 
 global.Uart.prototype = {	
-	Open : function(speed, timeout){
+	Open : function(speed, timeout, parity){
 		var uart = this;
 		var initAct = {action: "init"};
 		if (this.port) initAct.port = this.port;
 		if (speed) initAct.speed = speed;
 		if (timeout) initAct.timeout = timeout;
+		if (parity != null && parity != undefined){
+			initAct.parity = parity;	
+		}
 		uartFunc(initAct, function(err, result){
 			if (err){
 				error(err);	
