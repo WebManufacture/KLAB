@@ -200,17 +200,24 @@ Grids._umGridMixin.EditObjectAction = function(obj) {
 		var field = allFields[i];
 		var efield = editForm.get('[field="' + field.get('@field') + '"]');
 		if (field && efield) {
+			var newValue = null;
 			if (field.value){
-				efield.value = field.value;
+				newValue = field.value;
 			}
 			else{
 				var value = field.get(".field-value");
 				if (value){
-					efield.value = value.innerHTML;
+					newValue = value.innerHTML;
 				}
 				else{
-					efield.value = field.innerHTML;	
+					newValue = field.innerHTML;	
 				}
+			}
+			if (efield.value != undefined){
+				efield.value = newValue;
+			}
+			else{
+				efield.innerHTML = newValue;
 			}
 			if (efield.update){
 				efield.update();
