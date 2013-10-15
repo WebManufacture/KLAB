@@ -9,8 +9,9 @@ if (!UsingDOM("KLabNet")){
 		}	
 	};
 	
-	function HttpChannel(url, read){
+	function HttpChannel(url, read, callback){
 		this.url = url;
+		this.onConnect = callback;
 		if (read){
 			if (typeof read == "function"){
 				this.readback = read;
@@ -27,6 +28,7 @@ if (!UsingDOM("KLabNet")){
 			var rq = _klabNetInternal.GET(url);
 			rq.lastStateChar = 0;
 			rq.channel = this;
+			rq.onConnect = this.onConnect;
 			rq.onreadystatechange = this.readStateChanged;
 			rq.send();
 		},
@@ -49,6 +51,12 @@ if (!UsingDOM("KLabNet")){
 		
 		readStateChanged: function() {
 			var channel = this.channel;
+			if (this.readyState == 2){
+				if (typeof this.onConnect == "function"){
+					this.onConnect();
+					this.onConnect = null;
+				}
+			}
 			if (this.readyState == 3){
 				var result = this.responseText.substr(this.lastStateChar);
 				this.lastStateChar = this.responseText.length;				
