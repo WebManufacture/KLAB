@@ -29,8 +29,6 @@ Files.MimeTypes = {
 	bmp : "images/bmp",
 };
 
-Files.channel = Channels.on("/file-system", new Channel("/file-system"));
-
 FilesRouter = function(cfg){
 	if (!cfg.basepath){
 	    cfg.basepath = ".";
@@ -38,6 +36,8 @@ FilesRouter = function(cfg){
 	if (cfg.basepath.end("\\")){
 	    cfg.basepath = cfg.basepath.substr(0, cfg.basepath.length - 1);
 	}
+	cfg.basepath = cfg.basepath.replace(/\//g, "\\");
+	this.instanceId = (Math.random() + "").replace("0.", "");
 	this.config = cfg;
 	this.ProcessRequest = function(req, res, url){
 		if (!url){
@@ -76,6 +76,14 @@ FilesRouter = function(cfg){
 		return router._SEARCH(context);
 	}
 	this.LastFiles = {};
+	var files = this;
+	this.watcher = fs.watch(paths.resolve(cfg.basepath), {}, function(event, fname){
+		delete files.LastFiles[fname];		
+		Channels.emit("/file-system." + files.instanceId + "/action." + event, fname.replace(cfg.basepath, ""), files.instanceId, cfg.basepath);
+	});
+	process.on("exit", function(){
+		files.watcher.close();
+	});
 };
 
 FilesRouter.prototype.FormatPath = function(fpath){
@@ -116,6 +124,7 @@ FilesRouter.prototype._GET = FilesRouter.prototype._HEAD = function(context){
 		if (result.length < 1000000){
 		    context.res.setHeader("Content-Length", result.length);
 		}	
+		fpath = paths.resolve(fpath);
 		var dnow = new Date();
 		var etag = router.LastFiles[fpath];
 		if (!etag){
@@ -157,7 +166,8 @@ FilesRouter.prototype._SEARCH = function(context){
 FilesRouter.prototype._DELETE = function(context){
 	if (context.completed) return true;
 	var fpath = this.FormatPath(context.pathTail);
-	delete this.LastFiles[fpath];
+	delete this.LastFiles[paths.resolve(fpath)];
+	var files = this;
 	fs.exists(paths.resolve(fpath), function(exists){
 		if (!exists){
 			context.finish(404, "file " + fpath + " not found");
@@ -166,13 +176,13 @@ FilesRouter.prototype._DELETE = function(context){
 		info("Deleting " + fpath);
 		fs.unlink(fpath, function(err, result){
 			if (err){
-				Files.channel.emit("action.delete.error", fpath, err);
+				Channels.emit("/file-system." + files.instanceId + "/action.delete.error", fpath.replace(files.config.basepath, ""), err, files.config.basepath);
 				context.finish(500, "Delete error " + fpath + " " + err);	
 				context.continue();
 				return;
 			}			
-			Files.channel.emit("action.delete", fpath);
-			context.finish(200, "Deleted " + fpath);			
+			Channels.emit("/file-system." + files.instanceId + "/action.delete", fpath, files.instanceId,files.config.basepath );
+			context.finish(200, "Deleted " + fpath.replace(files.config.basepath, ""));			
 			context.continue();
 		});
 	});
@@ -184,7 +194,8 @@ FilesRouter.prototype._POST = FilesRouter.prototype._PUT = function(context){
 	var fpath = this.FormatPath(context.pathTail);
 	var fullData = "";
 	//console.log("updating cache: " + fpath + " " + this.LastFiles[fpath]);
-	delete this.LastFiles[fpath];
+	delete this.LastFiles[paths.resolve(fpath)];
+	var files = this;
 	context.req.on("data", function(data){
 		fullData += data;		
 	});
@@ -193,10 +204,10 @@ FilesRouter.prototype._POST = FilesRouter.prototype._PUT = function(context){
 		fs.writeFile(paths.resolve(fpath), fullData, 'utf8', function(err, result){
 			if (err){
 				context.finish(500, "File " + fpath + " write error " + err);
-				Files.channel.emit("action.write.error", fpath, err);
+				Channels.emit("/file-system." + files.instanceId + "/action.write", fpath.replace(files.config.basepath, ""), err, files.config.basepath);
 				return;
 			}
-			Files.channel.emit("action.write", fpath);
+			Channels.emit("/file-system." + files.instanceId + "/action.write", fpath.replace(files.config.basepath, ""), files.instanceId, files.config.basepath);
 			context.finish(200);
 			context.continue();
 		});

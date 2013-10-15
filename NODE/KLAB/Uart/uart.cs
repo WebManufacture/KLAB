@@ -249,9 +249,24 @@ public class Device
 
     }
 
-    public Device(string portName, int speed, int timeout)
+	public Device(string portName, int speed, int timeout) : this(portName, speed, 1000, null)
+	{
+	
+	}
+
+    public Device(string portName, int speed, int timeout, string parity)
     {
-        device = new SerialPort(portName, speed, Parity.Odd, 8, StopBits.One);
+		if (parity != null){
+			if (parity == "odd"){
+			   device = new SerialPort(portName, speed, Parity.Odd, 8, StopBits.One);
+			}
+			if (parity == "even"){
+			   device = new SerialPort(portName, speed, Parity.Even, 8, StopBits.One);
+			}
+		}
+		else{
+			device = new SerialPort(portName, speed, Parity.None, 8, StopBits.One);
+		}
         if (device.IsOpen)
         {
             State = EDeviceState.Busy;

@@ -129,7 +129,6 @@ logger.Clear = function(){
 CncUI.BrowseFiles = function(){
 	FilesContainer.clear();
 	Storage.All("programs", function(files){
-		files = JSON.parse(files);
 		for (var i =0; i< files.length; i++){
 			FilesContainer.add(CncUI.InitFileElement(files[i]));
 		}

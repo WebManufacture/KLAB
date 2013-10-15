@@ -92,7 +92,7 @@ if (!UsingDOM("Modules")) {
 	
 	
 	M.SearchModules = function(elem) {
-		var url = "body";
+		var url = "Body";
 		var nfo = DOM._get("module-info");
 		if (nfo != null) {
 			url = nfo.attr("url");
@@ -102,11 +102,10 @@ if (!UsingDOM("Modules")) {
 				if (check(Request.File) && Request.File != "") {
 					url = Request.File;
 				} else {
-					url = "body";
+					url = "Body";
 				}
 			}
 		}
-		url = M.prepareUrl(url);
 		var module = M.CreateModule(url, "inprogress");
 		
 		/*var scripts = WS.Body._all("script.deffered");

@@ -6,6 +6,14 @@ global.extend = function (Child, Parent) {
     Child.superclass = Parent.prototype
 }
 
+global.mixin = function (Parent, Child) {
+    for (var item in Child){
+		if (typeof Child[item] == "function" && Parent[item] == undefined){
+			Parent[item] = Child[item];
+		}
+	}
+}
+
 Date.prototype.formatTime = function(withMilliseconds){
 	if (withMilliseconds){
 		return this.getHours() + ":" + this.getMinutes() + ":" + this.getSeconds() + "." + this.getMilliseconds();	

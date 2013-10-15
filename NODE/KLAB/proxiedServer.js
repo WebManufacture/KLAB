@@ -113,22 +113,27 @@ try{
 			if (this.Enabled){
 				var serv = this.module;
 				if (serv){
+						var fullData = "";
+						mixin(res, ProxiedServer.ResExtender);
+						req.on("data", function(data){
+							fullData += data;		
+						});
 						if (typeof serv.Process == "function"){
-							setTimeout(function(){		
-								serv.Process(req, res, url);
-							}, 10);
+							req.on("end", function(){
+								serv.Process(req, res, url, fullData);
+							});
 							return false;
 						}
 						if (typeof serv.Process == "object"){
 							if (typeof serv.Process[req.method] == "function"){
-							setTimeout(function(){		
-								serv.Process[req.method](req, res, url);
-							}, 10);
-							return false;
+								req.on("end", function(){	
+									serv.Process[req.method](req, res, url, fullData);
+								});
+								return false;
+							}
 						}						
-					}
-					res.statusCode = 500;
-					res.end("Handler error");
+						res.statusCode = 500;
+						res.end("Handler error");
 				}	
 				else{
 					res.statusCode = 500;
@@ -158,19 +163,24 @@ try{
 		if (ProxiedServer.Enabled){
 			var serv = this.module;
 			if (serv){
+				var fullData = "";
+				mixin(res, ProxiedServer.ResExtender);
+				req.on("data", function(data){
+					fullData += data;		
+				});
 				if (typeof serv.Process == "function"){
 					context.abort();
-					setTimeout(function(){			
-						serv.Process(req, res, url);
-					},10);
+					req.on("end", function(){				
+						serv.Process(req, res, url, fullData);
+					});
 					return false;
 				}
 				if (typeof serv.Process == "object"){
 					if (typeof serv.Process[req.method] == "function"){
 						context.abort();
-						setTimeout(function(){		
-							serv.Process[req.method](req, res, url);
-						}, 10);
+						req.on("end", function(){	
+							serv.Process[req.method](req, res, url, fullData);
+						});
 						return false;
 					}						
 				}
@@ -178,6 +188,38 @@ try{
 		}
 		return true;
 	};
+		
+	ProxiedServer.ResExtender = {
+		finish : function(status, result, enc){
+					this.statusCode = status;
+					if (result == null || result == undefined){
+						if (IsNaN(parseInt(status))){
+							result = status;
+							status = 200;
+						}
+					}
+					if (result != null && result != undefined && typeof result != "string"){
+						this.setHeader("Content-Type", "application/json");
+						result = JSON.stringify(result);
+					}
+					if (enc){
+						this.end(result, enc);
+					}
+					else{
+						this.end(result);
+					}
+				},
+				
+		finishText : function(){
+			this.setHeader("Content-Type", "text/plain");
+			this.finish.apply(this, arguments);
+		},
+		
+		finishHtml : function(){
+			this.setHeader("Content-Type", "text/html");
+			this.finish.apply(this, arguments);
+		}		
+	}
 	
 	if (module.parent){
 		module.exports = function(){

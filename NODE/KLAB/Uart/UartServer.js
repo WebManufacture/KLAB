@@ -12,35 +12,83 @@ require(paths.resolve('Uart/Uart.js'));
 UartServer = {};
 
 UartPorts = {};
+UartPortsConnections = {};
 
-UartServer.Init = function(config, globalConfig, logger){
+UartServer.Init = function(config, router, logger){
 	if (config){
 		UartServer.Config = config;
 	}
-	if (UartServer.Config.ProxyPort) UartServer.Config.ProxyPort = UartServer.Config.Port;
-	if (!module){
-		setTimeout(UartServer.Start, 100);
-	}
 };
-		
-UartServer.ProcessContext = function(context){
-	context.setHeader("Access-Control-Allow-Origin", "*");
-	context.setHeader("Access-Control-Allow-Methods", "GET, DELETE, PUT, POST, HEAD, OPTIONS, SEARCH");
-	context.setHeader("Access-Control-Allow-Headers", "debug-mode,origin,content-type");
-	context.setHeader("Access-Control-Max-Age", "12000");
-	context.setHeader("Access-Control-Expose-Headers", "content-type,debug-mode,Content-Type,ETag,Finish,Date,Start,Load");		
-	context.setHeader("Content-Type", "text/plain; charset=utf-8");
-	if (context.req.method == 'OPTIONS'){
-		context.finish(200, "OK");	
-		return true;
-	}
-	try{
-		return true;
-	}
-	catch (e){
-		error(e);
-	}
-	return true;
-};
+
+UartServer.Process = {
+	GET : function(req, res, url, data){
+		var port = url.pathname.replace("/", ""); 
+		if (port.length == "") 
+		{
+			res.finishText(404, "port " + port + " not found!");
+			return;
+		}
+		if (port.indexOf("COM") != 0) 
+		{
+			res.finishText(500, "port " + port + " undefined!");
+			return;
+		}
+		if (UartPorts[port] == null){
+			port = UartPorts[port] = new Uart(port);
+			port.connections = 0;
+			port.Open(url.query.speed, url.query.timeout, url.query.parity);
+		}
+		port.connections++;
+		res.on("close", function(){
+			port.connections--;
+			if (port.connections <= 0){
+				port.Close();	
+				UartPorts[port.port] = null;
+			}
+		});
+		Channels.on("/" + port.port + ".received", function(message, result){
+			res.write(JSON.stringify(result));
+		});
+	},
+	
+	POST : function(req, res, url, data){
+		var port = url.pathname.replace("/", ""); 
+		if (port.length == "") 
+		{
+			res.finishText(404, "port " + port + " not found!");
+			return;
+		}
+		if (port.indexOf("COM") != 0) 
+		{
+			res.finishText(500, "port " + port + " undefined!");
+			return;
+		}
+		if (UartPorts[port] == null){
+			res.finishText(404, "port " + port + " closed!");
+			return;
+		}
+		Channels.emit("/" + port.port + ".send", data);		
+		res.finish(200);
+	},
+	
+	SEARCH : function(req, res, url, data){
+		Uart.List(function(lst){
+			var result = {};
+			for (var i = 0; i < lst.length; i++){
+				var port = UartPorts[lst[i]];
+				var obj = result[lst[i]] = {
+					opened : false				
+				}
+				if (port){
+					obj.opened = true;
+					obj.speed = port.speed;
+					obj.parity = port.parity;
+					obj.timeout = port.timeout;
+				}
+			}
+			res.finish(200, result);
+		});
+	},
+}
 
 module.exports = UartServer;

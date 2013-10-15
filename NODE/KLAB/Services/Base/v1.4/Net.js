@@ -12,9 +12,6 @@ if (!UsingDOM("KLabNet")){
 	function HttpChannel(url, read){
 		this.url = url;
 		if (read){
-			if (typeof read == "function"){
-				this.readback = read;
-			}
 			this.connectRead();
 		}
 		EV.CreateEvent("onRead", this);
@@ -78,9 +75,6 @@ if (!UsingDOM("KLabNet")){
 		},
 		
 		processMessages : function(messages){
-			if (this.readback){
-				this.readback(messages);
-			}
 			this.onRead.fire(messages);
 		}
 	};	
