@@ -1031,7 +1031,7 @@
                 <div class="object-header">
                     <div class='row'>
                         <span class='label'>Исходная строка:</span>
-                        <span class='source-string'>г.Харьков,ул.Сумская,5,10</span>
+                        <span class='source-string'></span>
                     </div>
                 </div>
                 <div class="object-content">
@@ -1039,7 +1039,7 @@
                         <div class='half-row'>
                             <div class='row'>
                                 <div class='input-wraper'>
-                                    <textarea onselect='console.info(arguments);getSelected(this);'>г.Харьков,ул.Сумская,5,10</textarea>
+                                    <textarea onselect='console.info(arguments);getSelected(this);'></textarea>
                                 </div>
                             </div>
                             <!--div class='row'>
@@ -1057,26 +1057,28 @@
                             </div>
                             <div class='row'>
                                 <span class='label'>Клиент:</span>
+                                <span class='label field' field='client'></span>
                                 <div class="input-wraper input-block">
                                     <input fieldC='ClientSource'  type='text'/>
                                 </div>
                             </div>
                             <div class='row'>
                                 <span class='label'>Регион:</span>
+                                <span class='label field' field='regionsource'></span>
                                 <div class="input-wraper input-block">
-                                    <input fieldC='RegionSource' class='hintable-box'  type='text'/>
+                                    <input fieldC='regionid' class='hintable-box' type='text'/>
                                 </div>
                             </div>
                             <div class='row'>
                                 <span class='label'>Город:</span>
                                 <div class="input-wraper input-block">
-                                    <input fieldC='CitySource'  type='text'/>
+                                    <input fieldC='cityid' class='hintable-box' type='text'/>
                                 </div>
                             </div>
                             <div class='row'>
                                 <span class='label'>Улица:</span>
                                 <div class="input-wraper input-block">
-                                    <input fieldC='StreetId'  type='text'/>
+                                    <input fieldC='streetid' class='hintable-box' type='text'/>
                                 </div>
                             </div>
                             <div class='row'>
@@ -1106,7 +1108,7 @@
                // var range = elem.createTextRange();
                 /*range.setStart(elem, elem.selectionStart);
                 range.setEnd(elem, elem.selectionEnd);   */
-                console.info();
+                console.info('');
                 //alert(elem.value.substring(elem.selectionStart, elem.selectionEnd));
             }
             var formEditor = {};
@@ -1115,29 +1117,75 @@
                     formEditor.__proto__ = Grids.EditFormActions;
                     formEditor.Create = function(){
                         C.Process(this, "ui-processing");
-                        var regionField = this.get('[fieldC="RegionSource"]');
+                        var regionField = this.get('[fieldC="regionid"]');
+                        var cityField =  this.get('[fieldC="cityid"]');
+                        var streetField = this.get('[fieldC="streetid"]');
+
                         regionField.Controller = {
                             OnFilter: function(str, searchBox){
                                 var self = this;
-                                if (str.length < 3) return;
-                                console.info(searchBox.all(".search-item"));
-                                console.info(searchBox, str.length);
+                                if (str.length < 1) {
+                                    searchBox.all(".search-item").del();
+                                    return;
+                                }
+                                if (str.length > 1) return;
                                 VerbTypes.region.query(str, function(results){
                                     for (var i = 0; i < results.length; i++){
                                         var result = results[i];
                                         var item = self.AddSearchItem(result.formalname);
                                         item.aoguid = result.aoguid;
                                     }
-                                    //console.info(result);
                                 });
-                                //console.info(this, arguments);
                             },
                             OnApply: function(searchItem){
                                 this.aoguid = searchItem.aoguid;
-                                //alert(searchItem.aoguid);
-                                //console.info(this, arguments);
                             }
                         };
+
+                        cityField.Controller = {
+                            OnFilter: function(str, searchBox){
+                                var self = this;
+                                if (str.length < 1) {
+                                    searchBox.all(".search-item").del();
+                                    return;
+                                }
+                                if (str.length > 1) return;
+                                console.info(searchBox.all(".search-item"));
+                                console.info(searchBox, str.length);
+                                VerbTypes.city.queryFiltered(regionField.aoguid, str, function(results){
+                                    for (var i = 0; i < results.length; i++){
+                                        var result = results[i];
+                                        var item = self.AddSearchItem(result.formalname);
+                                        item.aoguid = result.aoguid;
+                                    }
+                                });
+                            },
+                            OnApply: function(searchItem){
+                                this.aoguid = searchItem.aoguid;
+                            }
+                        };
+
+                        streetField.Controller = {
+                            OnFilter: function(str, searchBox){
+                                var self = this;
+                                if (str.length < 1) {
+                                    searchBox.del(".search-item");
+                                    return;
+                                }
+                                if (str.length > 1) return;
+                                VerbTypes.street.queryFiltered(cityField.aoguid, str, function(results){
+                                    for (var i = 0; i < results.length; i++){
+                                        var result = results[i];
+                                        var item = self.AddSearchItem(result.formalname);
+                                        item.aoguid = result.aoguid;
+                                    }
+                                });
+                            },
+                            OnApply: function(searchItem){
+                                this.aoguid = searchItem.aoguid;
+                            }
+                        };
+
                         /*regionField.OnFilter = function(){
                             alert('');
                         };  */
