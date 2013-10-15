@@ -16,6 +16,7 @@
 		
 		<script type='text/javascript' src='http://localhost:6200/services/SysUtils/NodeEnvironment.js'>		</script>
 		<script type='text/javascript' src='http://localhost:6200/Modules/Channels.js'>		</script>
+		<script type='text/javascript' src='Uart.js'>		</script>
 		<script type='text/javascript' src='Index.js'>		</script>
 		<script type='text/javascript' src='editor.js'>		</script>
 		<style type='text/css'>
@@ -41,7 +42,12 @@
 		<include url="http://localhost:6200/services/Grids/CellsManager.htm"></include>
 		
 		<div id="UiSettingsWindow" class='window invisible' title='Настройки'>
-			
+			<div class='current-port'>
+				Текущий порт: <input type='text' id='CurrentPort' class='hintable-box'/>	
+			</div>
+			<div id='AvailablePorts'>
+				
+			</div>
 		</div>
 		<div id='HeaderBar' class='toolbar'>
 			<div class='menuitem resume' icon='http://cdn1.iconfinder.com/data/icons/nuove/32x32/actions/player_play.png' onclick="CNC.ProgCommand('resume');">
@@ -69,6 +75,9 @@
 		</div>
 		<div id='ContentPanel'>
 			<div id='StatusBar'>
+				<div class='sbar-elem port-elem'>
+					<span id='PortName'></span>
+				</div>
 				<div class='sbar-elem command line program-state' style='font-size: 20px; color: gray'>
 					(<span id='currentLine'></span>)
 				</div>

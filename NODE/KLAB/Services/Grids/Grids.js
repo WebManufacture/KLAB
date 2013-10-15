@@ -193,7 +193,7 @@ Grids._umGridMixin.EditObjectAction = function(obj) {
 		return;
 	};
 	if (typeof editForm.Create == "function"){
-		editForm.Create(obj);
+		if (editForm.Create(obj)) return;
 	}
 	var allFields = obj.all('[field]');
 	for (var i = 0; i < allFields.length; i++) {
@@ -225,6 +225,9 @@ Grids._umGridMixin.EditObjectAction = function(obj) {
 		};
 	};
 	this.ObjectsContainer.insertBefore(editForm, obj);
+	if (typeof editForm.OnLoad == "function"){
+		if (editForm.OnLoad(obj)) return;
+	}
 	obj.hide();
 };
 
