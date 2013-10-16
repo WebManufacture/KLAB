@@ -1065,22 +1065,25 @@
                             </div>
                             <div class='row'>
                                 <span class='label'>Регион:</span>
+                                <input class='field invisible' field='RegionId' />
                                 <div class="input-wraper input-block">
-                                    <input fieldC='regionid' class='hintable-box' type='text'/>
+                                    <input fieldC='RegionId' class='hintable-box' type='text'/>
                                 </div>
                                 <span class='field' field='RegionSource'></span>
                             </div>
                             <div class='row'>
                                 <span class='label'>Город:</span>
+                                <input class='field invisible' field='CityId' />
                                 <div class="input-wraper input-block">
-                                    <input fieldC='cityid' class='hintable-box' type='text'/>
+                                    <input fieldC='CityId' class='hintable-box' type='text'/>
                                 </div>
                                 <span class='field' field='CitySource'></span>
                             </div>
                             <div class='row'>
                                 <span class='label'>Улица:</span>
+                                <input class='field invisible' field='StreetId' />
                                 <div class="input-wraper input-block">
-                                    <input fieldC='streetid' class='hintable-box' type='text'/>
+                                    <input fieldC='StreetId' class='hintable-box' type='text'/>
                                 </div>
                                 <span class='field' field='AddressFSource'></span>
                             </div>
@@ -1120,9 +1123,13 @@
                     formEditor.__proto__ = Grids.EditFormActions;
                     formEditor.Create = function(){
                         C.Process(this, "ui-processing");
-                        var regionField = this.get('[fieldC="regionid"]');
-                        var cityField =  this.get('[fieldC="cityid"]');
-                        var streetField = this.get('[fieldC="streetid"]');
+                        var regionField = this.get('[fieldC="RegionId"]');
+                        var cityField =  this.get('[fieldC="CityId"]');
+                        var streetField = this.get('[fieldC="StreetId"]');
+
+                        var regionFieldInv = this.get('[field="RegionId"]');
+                        var cityFieldInv =  this.get('[field="CityId"]');
+                        var streetFieldInv = this.get('[field="StreetId"]');
 
                         regionField.Controller = {
                             OnFilter: function(str, searchBox){
@@ -1142,6 +1149,7 @@
                             },
                             OnApply: function(searchItem){
                                 this.aoguid = searchItem.aoguid;
+                                regionFieldInv.value = searchItem.aoguid;
                             }
                         };
 
@@ -1153,8 +1161,6 @@
                                     return;
                                 }
                                 if (str.length > 1) return;
-                                console.info(searchBox.all(".search-item"));
-                                console.info(searchBox, str.length);
                                 VerbTypes.city.queryFiltered(regionField.aoguid, str, function(results){
                                     for (var i = 0; i < results.length; i++){
                                         var result = results[i];
@@ -1165,6 +1171,7 @@
                             },
                             OnApply: function(searchItem){
                                 this.aoguid = searchItem.aoguid;
+                                cityFieldInv.value = searchItem.aoguid;
                             }
                         };
 
@@ -1186,18 +1193,30 @@
                             },
                             OnApply: function(searchItem){
                                 this.aoguid = searchItem.aoguid;
+                                streetFieldInv.value = searchItem.aoguid;
                             }
                         };
+                    };
+                    formEditor.OnLoad = function(){
+                        var self = this;
+                        var FieldsInv = this.all('input[field]');
 
-                        /*regionField.OnFilter = function(){
-                            alert('');
-                        };  */
-                        /*regionField.customFilter = function(){
-                            VerbTypes.region.query(this.value, function(result){
-                                console.info(result);
-                            });
-                        }*/
-                        console.info(this, arguments, regionField);
+
+                        for (var i = 0; i < FieldsInv.length; i++){
+                            var FieldInvVal = FieldsInv[i].value;
+                            var FieldInvAttrName = FieldsInv[i].get('@field');
+                            if (!FieldInvVal)
+                                continue;
+                            selectByAOGUID(FieldInvVal, (function(fieldVal, fieldName){
+                                return function(res){
+                                    var field = self.get('[fieldC="' + fieldName +'"]');
+                                    field.value = res[0].formalname;
+                                }
+                            })(FieldInvVal, FieldInvAttrName));
+                        }
+                        function selectByAOGUID(auguid, callback){
+                            fias.get("SELECT FORMALNAME FROM addrobj WHERE AOGUID = '" + auguid + "'" , callback);
+                        }
                     };
                 }, 'http://services.web-manufacture.net/grids/grids.htm');
             });
