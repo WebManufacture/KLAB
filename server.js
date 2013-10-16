@@ -617,6 +617,8 @@ ILabRouter.AddNode = function(node, callback){
 	return null;
 };
 
+process.setMaxListeners(100);
+
 process.on('SIGTERM', function() {
 	for (var item in ILab.Nodes){
 		console.log("EXITING: " + item.info);

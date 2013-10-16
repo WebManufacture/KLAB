@@ -27,7 +27,11 @@ public class Startup
             {
                 if (action == "write")
                 {
-                    Task.Run<object>(() => { return device.Send((byte[])input["data"]); });
+                    return Task.Run<object>(() => { return device.Send((byte[])input["data"]); });
+                }
+				if (action == "write-sized")
+                {
+                    return Task.Run<object>(() => { return device.Send((byte[])input["data"], 1, false); });
                 }
                 if (action == "command")
                 {
@@ -374,31 +378,45 @@ public class Device
         return null;
     }
 
-    public bool Send(byte[] buffer)
+	public bool Send(byte[] buffer)
+        {
+            return Send(buffer, 0, false);
+        }
+
+    public bool Send(byte[] buffer, byte sizeByteLength, bool useCRC)
     {
-        if (writeState > UARTWritingState.free) return false;
-        if (buffer.Length > 255 || buffer.Length == 0) return false;
-        if (!device.IsOpen)
-        {
-            return false;
-        }
-        writeState = UARTWritingState.writing;
-        var buf = new byte[buffer.Length + 4];
-        byte crc = 255;
-        buf[0] = 0;
-        buf[1] = (byte)buffer.Length;
-        buffer.CopyTo(buf, 2);
-        for (int i = 0; i < buffer.Length; i++)
-        {
-            crc ^= buffer[i];
-        }
-        buf[buf.Length - 2] = crc;
-        buf[buf.Length - 1] = (byte)ASCII.EOT;
-        uint bwrite = 0;
-        device.Write(buf, 0, buf.Length);
-        writeState = UARTWritingState.free;
-        return true;
-    }
+            if (writeState > UARTWritingState.free) return false;
+            if (buffer.Length > 255 || buffer.Length == 0) return false;
+            if (!device.IsOpen)
+            {
+                return false;
+            }
+            writeState = UARTWritingState.writing;
+            var bufAddLen = 2;
+            bufAddLen += sizeByteLength;
+            if (useCRC) bufAddLen += 1;
+            var buf = new byte[buffer.Length + bufAddLen];
+            buf[0] = sizeByteLength > 0 ? (byte)ASCII.SOH : (byte)ASCII.STX;
+            if (sizeByteLength > 0)
+            {
+                buf[sizeByteLength] = (byte)buffer.Length;
+            }
+            buffer.CopyTo(buf, 1 + sizeByteLength);
+            if (useCRC)
+            {
+                byte crc = 255;
+                for (int i = 0; i < buffer.Length; i++)
+                {
+                    crc ^= buffer[i];
+                }
+                buf[buf.Length - 2] = crc;
+            }
+            buf[buf.Length - 1] = (byte)ASCII.EOT;
+            uint bwrite = 0;
+            device.Write(buf, 0, buf.Length);
+            writeState = UARTWritingState.free;
+            return true;
+	}
 
     public bool Send(byte command)
     {

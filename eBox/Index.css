@@ -35,8 +35,9 @@ body[state='ready'] .menuitem.run
 
 #StatusBar
 {
-	font-size: 45px;
+	font-size: 30px;
 	color: #aaa;
+	padding: 4px 10px;
 }
 #StatusBar .sbar-elem
 {

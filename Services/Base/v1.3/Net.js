@@ -33,11 +33,13 @@ if (!UsingDOM("KLabNet")){
 			rq.send();
 		},
 		
-		write : function(messages){
-			var url = new Url(this.url + url);
+		write : function(data){
+			var url = new Url(this.url);
 			url.addParam("rnd", Math.random());
-			var rq = _klabNetInternal.POST(url, messages);
-			rq.send(messages);
+			if (typeof data != 'string'){
+				data = JSON.stringify(data);
+			}
+			var rq = _klabNetInternal.POST(url, data, true);
 		},
 		
 		send : function(url, data){
@@ -45,8 +47,8 @@ if (!UsingDOM("KLabNet")){
 			if (!data) data = null;
 			url = new Url(this.url + url);
 			url.addParam("rnd", Math.random());
-			var rq = _klabNetInternal.POST(url, data);
-			rq.send(data);
+			var rq = _klabNetInternal.POST(url, data, true);
+			//rq.send(data);
 		},
 		
 		readStateChanged: function() {

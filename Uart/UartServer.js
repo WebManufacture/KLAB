@@ -88,7 +88,8 @@ UartServer.Process = {
 			res.finishText(404, "port " + port + " closed!");
 			return;
 		}
-		Channels.emit("/" + port.port + ".send", data);		
+		console.log("Emmiting: "  + data);
+		Channels.emit("/" + port + ".send", data);		
 		res.finish(200);
 	},
 	
