@@ -37,6 +37,7 @@ global.Uart.prototype = {
 			initAct.parity = parity;	
 		}
 		this.parity = parity;
+		var uart = this;
 		uartFunc(initAct, function(err, result){
 			if (err){
 				error(err);	
@@ -44,7 +45,7 @@ global.Uart.prototype = {
 			}
 			if (result){
 				console.log(uart.port + " Opened!");
-				Channels.emit("/" + this.port + ".opened");
+				Channels.emit("/" + uart.port + ".opened");
 				uart.opened = true;
 				process.on("exit", function(){
 					uart.Close();
@@ -55,11 +56,23 @@ global.Uart.prototype = {
 				uart.opened = false;
 			}
 		});
+		process.on("exit", function(){
+			//uart.Close();
+		});
 	},
 	
 	Write : function(data, callback){
 		if (!this.opened) return;
-		uartFunc({action : 'write', data : data}, function(err, result){
+		if (!data.length) return;
+		for (var i = 0; i < data.length; i++){
+			if (typeof data[i] == 'number') continue;
+			if (typeof data[i] == 'string'){
+				data[i] = data[i].charCodeAt(0);
+				continue;
+			}			
+			break;
+		}
+		uartFunc({action : 'write-sized', data : data}, function(err, result){
 			data.sended = true;	
 		}); 
 		//Uart.waitResponse(data.command);

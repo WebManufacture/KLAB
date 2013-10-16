@@ -9,10 +9,6 @@ try{
 	require(Path.resolve("./Modules/Node/ChildProcess.js"));
 	var RouterModule = require("./Modules/Node/Router.js");
 	require(Path.resolve('./Modules/Node/Logger.js'));
-
-	process.on('SIGTERM', function() {
-
-	});
 		
 	ProxiedServer = function(){;
 		var args = {
@@ -193,7 +189,7 @@ try{
 		finish : function(status, result, enc){
 					this.statusCode = status;
 					if (result == null || result == undefined){
-						if (IsNaN(parseInt(status))){
+						if (isNaN(parseInt(status))){
 							result = status;
 							status = 200;
 						}
