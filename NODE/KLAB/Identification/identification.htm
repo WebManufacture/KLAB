@@ -1151,22 +1151,6 @@
                                     }
                                 });
                             },
-                            /*OnFilter: function(str, searchBox){
-                                var self = this;
-                                if (str.length < 1) {
-                                    searchBox.all(".search-item").del();
-                                    return;
-                                }
-                                if (str.length > 1) return;
-                                var parentClientsSrorage = new SimpleStorage('http://web-manufacture.net/identification/parentclientsdictionary');
-                                parentClientsSrorage.all({Title: {$in: str}}, function(results){
-                                    for (var i = 0; i < results.length; i++){
-                                        var result = results[i];
-                                        var item = self.AddSearchItem(result.formalname);
-                                        item.aoguid = result.aoguid;
-                                    }
-                                });
-                            },*/
                             OnApply: function(searchItem){
                                 this.aoguid = searchItem.aoguid;
                                 parentClientFieldInv.value = searchItem.aoguid;
@@ -1186,22 +1170,6 @@
                                     }
                                 });
                             },
-                            /*OnFilter: function(str, searchBox){
-                                var self = this;
-                                if (str.length < 1) {
-                                    searchBox.all(".search-item").del();
-                                    return;
-                                }
-                                if (str.length > 1) return;
-                                var clientsSrorage = new SimpleStorage('http://web-manufacture.net/identification/clientsdictionary');
-                                clientsSrorage.all({Title: {$in: str}}, function(results){
-                                    for (var i = 0; i < results.length; i++){
-                                        var result = results[i];
-                                        var item = self.AddSearchItem(result.formalname);
-                                        item.aoguid = result.aoguid;
-                                    }
-                                });
-                            }, */
                             OnApply: function(searchItem){
                                 this.aoguid = searchItem.aoguid;
                                 clientFieldInv.value = searchItem.aoguid;
@@ -1299,6 +1267,40 @@
                         function selectByAOGUID(auguid, callback){
                             fias.get("SELECT FORMALNAME FROM addrobj WHERE AOGUID = '" + auguid + "'" , callback);
                         }
+                    };
+                    formEditor._Save = formEditor.Save;
+                    formEditor.Save = function(){
+                        var self = this;
+                        var counter = 0;
+                        var pcString = this.get('[fieldC="ParentClientId"]');
+                        var pcId = this.get('[field="ParentClientId"]');
+                        var cString = this.get('[fieldC="ClientId"]');
+                        var cId = this.get('[field="ClientId"]');
+
+                        if (pcString.value && ! pcId.value){
+                            counter++;
+                            var pcStorage = new SimpleStorage('http://web-manufacture.net/identification/parentclientsdictionary');
+                            pcStorage.set({Title: pcString.value}, function(result){
+                                pcId.value = result._id;
+                                if (!--counter){
+                                    formEditor._Save.apply(self);
+                                }
+                            });
+                        }
+                        if (cString.value && ! cId.value){
+                            counter++;
+                            var cStorage = new SimpleStorage('http://web-manufacture.net/identification/clientsdictionary');
+                            cStorage.set({Title: cString.value}, function(result){
+                                cId.value = result._id;
+                                if (!--counter){
+                                    formEditor._Save.apply(self);
+                                }
+                            });
+                        }
+                        if (!counter)
+                            formEditor._Save.apply(self);
+
+                      console.info(this, arguments);
                     };
                 }, 'http://services.web-manufacture.net/grids/grids.htm');
             });
