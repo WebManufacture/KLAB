@@ -249,6 +249,7 @@ input, textarea {width:100%;border:0;outline:0;resize:none;padding:0;margin:0;}
 .input-wraper.input-block {display:inline-block;width:250px;}
 
 .container {width:100%;padding:10px;}
+.clearfix {clear:both;}
 .row {width:100%;clear:both;padding:5px;}
 .label {display:inline-block;width:150px;text-align:right;color:gray;}
 .half-row {width:50%;float:left;}
