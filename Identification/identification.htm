@@ -1124,6 +1124,7 @@
             WS.DOMload(function(){
                 EV.AddHandler("OnModuleRegistered", function(){
                     formEditor.__proto__ = Grids.EditFormActions;
+                    console.info('proto', formEditor);
                     formEditor.Create = function(){
                         //C.Process(this, "ui-processing");
                         var parentClientField = this.get('[fieldC="ParentClientId"]');
@@ -1268,7 +1269,7 @@
                             fias.get("SELECT FORMALNAME FROM addrobj WHERE AOGUID = '" + auguid + "'" , callback);
                         }
                     };
-                    formEditor._Save = formEditor.Save;
+                    //formEditor._Save = formEditor.Save;
                     formEditor.Save = function(){
                         var self = this;
                         var counter = 0;
@@ -1283,22 +1284,25 @@
                             pcStorage.set({Title: pcString.value}, function(result){
                                 pcId.value = result._id;
                                 if (!--counter){
-                                    formEditor._Save.apply(self);
+                                    formEditor.__proto__.Save.apply(self);
                                 }
                             });
                         }
                         if (cString.value && ! cId.value){
                             counter++;
                             var cStorage = new SimpleStorage('http://web-manufacture.net/identification/clientsdictionary');
-                            cStorage.set({Title: cString.value}, function(result){
+                            var dataObj = {Title: cString.value};
+                            if (pcId.value)
+                                dataObj.ParentId = pcId.value;
+                            cStorage.set(dataObj, function(result){
                                 cId.value = result._id;
                                 if (!--counter){
-                                    formEditor._Save.apply(self);
+                                    formEditor.__proto__.Save.apply(self);
                                 }
                             });
                         }
                         if (!counter)
-                            formEditor._Save.apply(self);
+                            formEditor.__proto__.Save.apply(self);
 
                       console.info(this, arguments);
                     };
