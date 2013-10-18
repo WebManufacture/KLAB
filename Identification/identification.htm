@@ -1077,7 +1077,7 @@
                                 <span class='label'>Город:</span>
                                 <input class='field invisible' field='CityId' />
                                 <div class="input-wraper input-block">
-                                    <input fieldC='CityId' class='hintable-box' type='text' />
+                                    <input fieldC='CityId' class='hintable-box' disabled='disabled' type='text' />
                                 </div>
                                 <span class='field' field='CitySource'></span>
                             </div>
@@ -1085,7 +1085,7 @@
                                 <span class='label'>Улица:</span>
                                 <input class='field invisible' field='StreetId' />
                                 <div class="input-wraper input-block">
-                                    <input fieldC='StreetId' class='hintable-box' type='text' />
+                                    <input fieldC='StreetId' class='hintable-box' disabled='disabled' type='text' />
                                 </div>
                                 <span class='field' field='AddressFSource'></span>
                             </div>
@@ -1147,14 +1147,15 @@
                                 parentClientsSrorage.all({}, function(results){
                                     for (var i = 0; i < results.length; i++){
                                         var result = results[i];
-                                        var item = self.AddSearchItem(result.formalname);
-                                        item.aoguid = result.aoguid;
+                                        var item = self.AddSearchItem(result.Title);
+                                        item.aoguid = result._id;
                                     }
                                 });
                             },
                             OnApply: function(searchItem){
                                 this.aoguid = searchItem.aoguid;
                                 parentClientFieldInv.value = searchItem.aoguid;
+                                clientField.focus();
                             }
                         };
 
@@ -1166,14 +1167,15 @@
                                 parentClientsSrorage.all({}, function(results){
                                     for (var i = 0; i < results.length; i++){
                                         var result = results[i];
-                                        var item = self.AddSearchItem(result.formalname);
-                                        item.aoguid = result.aoguid;
+                                        var item = self.AddSearchItem(result.Title);
+                                        item.aoguid = result._id;
                                     }
                                 });
                             },
                             OnApply: function(searchItem){
                                 this.aoguid = searchItem.aoguid;
                                 clientFieldInv.value = searchItem.aoguid;
+                                regionField.focus();
                             }
                         };
 
@@ -1196,6 +1198,8 @@
                             OnApply: function(searchItem){
                                 this.aoguid = searchItem.aoguid;
                                 regionFieldInv.value = searchItem.aoguid;
+                                cityField.del('@disabled');
+                                cityField.focus();
                             }
                         };
 
@@ -1219,6 +1223,8 @@
                             OnApply: function(searchItem){
                                 this.aoguid = searchItem.aoguid;
                                 cityFieldInv.value = searchItem.aoguid;
+                                streetField.del('@disabled');
+                                streetField.focus();
                             }
                         };
 
@@ -1269,7 +1275,6 @@
                             fias.get("SELECT FORMALNAME FROM addrobj WHERE AOGUID = '" + auguid + "'" , callback);
                         }
                     };
-                    //formEditor._Save = formEditor.Save;
                     formEditor.Save = function(){
                         var self = this;
                         var counter = 0;
