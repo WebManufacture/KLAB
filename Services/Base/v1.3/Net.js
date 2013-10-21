@@ -182,7 +182,7 @@ if (!UsingDOM("KLabNet")){
 				var contentType = this.getResponseHeader("Content-Type");
 				if (typeof(this.callback) == "function"){
 					var result = this.responseText;
-					if (contentType.start("text/json") || contentType.start("application/json")){
+					if (contentType && (contentType.start("text/json") || contentType.start("application/json"))){
 						try{
 							result = JSON.parse(result);
 						}

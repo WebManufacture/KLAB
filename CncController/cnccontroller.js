@@ -6,19 +6,16 @@ var edge = require('edge');
 
 require(Path.resolve("./Modules/Node/Utils.js"));
 require(Path.resolve("./Modules/Channels.js"));
-require(Path.resolve("./Modules/Node/ChildProcess.js"));
 require(Path.resolve('./Modules/Node/Logger.js'));
-try{
-	require(Path.resolve('./Modules/Node/Mongo.js'));
+var fileSystem = require(Path.resolve('./Modules/Node/Files.js'));
+require(Path.resolve('./Modules/Node/Mongo.js'));
 	
 	Server = server = {};
 	
-	Server.Path = process.env.workDir;
-	
-	require(Server.Path + '/cnc.js');
+	require(Path.resolve('CncController/cnc.js'));
 	
 	var uartFunc = edge.func({
-		source: Server.Path + "/Uart.cs",
+		source: Path.resolve("CncController/Uart.cs"),
 		references: [ ]
 	});
 	
@@ -93,7 +90,11 @@ try{
 	
 	Uart.Init = function(){
 		var initFunc = function(){
-			uartFunc({action: "init", port : 'COM2'}, function(err, result){
+			var port = "COM1";
+			if (Server.Config.ComPort){
+				port = Server.Config.ComPort;
+			}
+			uartFunc({action: "init", port : port}, function(err, result){
 				if (err){
 					error(err);	
 				}
@@ -115,8 +116,6 @@ try{
 		Uart.Close();
 	});
 	
-	Server.Config = JSON.parse(process.argv[2]);
-	
 	Server.InitDB = function (){
 		debug("connecting DB");
 		if (Server.Config.DB){
@@ -132,145 +131,45 @@ try{
 	};
 	
 	
-	Server.Init = function(){
-		if (!Server.Config){
-			Server.Config = {};
-		}
-		var config = Server.Config;
-		Server.InitDB();
+	Server.Init = function(config, router){
+		Server.Config = config;
+		//Server.InitDB();
 		Uart.Init();
 		Channels.on("uart.output", function(message, command){
 			Uart.Write(command);
 		});
-		Channels.on("/http-request.get/storage", function(route, id, url, headers, data){ 
-			fs.readFile(path + ".json", "utf8", function(err, result){   
-				if (err){
-					(id, 500, err);
-					return;
-				}		
-				Server.SendResponse(id, 200, result, {"Content-Type": "text/plain; charset=utf-8"});
-			});
-			this.processsed = true;
-			return true;
-		});
-		Channels.on("/http-request.post/storage", function(route, id, url, headers, data){ 
-			var path = route.current.replace(/\//ig, "");
-			fs.writeFile(path + ".json", data, 'utf8', function(err, result){
-				if (err){
-					Server.SendResponse(id, 500, err);
-					return;
-				}		
-				Server.SendResponse(id, 200, "", {"Content-Type": "text/plain; charset=utf-8"});
-			});
-			this.processsed = true;
-			return true;
-		});
-		Channels.on("/http-request.get/state", function(route, id, url, headers, data){ 
-			if (this.processsed) return;
+		router.for("Main", "/storage/>", new fileSystem({basepath: "storage"}));
+		router.for("Main", "/state/>", function(context){ 
 			Uart.GetState(function(result){
 				log("state ready");
 				Uart.Command(Commands.State);
-				Server.SendResponse(id, 200, result, null);
+				context.finish(200, result);
+				context.continue();
 			});
 			return false;
 		});	
-		Channels.on("/http-request.post/program", function(route, id, url, headers, data){ 
-			if (this.processsed) return;
-			var data = JSON.parse(data);
+		router.for("Main", "/program/>", function(context){ 
+			console.log(context.data);
+			var data = JSON.parse(context.data);
 			if (Server.program){
 				Server.program.close();	
 			}
 			Server.program = new CncProgram(data, Uart);
 			Server.program.Start();
-			Server.SendResponse(id, 200, data.length, null);
+			context.finish(200, data.length);
 			return true;
 		});		
-		Channels.on("/http-request.post/command", function(route, id, url, headers, data){ 
-			if (this.processsed) return;
-			var data = JSON.parse(data);
+		router.for("Main", "/command/>", function(context){ 
+			var data = JSON.parse(context.data);
 			if (data.command == Commands.Stop && Server.program){
 				Server.program.Stop();
 			}
 			Channels.emit("uart.output", data);
-			Server.SendResponse(id, 200, data, null);
+			context.finish(200, data);
 			return true;
 		});
 		log("Uart channel ready");
-		console.log("Uart channel ready");
 	};
-	
-	Server.Finalize = function(context){		
-		context.setHeader("Content-Type", "text/plain; charset=utf-8");
-		context.finish(404, "URL not available");
-		return true;
-	};	
-	
-	Server.SendResponse = function(id, status, result, headers){
-		//console.log("response: id" + id);
-		Channels.emit("http-response.id" + id, id, status, result, headers);	
-	};
-	
-	Server.SendPartial = function(id, status, result, headers){
-		//console.log("response: id" + id);
-		Channels.emit("http-response.partial.id" + id, id, status, result, headers);	
-	};
-	
-	Server.Context = function(id, url, path, headers, data){
-		if (typeof(url) == "string") url = Url.parse(url, true);
-		context = { id : id, 
-				   url : url,
-				   path : path,
-				   pathTail : path,
-				   pathName: path,
-				   data: data,
-				   headers: headers, 
-				   method : url.method };
-		context.setHeader = function(name, value){
-			this.headers[name] = value;
-		}
-		context.sendFile = function(fileName){
-			if (fileName.indexOf("/") != 0){
-				fileName = "/" + fileName;
-			}
-			if (fileName.lastIndexOf("/") == fileName.length - 1){
-				fileName = fileName.substring(0, fileName.length - 1);
-			}
-			var adminApp = fs.readFileSync("." + fileName, 'utf8');
-			this.setHeader("Content-Type", "text/html; charset=utf-8");
-			this.finish(200, adminApp, 'utf8');
-		};
-		context.send = function(status, result){
-			try{
-				Server.SendPartial(this.id, status, result, this.headers);
-			}
-			catch(e){
-				console.log(e);	
-			}
-		}
-		context.finish = function(status, result, encoding){
-			try{
-				if (encoding){
-					this.headers.encoding = encoding;
-				}
-				Server.SendResponse(this.id, status, result, this.headers);
-			}
-			catch(e){
-				console.log(e);	
-			}
-		}
-		return context;
-	};
-	
-	Server.Init();
-}
-catch(e){
-	if (this.error){
-		error(e);	
-		process.exit();
-	}
-	else{
-		throw(e);
-	}
-}
 
+module.exports = Server;
 

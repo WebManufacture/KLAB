@@ -39,12 +39,13 @@
 	QProgramsWin.Load = function(){
 		this.all(".prog").del();
 		Storage.All("programs", function(files){
-			files = JSON.parse(files);
-			for (var i =0; i< files.length; i++){
-				var file = files[i];
-				var ext = file.name.split('.');
-				if (ext[1] && ext[1] == 'qcnc'){
-					QProgramsWin._addProg(ext[0], file.name);					
+			if (files && typeof(files) == 'object'){
+				for (var i =0; i< files.length; i++){
+					var file = files[i];
+					var ext = file.name.split('.');
+					if (ext[1] && ext[1] == 'qcnc'){
+						QProgramsWin._addProg(ext[0], file.name);					
+					}
 				}
 			}
 		});

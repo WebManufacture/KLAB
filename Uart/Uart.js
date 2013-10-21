@@ -72,6 +72,7 @@ global.Uart.prototype = {
 			}			
 			break;
 		}
+		console.log("Sending " + data);
 		uartFunc({action : 'write-sized', data : data}, function(err, result){
 			data.sended = true;	
 		}); 

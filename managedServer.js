@@ -127,9 +127,14 @@ try{
 			if (this.Enabled){
 				var context = this.MainRouter.GetContext(req, res, this.RootPath);
 				var serv = this;
-				setTimeout(function(){		
+				var fullData = "";
+				req.on("data", function(data){
+					fullData += data;		
+				});
+				req.on("end", function(){
+					context.data = fullData;
 					serv.MainRouter.Process(context);	
-				}, 10);
+				});
 				return false;
 			}
 			else{
@@ -153,10 +158,14 @@ try{
 		context.abort();
 		var serv = this;
 		var newContext = this.MainRouter.GetContext(context.req, context.res, this.RootPath);
-		setTimeout(function(){			
-			newContext.res.setHeader("Server", "Managed server");
+		var fullData = "";
+		context.req.on("data", function(data){
+			fullData += data;		
+		});
+		context.req.on("end", function(){
+			newContext.data = fullData;
 			serv.MainRouter.Process(newContext);	
-		}, 10);
+		});
 		return false;
 	};
 	

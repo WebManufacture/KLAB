@@ -1,4 +1,4 @@
-{   "MessagesUrl" : "http://web-manufacture.net/monitoring/cnccontroller/process/uart",
+{   "MessagesUrl" : "http://web-manufacture.net/cnccontroller/Channels/uart",
 	"StateUrl":"http://web-manufacture.net/CncController/State",
 	"CommandUrl":"http://web-manufacture.net/CncController/Command",
 	"ProgramUrl":"http://web-manufacture.net/CncController/Program",
