@@ -1049,22 +1049,14 @@
                             </div-->
                         </div>
                         <div class='half-row'>
-                            <div class='row'>
+                            <!--div class='row'>
                                 <span class='label'>Сеть:</span>
                                 <input class='field invisible' field='ParentClientId' />
                                 <div class="input-wraper input-block">
                                     <input fieldC='ParentClientId' class='hintable-box' type='text' />
                                 </div>
                                 <span class='field' field='ParentClient'></span>
-                            </div>
-                            <div class='row'>
-                                <span class='label'>Клиент:</span>
-                                <input class='field invisible' field='ClientId' />
-                                <div class="input-wraper input-block">
-                                    <input fieldC='ClientId' class='hintable-box' type='text' />
-                                </div>
-                                <span class='field' field='ClientSource'></span>
-                            </div>
+                            </div-->
                             <div class='row'>
                                 <span class='label'>Регион:</span>
                                 <input class='field invisible' field='RegionId' />
@@ -1090,15 +1082,35 @@
                                 <span class='field' field='AddressFSource'></span>
                             </div>
                             <div class='row'>
-                                <span class='label'>Дом:</span>
+                                 <span class='label'>Помещение:</span>
+                                 <div class="input-wraper input-block">
+                                     <input fieldC='Building'  type='text' />
+                                 </div>
+                             </div>
+                             <!--div class='row'>
+                                 <span class='label'>Дом:</span>
+                                 <div class="input-wraper input-block">
+                                     <input fieldC='House'  type='text' />
+                                 </div>
+                             </div>
+                             <div class='row'>
+                                 <span class='label'>Офис:</span>
+                                 <div class="input-wraper input-block">
+                                     <input fieldC='Room'  type='text' />
+                                 </div>
+                             </div-->
+                            <div class='row'>
+                                <span class='label'>Клиент:</span>
+                                <input class='field invisible' field='ClientId' />
                                 <div class="input-wraper input-block">
-                                    <input fieldC='House'  type='text' />
+                                    <input fieldC='ClientId' class='hintable-box' type='text' />
                                 </div>
+                                <span class='field' field='ClientSource'></span>
                             </div>
                             <div class='row'>
-                                <span class='label'>Офис:</span>
+                                <span class='label'>Примечание:</span>
                                 <div class="input-wraper input-block">
-                                    <input fieldC='Room'  type='text' />
+                                    <textarea fieldC='Annotation'></textarea>
                                 </div>
                             </div>
                         </div>
@@ -1127,19 +1139,19 @@
                     console.info('proto', formEditor);
                     formEditor.Create = function(){
                         //C.Process(this, "ui-processing");
-                        var parentClientField = this.get('[fieldC="ParentClientId"]');
+                        //var parentClientField = this.get('[fieldC="ParentClientId"]');
                         var clientField = this.get('[fieldC="ClientId"]');
                         var regionField = this.get('[fieldC="RegionId"]');
                         var cityField =  this.get('[fieldC="CityId"]');
                         var streetField = this.get('[fieldC="StreetId"]');
 
-                        var parentClientFieldInv = this.get('[field="ParentClientId"]');
+                        //var parentClientFieldInv = this.get('[field="ParentClientId"]');
                         var clientFieldInv = this.get('[field="ClientId"]');
                         var regionFieldInv = this.get('[field="RegionId"]');
                         var cityFieldInv =  this.get('[field="CityId"]');
                         var streetFieldInv = this.get('[field="StreetId"]');
 
-                        parentClientField.Controller = {
+                        /*parentClientField.Controller = {
                             OnInit: function(){
                                 var self = this;
                                 console.info(this, arguments);
@@ -1157,14 +1169,14 @@
                                 parentClientFieldInv.value = searchItem.aoguid;
                                 clientField.focus();
                             }
-                        };
+                        };*/
 
                         clientField.Controller = {
                             OnInit: function(){
                                 var self = this;
                                 console.info(this, arguments);
-                                var parentClientsSrorage = new SimpleStorage('http://web-manufacture.net/identification/clientsdictionary');
-                                parentClientsSrorage.all({}, function(results){
+                                var clientsSrorage = new SimpleStorage('http://web-manufacture.net/identification/clientsdictionary');
+                                clientsSrorage.all({}, function(results){
                                     for (var i = 0; i < results.length; i++){
                                         var result = results[i];
                                         var item = self.AddSearchItem(result.Title);
