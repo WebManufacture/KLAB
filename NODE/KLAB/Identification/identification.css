@@ -251,6 +251,7 @@ input, textarea {width:100%;border:0;outline:0;resize:none;padding:0;margin:0;}
 .container {width:100%;padding:10px;}
 .clearfix {clear:both;}
 .row {width:100%;clear:both;padding:5px;}
+.row > * {vertical-align:top;}
 .label {display:inline-block;width:150px;text-align:right;color:gray;}
 .half-row {width:50%;float:left;}
 .half-row > .row:first-child {padding-top:0;}
