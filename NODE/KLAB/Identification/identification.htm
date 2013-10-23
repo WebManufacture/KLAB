@@ -1144,6 +1144,8 @@
                         var regionField = this.get('[fieldC="RegionId"]');
                         var cityField =  this.get('[fieldC="CityId"]');
                         var streetField = this.get('[fieldC="StreetId"]');
+                        var buildingField = this.get('[fieldC="Building"]');
+                        var AnnotationField = this.get('[fieldC="Annotation"]');
 
                         //var parentClientFieldInv = this.get('[field="ParentClientId"]');
                         var clientFieldInv = this.get('[field="ClientId"]');
@@ -1187,7 +1189,7 @@
                             OnApply: function(searchItem){
                                 this.aoguid = searchItem.aoguid;
                                 clientFieldInv.value = searchItem.aoguid;
-                                regionField.focus();
+                                AnnotationField.focus();
                             }
                         };
 
@@ -1259,6 +1261,7 @@
                             OnApply: function(searchItem){
                                 this.aoguid = searchItem.aoguid;
                                 streetFieldInv.value = searchItem.aoguid;
+                                buildingField.focus();
                             }
                         };
 
@@ -1290,12 +1293,12 @@
                     formEditor.Save = function(){
                         var self = this;
                         var counter = 0;
-                        var pcString = this.get('[fieldC="ParentClientId"]');
-                        var pcId = this.get('[field="ParentClientId"]');
+                        /*var pcString = this.get('[fieldC="ParentClientId"]');
+                        var pcId = this.get('[field="ParentClientId"]'); */
                         var cString = this.get('[fieldC="ClientId"]');
                         var cId = this.get('[field="ClientId"]');
 
-                        if (pcString.value && ! pcId.value){
+                        /*if (pcString.value && ! pcId.value){
                             counter++;
                             var pcStorage = new SimpleStorage('http://web-manufacture.net/identification/parentclientsdictionary');
                             pcStorage.set({Title: pcString.value}, function(result){
@@ -1304,7 +1307,7 @@
                                     formEditor.__proto__.Save.apply(self);
                                 }
                             });
-                        }
+                        }*/
                         if (cString.value && ! cId.value){
                             counter++;
                             var cStorage = new SimpleStorage('http://web-manufacture.net/identification/clientsdictionary');
