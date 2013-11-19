@@ -26,7 +26,7 @@ CncUI.InitCncUI = function(){
 						settings.mmCoefZ = settings.mmCoef;
 					}
 					if (!settings.zGValue){
-						settings.zGValue = 200;
+						settings.zGValue = 80;
 					}
 					CNC.Init(settings);		
 					//CncSettingsGrid.set("@url", "storage/" + result.defaultCnc + ".json");
