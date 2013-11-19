@@ -31,12 +31,12 @@ HttpChannelsClient = {
 			}
 		}
 		request.on("close", function(){
-			//console.log("<< Channel unsubscribe: " + path);
+			console.log("<< Channel unsubscribe: " + path);
 			Channels.clear(path, handler);
 		});
 		if (Channels.on(path, handler)){
-			response.setHeader("Content-Type", "application/json; charset=utf-8");		
 			console.log(">> Channel subscribe: " + path);
+			response.setHeader("Content-Type", "application/json; charset=utf-8");		
 			context.abort();
 			return false;
 		}
