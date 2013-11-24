@@ -989,7 +989,8 @@
 							<span class="field" field="ClientId">ID</span>
 							<span class="field" field="ParentClientId">Нет родителя</span>
 							<span class="field" field="RegionId"></span>								
-							<span class="field" field="CityId"></span>								
+							<span class="field" field="CityId"></span>
+                            <span class="field" field="StreetId"></span>
 						</div>
 						<div class="Client content-line" onclick='SemanticUI.ParseClient(this.get("^.table-object"));'>
 							Клиент: 
@@ -1012,6 +1013,7 @@
 							<div class="Address content-line" onclick='SemanticUI.ParseAddress(this.get("^.table-object"));'>
 								Адрес: 
 								<div class="field" field="Address">Не распознан</div>
+
 								<div class="field source" field="AddressFSource">Адрес клиента Фактический</div>
 								<div class="field source" field="AddressUSource">Адрес клиента Юридический</div>
 							</div>
@@ -1225,7 +1227,6 @@
                                     return;
                                 }
                                 if (str.length > 1) return;
-
                                 VerbTypes.city.queryFiltered(regionField.aoguid, str, function(results){
                                     for (var i = 0; i < results.length; i++){
                                         var result = results[i];
