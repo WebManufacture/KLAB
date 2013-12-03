@@ -14,7 +14,7 @@ module.exports = function(config, server){
 };
 
 Files = {
-
+	
 };
 
 Files.MimeTypes = {
@@ -27,14 +27,15 @@ Files.MimeTypes = {
 	gif : "images/gif",
 	jpg : "images/jpeg",
 	bmp : "images/bmp",
+	ttf : "font/truetype; charset=utf-8"
 };
 
 FilesRouter = function(cfg){
 	if (!cfg.basepath){
-	    cfg.basepath = ".";
+		cfg.basepath = ".";
 	}
 	if (cfg.basepath.end("\\")){
-	    cfg.basepath = cfg.basepath.substr(0, cfg.basepath.length - 1);
+		cfg.basepath = cfg.basepath.substr(0, cfg.basepath.length - 1);
 	}
 	cfg.basepath = cfg.basepath.replace(/\//g, "\\");
 	this.instanceId = (Math.random() + "").replace("0.", "");
@@ -87,7 +88,7 @@ FilesRouter = function(cfg){
 };
 
 FilesRouter.prototype.FormatPath = function(fpath){
-    fpath = fpath.replace(/\//g, "\\");
+	fpath = fpath.replace(/\//g, "\\");
 	if (!fpath.start("\\")) fpath = "\\" + fpath;
 	fpath = this.config.basepath + fpath;
 	fpath = fpath.replace(/\//g, "\\");
@@ -101,8 +102,8 @@ FilesRouter.prototype._GET = FilesRouter.prototype._HEAD = function(context){
 	var inm = context.req.headers["if-none-match"];
 	//console.log("Cache: " + inm + " " +  LastFiles[fpath]);
 	if (inm && this.LastFiles[fpath] == inm){
-	    context.finish(304, null);
-	    return;
+		context.finish(304, null);
+		return;
 	}
 	var ext = paths.extname(fpath);		
 	ext = ext.replace(".", "");
@@ -122,14 +123,14 @@ FilesRouter.prototype._GET = FilesRouter.prototype._HEAD = function(context){
 		}		
 		//var buf = new Buffer(result);
 		if (result.length < 1000000){
-		    context.res.setHeader("Content-Length", result.length);
+			context.res.setHeader("Content-Length", result.length);
 		}	
 		fpath = paths.resolve(fpath);
 		var dnow = new Date();
 		var etag = router.LastFiles[fpath];
 		if (!etag){
-            var etag = (Math.random() + "").replace("0.", "");
-		   	router.LastFiles[fpath] = etag;
+			var etag = (Math.random() + "").replace("0.", "");
+			router.LastFiles[fpath] = etag;
 			//console.log(etag);
 		}		
 		context.res.setHeader("Expires", new Date(dnow.valueOf() + 1000 * 3600).toString());
@@ -196,10 +197,7 @@ FilesRouter.prototype._POST = FilesRouter.prototype._PUT = function(context){
 	//console.log("updating cache: " + fpath + " " + this.LastFiles[fpath]);
 	delete this.LastFiles[paths.resolve(fpath)];
 	var files = this;
-	context.req.on("data", function(data){
-		fullData += data;		
-	});
-	context.req.on("end", function(){
+	var writeFunc = function(){
 		info("Writing " + fpath);
 		fs.writeFile(paths.resolve(fpath), fullData, 'utf8', function(err, result){
 			if (err){
@@ -210,8 +208,18 @@ FilesRouter.prototype._POST = FilesRouter.prototype._PUT = function(context){
 			Channels.emit("/file-system." + files.instanceId + "/action.write", fpath.replace(files.config.basepath, ""), files.instanceId, files.config.basepath);
 			context.finish(200);
 			context.continue();
+		});	
+	}
+	if (context.data == undefined){
+		context.req.on("data", function(data){
+			fullData += data;		
 		});
-	});
+		context.req.on("end", writeFunc);
+	}
+	else{
+		fullData = context.data;
+		writeFunc();
+	}
 	return false;
 };
 

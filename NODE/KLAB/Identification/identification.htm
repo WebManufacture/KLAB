@@ -990,13 +990,15 @@
 							<span class="field" field="ParentClientId">Нет родителя</span>
 							<span class="field" field="RegionId"></span>								
 							<span class="field" field="CityId"></span>
-                            <span class="field" field="StreetId"></span>
+							<span class="field" field="StreetId"></span>
+							<span class="field" field="Building"></span>
 						</div>
 						<div class="Client content-line" onclick='SemanticUI.ParseClient(this.get("^.table-object"));'>
 							Клиент: 
 							<div class="field" field="Client" >Не распознан</div>
 							<div class="field" field="ParentClient" onclick='SemanticUI.ParseParent(this.get("^.table-object"));'></div>
 							<div class="field source" field="ClientSource">Клиент Первичка</div>
+							<div class="field" field="Annotation" >Не распознан</div>
 						</div>
 						<div class="Location">
 							<div class="Region content-line" onclick='SemanticUI.ParseRegion(this.get("^.table-object"));'>
@@ -1013,7 +1015,6 @@
 							<div class="Address content-line" onclick='SemanticUI.ParseAddress(this.get("^.table-object"));'>
 								Адрес: 
 								<div class="field" field="Address">Не распознан</div>
-
 								<div class="field source" field="AddressFSource">Адрес клиента Фактический</div>
 								<div class="field source" field="AddressUSource">Адрес клиента Юридический</div>
 							</div>
@@ -1086,7 +1087,7 @@
                             <div class='row'>
                                  <span class='label'>Помещение:</span>
                                  <div class="input-wraper input-block">
-                                     <input fieldC='Building'  type='text' />
+                                     <input field='Building'  type='text' />
                                  </div>
                              </div>
                              <!--div class='row'>
@@ -1112,7 +1113,7 @@
                             <div class='row'>
                                 <span class='label'>Примечание:</span>
                                 <div class="input-wraper input-block">
-                                    <textarea fieldC='Annotation'></textarea>
+                                    <textarea field='Annotation'></textarea>
                                 </div>
                             </div>
                         </div>
@@ -1146,8 +1147,8 @@
                         var regionField = this.get('[fieldC="RegionId"]');
                         var cityField =  this.get('[fieldC="CityId"]');
                         var streetField = this.get('[fieldC="StreetId"]');
-                        var buildingField = this.get('[fieldC="Building"]');
-                        var AnnotationField = this.get('[fieldC="Annotation"]');
+                        var buildingField = this.get('[field="Building"]');
+                        var AnnotationField = this.get('[field="Annotation"]');
 
                         //var parentClientFieldInv = this.get('[field="ParentClientId"]');
                         var clientFieldInv = this.get('[field="ClientId"]');
@@ -1214,6 +1215,7 @@
                             OnApply: function(searchItem){
                                 this.aoguid = searchItem.aoguid;
                                 regionFieldInv.value = searchItem.aoguid;
+								cityField.value = '';
                                 cityField.del('@disabled');
                                 cityField.focus();
                             }
@@ -1227,6 +1229,7 @@
                                     return;
                                 }
                                 if (str.length > 1) return;
+
                                 VerbTypes.city.queryFiltered(regionField.aoguid, str, function(results){
                                     for (var i = 0; i < results.length; i++){
                                         var result = results[i];
@@ -1238,6 +1241,7 @@
                             OnApply: function(searchItem){
                                 this.aoguid = searchItem.aoguid;
                                 cityFieldInv.value = searchItem.aoguid;
+								streetField.value = '';
                                 streetField.del('@disabled');
                                 streetField.focus();
                             }
