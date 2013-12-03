@@ -1,4 +1,4 @@
-﻿var http = require('http');
+var http = require('http');
 var Url = require('url');
 var fs = require('fs');
 var Path = require('path');
@@ -41,6 +41,9 @@ try{
 			var url = Url.parse(req.url);
 			try{
 				if (serv.Enabled){
+					if (serv.Config.DefaultFile && (url.pathname == "" || url.pathname == "/")){
+						url.pathname += serv.Config.DefaultFile;
+					}
 					serv.FilesRouter.ProcessRequest(req, res, url);	
 				}
 				else{
@@ -64,6 +67,9 @@ try{
 			}
 			try{
 				if (serv.Enabled){
+					if (serv.Config.DefaultFile && (context.pathTail == "" || context.pathTail == "/")){
+						context.pathTail += serv.Config.DefaultFile;
+					}
 					return serv.FilesRouter[context.req.method](context);
 				}
 				else{

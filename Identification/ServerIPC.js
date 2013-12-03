@@ -15,8 +15,8 @@ var filesModule = require(Path.resolve('./Modules/Node/Files.js'));
 	
 IdentServer = {};
 	
-//process.env.OWIN_SQL_CONNECTION_STRING = "IdentServer=fias.web-manufacture.net;Database=fias;user id=fias;password=kladr98";
-process.env.OWIN_SQL_CONNECTION_STRING = "IdentServer=localhost;Database=fias;user id=fias;password=kladr98";
+process.env.OWIN_SQL_CONNECTION_STRING = "Server=188.127.233.35;Database=fias;user id=fias;password=kladr98";
+//process.env.OWIN_SQL_CONNECTION_STRING = "Server=localhost;Database=fias;user id=fias;password=kladr98";
 
 sql = edge.func('./Sql/MSsql.csx');
 
@@ -61,26 +61,24 @@ IdentServer.Init = function(config, router){
 		config.DBName = "Identificator";
 		//config.DBConf = {host: "127.0.0.1", port : 20000};
 		router.map("Main",{
+				"/>": function(context){
+					return true;	
+				},
 				"/fias/>" : {
 					POST: 
 						function(context){ 
-							var fullData = "";
-							context.req.on("data", function(data){
-								fullData += data;		
-							});
-							context.req.on("end", function(){
-								QuerySQL(fullData, function(result, err){
-									if (err){
-										context.setHeader("Content-Type", "text/plain; charset=utf-8");
-										context.finish(500, err);
-										context.continue();
-										return;
-									}	
-									context.setHeader("Content-Type", "text/json; charset=utf-8");
-									context.finish(200,  JSON.stringify(result));
+							context.longPhase = true;
+							QuerySQL(context.data, function(result, err){
+								if (err){
+									context.setHeader("Content-Type", "text/plain; charset=utf-8");
+									context.finish(500, err);
 									context.continue();
-								});
-							});						
+									return;
+								}	
+								context.setHeader("Content-Type", "text/json; charset=utf-8");
+								context.finish(200,  JSON.stringify(result));
+								context.continue();
+							});			
 							return false;
 						}
 				},
@@ -88,31 +86,23 @@ IdentServer.Init = function(config, router){
 				"/<" : {
 					POST : function(context){ 
 						if (this.finished) return true;
-						var fullData = "";
-						context.req.on("data", function(data){
-							fullData += data;		
-						});
-						context.req.on("end", function(){
-							context.data = fullData;
-							var path = context.pathThail;
-							if (context.url.query.action == 'all'){
-								IdentServer.All(context);
-							}
-							if (context.url.query.action == 'get'){
-								IdentServer.Get(context);
-							}
-							if (context.url.query.action == 'set'){
-								IdentServer.Update(context);
-							}
-							if (context.url.query.action == 'add'){
-								IdentServer.Add(context);
-							}
-							if (context.url.query.action == 'del'){
-								IdentServer.Delete(context);
-							}
-							context.continue();
-						});
-						return false;
+						var path = context.pathThail;
+						if (context.url.query.action == 'all'){
+							return IdentServer.All(context);
+						}
+						if (context.url.query.action == 'get'){
+							return IdentServer.Get(context);
+						}
+						if (context.url.query.action == 'set'){
+							return IdentServer.Update(context);
+						}
+						if (context.url.query.action == 'add'){
+							return IdentServer.Add(context);
+						}
+						if (context.url.query.action == 'del'){
+							return IdentServer.Delete(context);
+						}
+						return true;
 					}
 				},
 			});		

@@ -212,10 +212,14 @@ Context.prototype = {
 	callPhaseChain : function(phaseNum, numSpaces){		
 		var context = this;
 		if (!numSpaces) numSpaces = 0;
-		if (numSpaces > 1000){
+		var maxSpaces = 1000;
+		if (context.longPhase){
+			maxSpaces = 10000;
+		}
+		if (numSpaces > maxSpaces){
 			//this.log("Phases EXEED 100 LIMIT!");
-			this._finish(500, "Phases EXEED 1000 LIMIT!");
-			throw new Error("Phases EXEED 1000 LIMIT!");
+			this._finish(500, "Phases EXEED " + numSpaces + " LIMIT!");
+			throw new Error("Phases EXEED " + numSpaces + " LIMIT!");
 			return;
 		}
 		if (this.completed) {
