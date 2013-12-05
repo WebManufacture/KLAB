@@ -1,5 +1,6 @@
-{   "MessagesUrl" : "http://web-manufacture.net/cnccontroller/Channels/uart",
-	"StateUrl":"http://web-manufacture.net/CncController/State",
-	"CommandUrl":"http://web-manufacture.net/CncController/Command",
-	"ProgramUrl":"http://web-manufacture.net/CncController/Program",
-		"xSpeed" : 7000, "ySpeed" : 9000, "zSpeed" : 9500, "speed" : 8000}
+{   "MessagesUrl" : "http://localhost/cnccontroller/Channels/uart",
+	"StateUrl":"http://localhost/CncController/State",
+	"CommandUrl":"http://localhost/CncController/Command",
+	"ProgramUrl":"http://localhost/CncController/Program",
+		"xSpeed" : 7000, "ySpeed" : 9000, "zSpeed" : 9500, "speed" : 8000, 
+		"mmCoefX": 250, "mmCoefY": 510, "mmCoefZ": 60, "zGValue" : 20}
