@@ -81,17 +81,17 @@ SvgCodeProcessor.prototype = {
 		}
 		this.spindleUp(code);
 		this.frun = true;
-		var regex = "[mlcMLC](?:\\s*\\-?\\d+(?:[.]\\d+)?(?:e-\\d)?,\\s*\\-?\\d+(?:[.]\\d+)?(?:e-\\d)?)+|[zZ]";
+		var regex = "[mlcaMLCA](?:\\s*\\-?\\d+(?:[.]\\d+)?(?:e-\\d)?,\\s*\\-?\\d+(?:[.]\\d+)?(?:e-\\d)?)+|[zZ]";
 		this.command = CNC.GCommands.G;
 		var matches = coords.match(new RegExp(regex, 'g'));
 		for (var k = 0; k < matches.length; k++) {
 			var parse = matches[k]; //.match(new RegExp(regex));
 			var sc = parse[0];
-			if ("MLCZ".indexOf(sc) >= 0){
+			if ("MLCZA".indexOf(sc) >= 0){
 				this.absolute = true;
 				this.command = CNC.GCommands.G;
 			}
-			if ("mlcz".indexOf(sc) >= 0){
+			if ("mlcza".indexOf(sc) >= 0){
 				this.absolute = false;
 				this.command = CNC.GCommands.M;
 			}
@@ -206,7 +206,7 @@ SvgCodeProcessor.prototype = {
 	
 	CloseCommand : function(code, coords){
 		if (this.isSpindleDown()){
-			this.closePath(code);
+			//this.closePath(code);
 		}						
 		this.spindleUp(code);
 	},
