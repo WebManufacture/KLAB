@@ -36,6 +36,10 @@ public class Startup
                     {
                         obj.Line = Convert.ToInt32(input["line"]);
                     }
+					if (input.ContainsKey("address"))
+                    {
+                        obj.Address = Convert.ToByte(input["address"]);
+                    }
                     if (input.ContainsKey("command"))
                     {
                         obj.Command = Convert.ToByte(input["command"]);
@@ -55,6 +59,14 @@ public class Startup
                     if (input.ContainsKey("z"))
                     {
                         obj.Z = Convert.ToInt32(input["z"]);
+                    }
+					if (input.ContainsKey("paramA"))
+                    {
+                        obj.ParamA = Convert.ToByte(input["paramA"]);
+                    }
+					if (input.ContainsKey("paramB"))
+                    {
+                        obj.ParamB = Convert.ToByte(input["paramB"]);
                     }
                     return  Task.Run<object>(() => { return device.Send(obj); });
                 }
@@ -122,16 +134,20 @@ public class Startup
 
 public class MotorCommand
 {
+	public byte Address;
     public byte Command;
     public int Line;
     public int X;
     public int Y;
     public int Z;
     public ushort Speed;
+	public byte ParamA;
+	public byte ParamB;
 }
 
 public class MotorState
 {
+	public byte address;
     public byte command;
     public int x;
     public int y;
@@ -146,10 +162,19 @@ public class MotorState
     public int line;
 }
 
+public class UartError
+{
+	public string error;
+	
+	public UartError(string message){
+		error = message;
+	}
+}
+
 public enum ASCII : byte
 {
     NUL = 0x00,// Null= пустой. Всегда игнорировался. На перфолентах 1 представлялась отверстием= 0,//отсутствием отверстия. Поэтому пустые части перфоленты до начала и после конца сообщения состояли из таких символов. Сейчас используется во многих языках программирования как конец строки. (Строка понимается как последовательность символов.) В некоторых операционных системах NUL,//последний символ любого текстового файла.
-    SOH = 0x01,// Start Of Heading= начало заголовка.
+    SOT = 0x01,// Start Of Transmission= начало передачи. Start Of Heading= начало заголовка.
     STX = 0x02,// Start of Text= начало текста. Текстом называлась часть сообщения= предназначенная для печати. Адрес= контрольная сумма и т. д. входили или в заголовок= или в часть сообщения после текста.
     ETX = 0x03,//End of Text= конец текста. Здесь телетайп прекращал печатать. Использование символа Ctrl-C= имеющего код 03= для прекращения работы чего-то (обычно программы)= восходит ещё к тем временам.
     EOT = 0x04,//End of Transmission= конец передачи. В системе UNIX Ctrl-D= имеющий тот же код= означает конец файла при вводе с клавиатуры.
@@ -251,7 +276,7 @@ public class Device
 
     public Device(string portName, int speed, int timeout)
     {
-        device = new SerialPort(portName, speed, Parity.Odd, 8, StopBits.One);
+        device = new SerialPort(portName, speed, Parity.None, 8, StopBits.One);
         if (device.IsOpen)
         {
             State = EDeviceState.Busy;
@@ -297,7 +322,7 @@ public class Device
         }
     }
 
-    public MotorState Read()
+    public object Read()
     {
         if (readState != UARTReadingState.free) return null;
         var readTimeout = device.ReadTimeout / 100;
@@ -316,11 +341,13 @@ public class Device
             if (readState == UARTReadingState.free && b == 01)
             {
                 readState = UARTReadingState.reading;
-                continue;
-            }
-            if (readState == UARTReadingState.reading)
-            {
-                receivedBuf = new byte[b];
+				int size = device.ReadByte();
+				if (size <= 0)
+				{
+					readState = UARTReadingState.free;
+					continue;
+				}
+				receivedBuf = new byte[size];
                 readingIndex = 0;
                 readState = UARTReadingState.readingSized;
                 continue;
@@ -331,19 +358,14 @@ public class Device
                 {
                     if (b == 4)
                     {
-                        var bytes = new byte[receivedBuf.Length / 2];
-                        for (int i = 0; i < bytes.Length; i++)
-                        {
-                            bytes[i] = (byte)((receivedBuf[i * 2] & (byte)0x0F) * 16 + (receivedBuf[i * 2 + 1] & (byte)0x0F));
-                        }
                         readState = UARTReadingState.free;
-                        return ConvertData(bytes);
+                        return ConvertData(receivedBuf);
                     }
                     else
                     {
                         State = EDeviceState.Error;
                         readState = UARTReadingState.error;
-                        return null;
+                        return new UartError("error! UART Size declared - " + receivedBuf.Length + " but receive byte " + b + " instead EOT(4)");
                     }
                 }
                 else
@@ -354,7 +376,7 @@ public class Device
             }
         }
         readState = UARTReadingState.free;
-        return null;
+        return "free";
     }
 
     public bool Send(byte[] buffer)
@@ -366,16 +388,15 @@ public class Device
             return false;
         }
         writeState = UARTWritingState.writing;
-        var buf = new byte[buffer.Length + 4];
+        var buf = new byte[buffer.Length + 3];
         byte crc = 255;
-        buf[0] = 0;
+        buf[0] = (byte)ASCII.SOT;//Sized
         buf[1] = (byte)buffer.Length;
         buffer.CopyTo(buf, 2);
         for (int i = 0; i < buffer.Length; i++)
         {
             crc ^= buffer[i];
         }
-        buf[buf.Length - 2] = crc;
         buf[buf.Length - 1] = (byte)ASCII.EOT;
         uint bwrite = 0;
         device.Write(buf, 0, buf.Length);
@@ -410,21 +431,22 @@ public class Device
     public MotorState ConvertData(byte[] data)
     {
         if (data == null) return null;
-        if (data.Length >= 32)
+        if (data.Length >= 33)
         {
             MotorState obj = new MotorState();
             obj.date = DateTime.Now.ToString("dd.MM.yyyy HH:mm:ss.") + DateTime.Now.Millisecond;
-            obj.command = data[0];
-            obj.state = data[1];
-            obj.line = loadInt(data, 2);
-            obj.x = loadInt(data, 6);
-            obj.y = loadInt(data, 10);
-            obj.z = loadInt(data, 14);
-            obj.xLimit = loadInt(data, 18);
-            obj.yLimit = loadInt(data, 22);
-            obj.zLimit = loadInt(data, 26);
-            obj.stateA = data[30];
-            obj.stateB = data[31];
+			obj.address = data[0];
+            obj.command = data[1];
+            obj.state = data[2];
+            obj.line = loadInt(data, 3);
+            obj.x = loadInt(data, 7);
+            obj.y = loadInt(data, 11);
+            obj.z = loadInt(data, 15);
+            obj.xLimit = loadInt(data, 19);
+            obj.yLimit = loadInt(data, 23);
+            obj.zLimit = loadInt(data, 27);
+            obj.stateA = data[31];
+            obj.stateB = data[32];
             return obj;
         }
         return null;
@@ -436,14 +458,17 @@ public class Device
         {
             return false;
         }
-        byte[] bytes = new byte[20];
-        bytes[0] = (byte)data.Command;
-        bytes[1] = (byte)(data.Speed / 256);
-        bytes[2] = (byte)(data.Speed % 256);
-        saveInt(bytes, 3, data.Line);
-        saveInt(bytes, 7, data.X);
-        saveInt(bytes, 11, data.Y);
-        saveInt(bytes, 15, data.Z);
+        byte[] bytes = new byte[22];
+		bytes[0] = (byte)data.Address;
+        bytes[1] = (byte)data.Command;
+        bytes[2] = (byte)(data.Speed / 256);
+        bytes[3] = (byte)(data.Speed % 256);
+        saveInt(bytes, 4, data.Line);
+        saveInt(bytes, 8, data.X);
+        saveInt(bytes, 12, data.Y);
+        saveInt(bytes, 16, data.Z);
+		bytes[20] = data.ParamA;
+        bytes[21] = data.ParamB;
         Send(bytes);
         return true;
     }

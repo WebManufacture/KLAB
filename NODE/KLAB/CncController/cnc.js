@@ -16,7 +16,7 @@ global.Commands = global.CommandType =
     Go: 1,
     Rebase: 2,
     Stop: 3,
-    State: 4,
+    State: 0,
 	Move: 5,
     Pause: 6,
     Resume: 7,

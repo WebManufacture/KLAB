@@ -22,6 +22,7 @@ require(Path.resolve('./Modules/Node/Mongo.js'));
 	Uart = {};
 		
 	MotorCommand = function(command){
+		this.address = 2;
     	this.command = command;
     	this.line = 0;
     	this.x = 0;
@@ -46,7 +47,7 @@ require(Path.resolve('./Modules/Node/Mongo.js'));
 		if (!Uart.initialized) return;
 		command = new MotorCommand(command);
 		command.action = 'command';
-		console.log(command);
+		//console.log(command);
 		uartFunc(command, function(err, result){
 			command.sended = true;	
 		}); 
@@ -58,19 +59,21 @@ require(Path.resolve('./Modules/Node/Mongo.js'));
 		log("reading started");
 		var readFunc = function(){
 			uartFunc({action: "read"}, function(err, result){
-				if (err){
+				if (err || (result && result.error)){
 					//log(err);
 					console.log(err);
+					console.log(result);
 					setTimeout(readFunc, 2000);
 					return;
 				}
 				if (result && result.command){
 					Channels.emit("uart.device", result);
+					console.log(result);
 				}
-				setTimeout(readFunc, 200);
+				setTimeout(readFunc, 100);
 			});
 		}	
-		setTimeout(readFunc, 200);
+		setTimeout(readFunc, 100);
 	};
 	
 	Uart.Close = function(){
@@ -161,7 +164,9 @@ require(Path.resolve('./Modules/Node/Mongo.js'));
 		});		
 		router.for("Main", "/command/>", function(context){ 
 			var data = JSON.parse(context.data);
+			console.log(data);
 			if (data.command == Commands.Stop && Server.program){
+				console.log(Stopping);
 				Server.program.Stop();
 			}
 			Channels.emit("uart.output", data);
