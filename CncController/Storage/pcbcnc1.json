@@ -1,7 +1,0 @@
-{   "MessagesUrl" : "http://localhost:6670/Channels/uart",
-	"StateUrl":"http://localhost:6670/State",
-	"CommandUrl":"http://localhost:6670/Command",
-		"ProgramUrl":"http://localhost:6670/Program",
-		"xSpeed" : 7000, "ySpeed" : 9000, "zSpeed" : 9500, "speed" : 8000, 
-		"mmCoefX": 250, "mmCoefY": 500, "mmCoefZ": 60, "zGValue" : 30}
-		
