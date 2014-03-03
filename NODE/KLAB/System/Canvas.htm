@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+		<script type="text/javascript" src="system.js.js" key="jss"></script>
+		<script type="text/javascript" src="system.utils.js" key="jss"></script>
+		<script type="text/javascript" src="system.jasp.js" key="jss"></script>
+		<script type="text/javascript" src="system.ajax.js" key="jss"></script>
+		<script type="text/javascript" src="system.modules.js" key="jss"></script>
+		<link type='text/css' rel='stylesheet' href="System.default.css"/>
+		<title>Canvas</title>
+		
+		
+		<script type="text/javascript">
+			var coord = {x : 100, y : 100};
+			cradius = 20;
+			cangle = Math.PI/4;
+			
+			Init = function(){
+				cnv = document.getElementById("cnvMain");
+				ctx = cnv.getContext("2d");
+				cnv.width = W.Body.offsetWidth;
+				cnv.height = W.Body.offsetHeight;
+				// сохраняем состояние
+				//ctx.save();
+				// ставим ширину линии 5px
+				ctx.lineWidth = 2;
+				ctx.strokeStyle = "green";
+				ctx.beginPath();
+				// рисуем минутные метки
+				// для каждой минуты
+				ctx.moveTo(coord.x,coord.y);
+				ctx.lineTo(coord.x+1,coord.y+1);
+				// вращаем холст на 1/60
+				//cnv.rotate(Math.PI/30);
+				ctx.stroke();
+				//ctx.restore();
+				W.Body.onclick = Click;
+			};
+			
+			function Click(event){
+				ctx.beginPath();
+				var x = event.clientX;
+				var y = event.clientY;
+				var width = Math.abs(coord.x - x);
+				var height = Math.abs(coord.y - y);
+				ctx.strokeStyle = "green";
+				ctx.lineWidth = 2;
+				ctx.moveTo(coord.x, coord.y);
+				if (x > coord.x){
+					if (y > coord.y){
+						//coord.x += cradius;
+						coord.x += width / 4;
+						ctx.lineTo(coord.x, coord.y);
+						coord.y += cradius;
+						ctx.arc(coord.x, coord.y, cradius,  -Math.PI/2, -cangle, false);
+						var w2 = height - cradius;
+						coord.x += w2;
+						ctx.lineTo(coord.x, y - cradius/3);
+						ctx.arc(coord.x + 2*cradius/3, y - cradius, cradius,  Math.PI - cangle, Math.PI/2, true);			
+						ctx.lineTo(x, y);
+					}
+					else{
+						coord.y -= cradius;
+						ctx.arc(coord.x, coord.y, cradius, Math.PI/2, cangle, true);
+					}
+				}
+				else{
+					if (y > coord.y){
+						//coord.x += cradius;
+						coord.y += cradius;
+						ctx.arc(coord.x, coord.y, cradius,  -Math.PI/2, -cangle, false)
+					}
+					else{
+						coord.y -= cradius;
+						ctx.arc(coord.x, coord.y, cradius, Math.PI/2, cangle, true);
+					}
+				}
+				
+				
+				//ctx.lineTo(x, y);
+				ctx.stroke();
+				ctx.beginPath();
+				ctx.strokeStyle = "#0f6";
+				ctx.lineWidth = 4;
+				ctx.arc(x, y, 3, 0, Math.PI * 2, false);
+				ctx.stroke();
+				coord.x = x;
+				coord.y = y;
+			};
+			
+			
+			W.OnLoad(Init);
+		</script>
+		
+		
+		<style type="text/css">
+			body{
+				background-color: #020817;
+				color: green;
+			}
+			
+			canvas{
+				width: 100%;
+				height: 100%;
+				color: green;
+			}
+		</style>
+	</head>
+	<body>
+		<canvas id="cnvMain">
+			
+			
+		</canvas>
+		
+	</body>
+</html>

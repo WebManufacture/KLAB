@@ -1,0 +1,369 @@
+<script type="text/javascript" id="jseditor_htm">
+    JS = M.GetModuleByUrl("system.jseditor.htm");
+    
+    JS.Init = function(){
+
+    };
+	
+    JS.Create = function(elem){
+	elem.jse = new JSE(elem);
+	elem.cls("js-editor");
+    };
+	
+    JSE = function(elem){
+	elem.ke = elem.add(W.tag("input", "key_input hided"));
+	elem.ke.jse = this;
+	elem.ke.com = elem;
+	elem.focus = this.StartEdit;
+	elem.onclick = this.StartEdit;
+	elem.ke.onkeypress = this.KeyMap;
+	elem.ke.onkeydown = this.DownMap;
+	elem.ke.onblur = this.CancelEditing;
+	this.Parse(elem);
+	var parts = elem.findAll(".part");
+	if (parts.length <= 0){
+	   var line = this.AddLine(elem);
+	    line.cls("selected");
+	   var part = this.AddPart(line);
+	    part.edit();
+	}
+	else{
+ 	   parts[0].edit(); 
+	}
+    };
+    
+    JSE.prototype = {
+	StartEdit : function(){ 
+	    this.ke.focus();
+	    var ed = this.get(".part.editing");
+	    if (ed == null){
+		var line = this.get('.line.selected');
+		if (line != null){
+		    ed = line.get(".part");
+		    ed.edit();
+		}
+	    }
+	},
+	
+	DownMap : function(event, n){
+	   var c = this.com;
+	    var j = this.jse;
+	    var kk = event.keyCode;
+	    window.Eve = event;
+	    var ed = c.get(".part.editing");
+	    if (ed == null){
+		var line = c.get('.line.selected');
+		if (line != null){
+		    ed = line.get(".part");
+		    if (ed == null){
+			ed = j.AddPart(line);
+		    }
+		    ed.edit();
+		}
+	    }
+	    if (event.keyCode == KeyboardEvent.DOM_VK_TAB) //#
+	    {
+		var line = c.get('.line.selected');
+		var lv = line.attr("level");
+		if (lv == null){
+		    line.attr("level", 0);
+		    lv = "0";
+		}
+		lv = parseInt(lv); 
+		lv++;
+		line.attr("level", lv);
+		line.style.paddingLeft = (lv * 25) +  "px";
+		event.stopPropagation();
+		return true;
+	    }
+	    if (kk == 8 || kk == 46){
+		c.ke.value = "";
+		if (ed.has("obj")){
+		    ed.html("");
+		}
+		else{
+		    var nl = ed.previousSibling;
+		    ed.del();   
+		    if (nl != null){
+			nl.edit();
+		    }		    
+		}
+
+		return false;
+	    }
+	    if (kk == KeyboardEvent.DOM_VK_DOWN || kk == KeyboardEvent.DOM_VK_RETURN){
+		var line = c.get('.line.selected');
+		var nl = line.nextSibling;
+		if (nl == null){
+		    nl = j.AddLine(c);
+		    j.AddPart(nl);
+		}
+		var ed = line.findAll(".part.editing");
+		for(var i = 0; i < ed.length; i++){
+		    ed[i].apply();
+		}
+		line.rcs("selected");
+		nl.cls("selected");
+		ed = nl.get(".part");
+		ed.edit();
+		this.value = "";//ed.html();
+		return false;
+	    }
+	    if (kk == KeyboardEvent.DOM_VK_UP){
+		var line = c.get('.line.selected');
+		var nl = line.previousSibling;
+		if (nl != null){
+		    var ed = line.findAll(".part.editing");
+		    for(var i = 0; i < ed.length; i++){
+			ed[i].apply();
+		    }
+		    line.rcs("selected");
+		    nl.cls("selected");
+		    ed = nl.get(".part");
+		    ed.edit();
+		    this.value = "";//ed.html();
+		}
+		return false;
+	    }	
+	    if (kk == KeyboardEvent.DOM_VK_LEFT){
+		if (event.shiftKey || event.ctrlKey){
+		    var line = c.get('.line.selected');
+		    var lv = line.attr("level");
+		    if (lv == null){
+			line.attr("level", 0);
+			lv = "0";
+		    }
+		    lv = parseInt(lv); 
+		    if (lv <= 0) return false;
+		    lv--;
+		    line.attr("level", lv);
+		    line.style.paddingLeft = (lv * 25) +  "px";
+		    event.stopPropagation();
+		    return true;
+		}
+		else{
+		    ed.apply();
+   		    var nl = ed.previousSibling;
+		    if (nl == null){
+			return false;
+		    }
+		    nl.edit();
+		    this.value = "";
+		    return false;
+		    
+		}
+	    }
+	    if (kk == KeyboardEvent.DOM_VK_RIGHT){
+		if (event.shiftKey || event.ctrlKey){
+		    var line = c.get('.line.selected');
+		    var lv = line.attr("level");
+		    if (lv == null){
+			line.attr("level", 0);
+			lv = "0";
+		    }
+		    lv = parseInt(lv); 
+		    lv++;
+		    line.attr("level", lv);
+		    line.style.paddingLeft = (lv * 25) +  "px";
+		    event.stopPropagation();
+		    return true;
+		}
+		else{
+		    ed.apply();
+		    if (ed.has("obj") || ed.has("cls") || ed.has("id")){
+			var line = ed.findParent('.line');
+			var nl = ed.nextSibling;
+			if (nl == null){
+			    nl = j.AddPart(line, "cls");
+			}
+			nl.edit();
+			this.value = "";
+			return false;
+		    }
+		    if (ed.has("attr")){
+			var line = ed.findParent('.line');
+			var nl = ed.nextSibling;
+			if (nl == null){
+			    nl = j.AddPart(line, "attr");
+			}
+			nl.edit();
+			this.value = "";
+			return false;
+		    }
+		    return false;
+		}
+	    }
+	},
+	
+	KeyMap : function(event, n){
+	    var c = this.com;
+	    var j = this.jse;
+	    var kk = event.charCode;
+	    window.EveP = event;
+	    var key = String.fromCharCode(kk);
+	    var ed = c.get(".part.editing");
+	    if (ed == null){
+		var line = c.get('.line.selected');
+		if (line != null){
+		    ed = line.get(".part");
+		    if (ed == null){
+			ed = j.AddPart(line);
+		    }
+		    ed.edit();
+		}
+	    }
+	    if ((kk >= 65 && kk <= 122) || (kk >= 1040 && kk <= 1103) || key == "_" || key == "-"){
+		ed.add(key);
+		//var len = ed.html().length;
+		//ed.style.width = (len * 9 + 5) + "px";
+		return true;
+	    }	    
+	    if (key == "#") //#
+	    {
+		ed.apply();
+		var line = ed.findParent('.line');
+		var nl = line.get(".part.id");
+		if (nl == null){
+		    nl = j.AddPart(line, "id");
+		}
+		nl.edit();
+		this.value = "";
+		return false;
+	    }   
+	    if (key == "@") //#
+	    {
+		ed.apply();
+		var line = ed.findParent('.line');
+		nl = j.AddPart(line, "attr");
+		nl.edit();
+		this.value = "";
+		return false;
+	    } 
+	    if (key == ".") //#
+	    {
+		ed.apply();
+		var line = ed.findParent('.line');
+		nl = j.AddPart(line, "cls");
+		nl.edit();
+		this.value = "";
+		return false;
+	    }
+	    this.value = "";
+	    event.stopPropagation();
+	},
+	
+	CancelEditing : function(event, n){
+	    var ed = this.com.findAll(".part.editing");
+	    for(var i = 0; i < ed.length; i++){
+		ed[i].apply();
+	    }
+	    this.value = "";
+	},
+	
+	Parse : function(elem){
+	    
+	},
+	
+	AddPart : function(line, stat){
+	    var part = W.div("part");
+	    part.edit = JSE.prototype.EditPart;
+	    part.apply = JSE.prototype.ApplyPart;
+	    part.cancel = JSE.prototype.CancelPart;
+	    if (Check(stat)){
+		part.cls(stat);
+		if (stat == "id"){
+		    var obj = line.get(".part.obj");
+		    if (obj.nextSibling != null){
+			line.insertBefore(part, obj.nextSibling);
+			return part;
+		    }
+		}
+		if (stat == "cls"){
+		    var obj = line.get(".part.attr");
+		    if (obj != null){
+			line.insertBefore(part, obj);
+			return part;
+		    }
+		}
+	    }
+	    else
+	    {
+		part.cls('obj');
+		
+	    }
+	    line.add(part);
+	    return part;
+	},
+	
+	AddLine : function(elem){
+	    var line = elem.adv("line init");
+	    line.adv("clear");
+	    return line;
+	},
+	
+	EditPart : function(){
+	    this.cls("editing");
+	    
+	},
+	
+	ApplyPart : function(){
+	    this.rcs("editing");
+	    if (this.html() == "") this.del();
+	},
+	
+	CancelPart : function(){
+	    this.rcs("editing");
+	    if (this.html() == "") this.del();
+	},
+    };
+    
+    JS.Init();
+	    
+</script>
+<style type="text/css">
+    .key_input.hided{
+	opacity: 0.1;
+	position: absolute;
+    }
+    
+    .js-editor .line{
+	width: 100%;
+	height: 21px;
+	border-bottom: solid 1px #EEE;	
+	-moz-box-sizing: border-box;
+	box-sizing: border-box;
+    }
+    
+    .js-editor .line.selected{
+	border-bottom: solid 1px red;	
+    }
+    
+    .js-editor .line .part{
+	background-color: silver;
+	
+	height: 20px;
+	padding: 3px;
+	-moz-box-sizing: border-box;
+	box-sizing: border-box;
+	font: verdana 14px;
+	color: black;
+	float: left;
+    }
+    
+    .js-editor .line .part.obj{
+	color: navy;
+    }
+    
+    .js-editor .line .part.cls{
+	color: green;
+    }
+    
+    .js-editor .line .part.id{
+	color: #CC00CC;
+    }
+    
+    .js-editor .line .part.editing{
+	background-color: white;
+    }
+       
+</style>

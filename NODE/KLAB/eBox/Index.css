@@ -1,0 +1,140 @@
+
+#ContentPanel
+{
+	height: 80%;
+}
+
+body[state='connected'] #StatusBar
+{
+	background-color: #CCFFAA;
+}
+
+body[state='disconnected'] #StatusBar
+{
+	background-color: #FFD0FF;
+}
+
+body[state='error'] #StatusBar
+{
+	background-color: #FFD0D0;
+}
+
+.toolbar .menuitem.run
+{
+
+}
+
+body[state='ready'] .menuitem.run
+{
+	display: block;
+}
+
+.toolbar .menuitem.stop{
+	display: inline-block!important;	
+}
+
+#StatusBar
+{
+	font-size: 30px;
+	color: #aaa;
+	padding: 4px 10px;
+}
+#StatusBar .sbar-elem
+{
+	display: inline-block;
+	padding: 0px 10px;
+}
+#StatusBar .coord span, #StatusBar .program-state span
+{
+	padding-left: 20px;
+}
+
+#StatusBar .program-state span
+{
+	color: black;
+}
+
+#StatusBar .port-elem{
+	color: blue;	
+}
+
+#FilesBrowser{
+	width: 200px;
+	margin-left: 10px;
+	font-size: 14px;
+	font-family: monospace;
+	height: 100%;
+	float: left;
+	border : solid 1px gray;
+}
+
+#FilesBrowser .file{
+    color: #808080;
+    cursor: pointer;
+    display: block;
+    padding: 5px;
+}
+
+#FilesBrowser .file:hover{
+	color: #000080;
+	border-bottom: dotted 1px gray;
+}
+
+#ProgramArea
+{
+	width: 343px;
+	margin-left: 10px;
+	font-size: 14px;
+	font-family: monospace;
+	height: 100%;
+	float: left;
+}
+
+
+#ProgramArea textarea
+{
+	height: 99%;
+	float: left;
+	width: 308px;
+	border: solid 1px #ccc;
+}
+
+
+body.busy #HeaderBar .menuitem
+{
+	display: none;
+}
+
+#CellsManager {
+	width: 500px;
+	height: 450px;
+}
+
+#CellsManager .cell{
+	text-align: center;	
+	font-size: 10px;
+	padding-top: 3px;
+}
+
+#CellsManager .cell:hover{
+	border-color: red;				
+}
+
+#CellsManager .cell.selected{
+	background-color: green;				
+}
+
+#CellsManager .row{
+	height: 20px;	
+}
+
+#CellsManager .row:hover{
+	background-color: #FFC;	
+}
+
+#CellsManager .row.header .cell.current{
+	background-color: #FFA;
+}
+
+
+

@@ -1,0 +1,6 @@
+{   
+	"Port" : 8000,
+	"serverFile": "UartServer.js",
+	"LastUsedPort" : { 
+	}
+}

@@ -1,0 +1,86 @@
+  <include url="System.Windows.htm"></include>
+
+  <script type="text/javascript" class="deffered">
+    MManager = M.GetModuleByUrl("System.MManager.htm");
+    MManager.Window = null;
+      
+    MManager.Init = function(){
+        try{
+          MManager.Window = W.get(".modules_manager");
+          MManager.Items = MManager.Window.get(".modules");
+          var modules = W.findAll("modules>module.processed");
+            for(var i=0; i< modules.length; i++){
+              MManager.AddModule(modules[i].url, modules[i]);
+            }           
+          M.OnModuleRegistered.add(MManager.AddModule);
+        }
+        catch(e){
+          L.LogError(e, "MManager.htm : Init", "MManager", "System.MManager.htm"); 
+        }
+      }        
+      
+      
+      
+      MManager.Activate = function(event){
+        try{
+          var moduleName = this.attr("module");
+          var module = M.GetModuleByUrl(moduleName);
+          if (module.ShowWindow != undefined){
+            module.ShowWindow();
+          }
+          else{
+            var windows = W.findAll("win.processed[module='" + moduleName + "']");
+            for(var i=0; i< windows.length; i++){
+              windows[i].show(); 
+            }
+          }
+        }
+        catch(e){
+          L.LogError(e, "MManager.htm : Activate", "MManager", "System.MManager.htm"); 
+        }
+      }
+      
+      MManager.AddModule = function(url, module){
+        try{
+          var cnt = MManager.Items;
+          var exist = cnt.afind("module", url, ".modules_manager_item");
+          if (exist.length == 0){
+            var proto = W.get(".modules_manager_item.prototype");
+            var clone = proto.clone();
+            clone.rcs("prototype");
+            clone.get(".title").html(module.url);
+            clone.attr("module", module.url);
+            cnt.add(clone);
+            clone.eadd("click", MManager.Activate);
+          }
+        }
+        catch(e){
+          L.LogError(e, "MManager.htm : AddModule", "MManager", "System.MManager.htm");
+        }
+      },
+      
+    MManager.Init();  
+  </script>  
+  <style type="text/css" url="System.MManager.htm" module="MManager" key="system.MManager.htm" id="MManager">
+    .modules_manager .modules_manager_item{
+      background-color: white;
+      border: 1px solid gray;
+      padding: 2px;
+      height: 40px;
+      overflow: hidden;
+      float: left;
+      margin: 2px;
+    }
+    
+    .modules_manager .modules_manager_item:hover
+    {
+      background-color: yellow;
+    }
+ </style>
+  <div class="modules_manager_item prototype"> 
+    <div class="title"></div>
+  </div>
+  
+  <win class="modules_manager" type="frame_window" module="System.MManager.htm" title="Modules Manager"> 
+    <div class="modules"></div>
+  </win>

@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<title> Спецы </title>
+		<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+		<link type='text/css' rel='stylesheet' href="http://Services.web-manufacture.net/Styles/System.default.css"/>
+		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Utils.js"></script>
+		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/DOM.js"></script>
+	<script type="text/javascript" src="http://system.web-manufacture.net/Specialities.js"></script>
+		
+		<style>
+			.specialist{
+				border: 1px solid black;
+				top: 0;
+				left: 0;
+				width: auto;
+				float: left;
+			}
+			.specialist.shortInfo{
+				display: block;
+			}
+			
+			.specialist.shortInfo.unfixed{
+				display: none;
+			}
+			.specialist.fullInfo.fixed{
+				display: block;
+			}
+			.org-pattern,
+			.org-name,
+			.org-address,
+			.org-town,
+			.speciality,
+			.index,
+			.full-name,
+			.telephone,
+			.e-mail,
+			.diagram
+			{
+		
+				margin: 2px;
+				padding: 2px;
+			}
+
+			.org-pattern{
+				float:left;
+				background-color:#CD853F;
+				-moz-box-shadow: 1px 1px 1px #838B8B;
+				-webkit-box-shadow: 1px 1px 1px #838B8B;
+				box-shadow: 1px 1px 1px #838B8B;
+				font-weight: bold;
+				color: white;
+			}
+			
+			.org-name{
+				color: #8B4726;
+				font-weight: bold;
+				float:left;
+
+			}
+			.org-town,
+			.org-address{
+				float:left;
+			}
+			.speciality{
+				clear:left;float:left;
+				background-color: #98F5FF;
+				-moz-box-shadow: 1px 1px 1px #838B8B;
+				-webkit-box-shadow: 1px 1px 1px #838B8B;
+				box-shadow: 1px 1px 1px #838B8B;
+
+			}
+			.index{
+				float:left;
+				background-color:#00C5CD;
+				-moz-box-shadow: 1px 1px 1px #838B8B;
+				-webkit-box-shadow: 1px 1px 1px #838B8B;
+				box-shadow: 1px 1px 1px #838B8B;
+				font-weight: bold;
+				color: white;
+			}
+			
+			.full-name{
+				font-size: 20px;
+				font-weight: bold;
+			}
+			.full-name,
+			.telephone,
+			.e-mail{
+				float:left;
+			}
+			.org-town,
+			.org-address{	
+				color:white;
+				background-color: #CDC9C9;
+			}
+			
+			.telephone,
+			.e-mail{
+				color: #CDC9C9;
+			}
+			 .telPic,
+			.mailPic{
+			float:left;
+			height:20px;
+			width:20px;
+			background-size:cover;
+	    	}
+			.telPic{
+			background-image:url('http://cdn4.iconfinder.com/data/icons/openPhone_by_Walrick/PNG/128/Phone.png');
+			}
+			.mailPic{
+			background-image:url('http://cdn4.iconfinder.com/data/icons/redux/Icons/Mail.png');
+			}
+			.diagram{
+				clear:left;
+			}
+			
+			
+			
+		</style>
+		
+		<script>
+			function showInfo(){
+				var shortI = DOM.get(".shortInfo");
+				var fullI = DOM.get(".fullInfo");
+				if (shortI.is('.unfixed')){
+					shortI.del('.unfixed');
+					fullI.del('.fixed'); 
+				} else {
+					shortI.add('.unfixed');
+					fullI.add('.fixed');
+				}
+			};
+
+			
+		</script>
+	</head>
+	<body>
+		<include url='http://services.web-manufacture.net/UI/Dragging.htm'></include>
+		<!--include url='http://services.web-manufacture.net/Authentication/Authentication.htm'></include-->
+		<div class="specialist prototype shortInfo" >
+
+			<div class='plate'>
+				
+ 		
+				<!--<input type="submit" value="Submit" />-->
+
+				<div class='org-pattern' field='org-name'>
+					ОП 
+				</div>
+				<div class='org-name' field='org-name'>
+					"Засада", особое отделение №666
+				</div>
+				
+				<select name="speciality addInfo" size="1">
+					<option class='selectSpeciality'>Техник по племенному делу</option>
+					<option selected="selected" >Вторая позиция</option>
+
+				</select>
+			 <input type='text' name="inputName" style="width:260px;height:20px;background-color:#D0F18F;">
+  				
+			
+			</div>
+		</div>
+			<div class="specialist prototype fullInfo" onclick='showInfo()'>
+
+			<div class='plate'>
+				<div class='org-pattern' field='org-pattern'>
+					ОП 
+				</div>
+				<div class='org-name' field='org-name'>
+					"Засада", особое отделение №666
+				</div>
+				<div class='org-address' field='org-address'>
+					ул.Светлая, 27
+				</div>
+				<div class='org-town' field='org-town'>
+					пгт Бобруйск
+				</div>
+				
+				<div class='speciality' field='speciality'>
+					Техник по племенному делу
+				</div>
+				<div class='index' field='index'>
+					A95
+				</div>
+				<div class='full-name' field='full-name'>
+					Иванов Иван Петрович
+				</div>
+				<div class='telephone' field='telephone'>
+					<div class='telPic'></div>
+					063-777-77-77
+				</div>
+				<div class='e-mail' field='e-mail'>
+					<div class='mailPic'></div>
+					ivanov@mail.ru
+				</div>
+				<div class='diagram' field='diagram'>
+					bla-bla-bla
+				</div>
+			</div>
+			
+		</div>
+		
+	</body>
+</html>  

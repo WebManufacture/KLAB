@@ -1,0 +1,211 @@
+<check url="System.Windows.htm"/>
+
+<win class="insert-tags-menu" type="smallwindow" title="Tag Templates">
+  <div class="insert-menu">
+                <div class="tag-btn menu-btn" tag="div">
+                  <span class="title">div</span>
+                  <div class="container">
+                    <div class="tag-btn menu-btn inner" tag="div" template="<div class=''></div>">
+                      <span class="title">&lt;div class=""&gt;</span>
+                      <div class="container">
+                        <div class="tag-btn menu-btn inner" tag="div" template="<div class='item'></div>">
+                          <span class="title">&lt;div class="item"&gt;</span>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="tag-btn menu-btn inner" tag="div" template="<div id=''></div>">
+                      <span class="title">&lt;div id=""&gt;</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="tag-btn menu-btn" tag="span"><span class="title">span</span></div>
+                <div class="tag-btn menu-btn" tag="script"><span class="title">script</span>
+                  <div class="container">
+                    <div class="tag-btn menu-btn" tag="script" template="<script type='text/javascript' src=''/>"><span class="title">script-src</span></div>
+                  </div>
+                </div>
+                <div class="tag-btn menu-btn" tag="style"><span class="title">style</span>
+                  <div class="container">
+                    <div class="tag-btn menu-btn" tag="link" template="<link rel='shortcut icon' href=''/>"><span class="title">link-favicon</span></div>
+                    <div class="tag-btn menu-btn" tag="link" template="<link type='text/css' rel='stylesheet' href=''/>"><span class="title">link-css</span></div>
+                  </div>
+                </div>
+                <div class="tag-btn menu-btn" tag="br" template="<br/>"><span class="title">br</span></div>
+                <div class="tag-btn menu-btn" tag="table"><span class="title">table</span>
+                  <div class="container">
+                    <div class="tag-btn menu-btn" tag="tr"><span class="title">tr</span></div>
+                    <div class="tag-btn menu-btn" tag="td"><span class="title">td</span></div>
+                  </div>
+                </div>
+                
+                <div class="tag-btn menu-btn" tag="input" template="<input type='text'/>"><span class="title">input</span>
+                  <div class="container">
+                                <div class="tag-btn menu-btn" tag="input" template="<input type='radio'/>"><span class="title">input[radio]</span></div>
+                                <div class="tag-btn menu-btn" tag="input" template="<input type='checkbox'/>"><span class="title">input[checkbox]</span></div>
+                                <div class="tag-btn menu-btn" tag="input" template="<input type='file'/>"><span class="title">input[file]</span></div>
+                                <div class="tag-btn menu-btn" tag="input" template="<input type='hidden'/>"><span class="title">input[hidden]</span></div>
+                                <div class="tag-btn menu-btn" tag="input" template="<input type='password'/>"><span class="title">input[password]</span></div>
+                                <div class="tag-btn menu-btn" tag="input" template="<input type='reset'/>"><span class="title">input[reset]</span></div>
+                                <div class="tag-btn menu-btn" tag="input" template="<input type='submit'/>"><span class="title">input[submit]</span></div>
+                  </div>
+                </div>
+                <div class="tag-btn menu-btn"><span class="title">other</span></div>
+                <div class="attr-btn menu-btn" attr="style"><span class="title">style</span></div>
+</div>
+</win>
+<script type="text/javascript">
+  TagsMenu = W.get(".insert-tags-menu .insert-menu");
+          
+  TagsMenu.Init = function() {
+             var items = TagsMenu.findAll(".insert-menu .menu-btn");
+             for (var i = 0; i < items.length; i++){
+               Drag.MakeDraggable(items[i], "clone-proto");
+               items[i].cls("no-body-drop");
+               items[i].cls("element-prototype");
+               //items[i].getDragClone = TagsMenu.GetDragClone;
+               items[i].clone = TagsMenu.GetClone;
+               items[i].onclick = TagsMenu.InsertElement;
+             }
+          }, 
+            
+  TagsMenu.GetDragClone = function() {
+             return this;
+          },
+            
+  TagsMenu.GetClone = function() {
+             if (this.is("[template]")){
+               var item = W.Wrap(this.attr("template"));
+               item.cls("element-prototype");
+               return item;
+             }
+             if (this.has("tag-btn")){
+               return W.tag(this.attr("tag"), "element-prototype");
+             }
+    	     return null;
+          }, 
+ 
+  TagsMenu.InsertElement = function(event){
+           event.preventDefault();
+           if (this.is("[template]")){
+               TagsMenu.InsertTemlate(this.attr("template"));
+               return false;
+           }
+           if (this.has("tag-btn")){
+               var template = "<" + this.attr("tag") + "></" + this.attr("tag") + ">";
+               TagsMenu.InsertTemlate(template);
+               return false;
+           }
+    	   if (this.has("attr-btn")){
+               TagsMenu.InsertAttribute(this.attr("attr"), this.attr("value"));
+           }
+           return false;
+         },
+           
+  TagsMenu.InsertTemlate = function(template){
+              var sel = XE.GetSelection();
+              if (sel.length > 0){
+                for (var i = 0; i< sel.length; i++){
+                    var elem = sel[i].linked.add(template);
+                    var content = XE.GetNewElem(elem);
+                    content.Synchronize(elem);
+                    sel[i].innerNodes.add(content);
+                 }
+             }
+             else
+             {
+                 var elem = XE.Source.add(template);
+                 var content = XE.WrapNode(elem);
+                 XE.Content.add(content);
+                 content.BindEvents(elem);
+             }
+           },
+        
+  TagsMenu.InsertAttribute= function(attr, value){
+              var current = XE.GetSelection();
+              if (current != null){
+                current.linked.attr(attr, value);                
+                current.AddAttribute(attr, value);
+              }
+           },
+
+  TagsMenu.Init();
+
+</script>
+  <style type="text/css">
+    
+    
+
+  .insert-menu{
+    position: relative;
+  }  
+  
+  .insert-menu .menu-btn{
+    border: 1px solid navy;
+    color: gray;
+    float: left;
+    height: 16px;
+    font-size: 12px;
+    padding: 2px 4px;
+    margin: 2px 3px;
+    cursor: pointer;
+    position: relative;
+    background: white;
+    white-space: nowrap;
+  }
+  
+  .insert-menu .menu-btn:hover{
+    color: #0099FF!important;
+    text-shadow: gray 1px 1px 1px;
+  }
+  
+  .insert-menu .menu-btn .container{
+    display: none;
+    position: absolute;
+    z-index: 20;
+    top: 16px;    
+    left: 20px;
+    padding: 10px;
+    background: #EEE;
+    border: 1px solid silver;
+  }
+  
+  .insert-menu .menu-btn .container>.title{
+    margin: -5px 10px 5px 10px;
+    display: block;
+    font-size: 10px;
+    color: gray;
+  }
+  
+  .insert-menu .menu-btn:hover>.container{
+    display: block;
+  }
+    
+    .insert-menu .menu-btn.dragging>.container{
+      display: none;
+    }
+  
+  .insert-menu .tag-btn{
+    color: navy;
+  }
+  
+  .insert-menu .tag-btn{
+    /*color: #0099FF;*/
+  }
+  
+  .insert-menu .attr-btn{
+     color: #006699; 
+  }
+  
+  .insert-menu .attr-btn[attr="class"]{
+     color: #006600; 
+  }
+  
+  .insert-menu .attr-btn[attr="id"]{
+     color: #CC00CC; 
+  }
+  
+  .insert-menu .attr-btn[attr="class"]{
+     color: #006600; 
+  }
+    
+  </style>

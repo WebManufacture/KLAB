@@ -1,0 +1,157 @@
+<include url="System.WDrag.js" alt="System.Dragging.htm"></include>
+
+<script type="text/javascript">
+    Win = M.GetModuleByUrl("System.Win.htm");
+    Win.Small = true;
+    Win.CreateWindow = function(win){
+      try{
+        win.cls("window smallwindow");
+        win.title = win.attr("title");
+	if (!Check(win.title)){
+	   win.title = " ";   
+	}
+	var header = win.header = win.adf(W.div("window_header"));
+	header.attr("ondblclick", "Win.HideWindow(this);");
+        header.attr("drag-type", "dragger");
+        header.attr("draggable", "true");
+	header.add(W.tag('span', "window_title", win.title));
+        var close = header.adv("close-button"); 
+        close.attr("onclick", "Win.HideWindow(this);");
+        
+        win.content = win;
+        W.Body.add(win);
+
+	Contexts.Process(win, "System.Windows.htm");   
+        
+        Drag.MakeDraggable(header, "dragger"); 
+        
+        L.LogInfo("Window: " + win.attr("class") , "System.Win.htm");
+        return win;
+      }
+      catch(e)
+      {
+         L.LogError(e, "System.Win.htm : CreateWindow", "System.Win.htm");
+      }    
+    };
+    
+    Win.ShowWindow = function(winid){
+	var win = W.get(".window" + winid);
+        if (Check(win)){
+	    win.show();
+	}
+    };
+    
+    Win.CloseWindow = function(elem){
+	var parent = elem.findParent(".window");
+	parent.del();
+    };
+    
+    Win.HideWindow = function(elem){
+	var parent = elem.findParent(".window");
+	if (Check(parent.onclose)){
+	    parent.onclose();
+	}
+	parent.hide();
+    };
+    
+    Win.MakeTop = function(){
+	var win = this.findParent(".window");
+	var top = W.get(".window.top");
+	if (top != null){
+	    top.rcs("top"); 
+	}
+	win.cls("top");
+    };
+    
+    Win.Context = {};
+    Win.Context.Condition = "System.Modules.js";
+    Win.Context.Selector = "win:not(.prototype):not(.processed)";
+    Win.Context.Process = function(element)
+	{
+	    var win = Win.CreateWindow(element);
+	    if (!Check(win))
+	    {
+		return;
+		    };
+	    element.cls("processed");
+	};      
+    
+    Contexts.Add(Win.Context);  
+     
+</script>
+
+
+
+<style type="text/css" id="system.Win.htm">
+    
+    .window
+	{
+	-moz-box-sizing: border-box;
+	color: black;
+	font-family: verdana;
+	font-size: 12px;
+	position:fixed;
+	z-index: 100;
+	background-color: white;
+	background-image:url(data:image/gif;base64,R0lGODlhAwADAIAAANve4f/7/yH5BAAAAAAALAAAAAADAAMAAAIETHAZBQA7);
+	border: solid 1px gray;
+	border-radius: 8px;
+	-moz-border-radius: 8px;
+	padding: 5px;
+	top: 0;
+	left: 0;
+	min-width: 100px;
+	min-height: 100px;
+    }
+    
+    
+    .window.top
+	{
+	z-index: 200;
+    } 
+    
+    .window .window_header
+	{
+	width: 80%;
+	height: 20px;
+	text-align: center;
+	border-radius: 5px;
+	-moz-border-radius: 5px;
+	margin-left: 5%;
+	margin-right: 5%;
+	margin-bottom: 5px;
+	padding-top: 5px;
+	padding-left: 5%;
+	padding-right: 5%;
+	border: solid 1px yellow;
+	background-color: #EA0;
+	font-weight: bold;
+	color: navy;
+	position: relative;
+    }
+    
+    .window .window_header:hover
+	{
+	background-color: #FFCC33; 
+	cursor: move;
+    }
+    
+    
+    .window .window_header .close-button
+	{
+	position: absolute;
+	top: 1px;
+	right: 2px;
+	width: 24px;
+	height: 24px;
+	float: right;
+	background: url("http://system.web-manufacture.net/Images/gtk-close.png") no-repeat;
+    }
+    
+    
+    .window .window_header .close-button:hover
+	{
+	border: dotted 1px gray; 
+    }
+    
+</style>

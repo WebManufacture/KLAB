@@ -1,0 +1,84 @@
+prototypes, module, modules, messages, storage, initializer, jasp, handler, .module, .prototype
+{
+  display: none;
+}  
+
+.visible
+{ 
+  display: block!important;
+}
+
+.invisible
+{ 
+  display: none!important;
+}
+
+.layout-table
+{
+  height: 100%;
+  width: 100%;
+}
+
+.layout-table td
+{
+  background: white;
+}
+
+.dialog
+{
+  display: none;
+  position: fixed;
+  z-index: 1000;
+  background-color: rgba(0, 0, 0, 0.7);
+  width: 100%;
+  height: 100%;
+  opacity: 1;
+  top: 0px;
+  left: 0px;
+}
+
+.dialog-inner
+{
+  position: absolute;
+  z-index: 1001;
+  background: white;
+  border: solid 1px black;
+  top: 40%;
+  left: 40%;
+  opacity: 1;
+}
+
+.button{
+  border: solid 1px gray;
+  float: left;
+  font-weight: bold;
+  font-size: 13px;
+  padding: 5px;
+  cursor: pointer;
+  background: white;
+  box-sizing: border-box;
+  -moz-box-sizing: border-box;
+}
+
+.button.micro{
+  width: 16px;
+  height: 16px;
+}
+
+.button.mini{
+  width: 20px;
+  height: 20px;
+}
+
+.button.small{
+  width: 36px;
+  height: 36px;
+}
+
+.button:hover{
+  background: yellow;
+}
+
+.clear{
+  clear: both; 
+}

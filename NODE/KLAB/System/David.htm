@@ -1,0 +1,171 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+    <head>
+	<title></title>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <script type="text/javascript" src="http://code.jquery.com/jquery-1.7.1.min.js"></script>
+    
+    <style type="text/css">
+	body{
+	    color:#000;
+	    font:11px/16px  Tahoma, Geneva, sans-serif;
+	    min-width:1000px;
+	    background: url(../images/body.gif) repeat-x;
+	    margin:0;
+	}
+	a{
+	    text-decoration:none;
+	    color:#2f7ace;
+	}
+	a:hover{ text-decoration:underline;}
+	img{ border-style:none;}
+	form, fieldset{
+	    margin:0;
+	    padding:0;
+	    border:0;
+	}
+	
+	.container{
+	    margin:0 auto;
+	    width:500px;
+	    padding:10px;
+	}
+	
+	.items{
+	    overflow:hidden;
+	}
+	
+	.items .item{
+	    padding:2px 10px;
+	    border:1px solid #000;
+	    margin-top:4px;
+	    background:#ccc;
+	}
+	
+	.items .item .header{
+	    margin:0;
+	    font-style:italic;
+	    cursor:pointer;
+	}
+	
+	.items .item.active .header{
+	    background:#999;
+	}
+	
+	
+	.items .item .cont{
+	    background:#fff;
+	    overflow:hidden;
+	    width:100%;
+	    display: none;
+	}
+	
+	.btns{
+	    width:100%;
+	    overflow:hidden;
+	    text-align:right;
+	}
+	
+	.all{
+	    float:left;
+	}
+    </style>
+    
+    <script type="text/javascript">
+	$(document).ready(function(){
+	    $(".items .item:first").addClass("active");
+	    
+	    $(".items .item").click(function(){
+		if ($(this).hasClass("active")) return;
+		CloseActive();
+		$(this).find(".cont").slideDown("slow");
+		$(this).addClass("active");
+	    });
+	    
+	    $(".all").click(function(){
+		CloseActive();
+	    });
+	});
+	
+	function CloseActive(){
+	    var oldItem = $(".items .item.active");
+	    oldItem.find(".cont").slideUp("slow");
+	    oldItem.removeClass("active");
+	};
+    </script>
+    
+    </head>
+    <body>
+	<div class="container">
+	    <div class="items">
+		<div class='item'>
+		    <div class="header">заголовок 1</div>
+		    <div class="cont">
+			<p>asdasdsadasdasdasdasdasda</p>
+			<p>asdasdsadasdasdasdasdasda</p>
+		    </div>
+		</div>
+		<div class='item'>
+		    <div class="header">заголовок 2</div>
+		    <div class="cont">
+			<p>asdasdsadasdasdasdasdasda</p>
+			<p>asdasdsadasdasdasdasdasda</p>
+		    </div>
+		</div>
+		<div class='item'>
+		    <div class="header">заголовок 3</div>
+		    <div class="cont">
+			<p>asdasdsadasdasdasdasdasda</p>
+			<p>asdasdsadasdasdasdasdasda</p>
+		    </div>
+		</div>
+		<div class='item'>
+		    <div class="header">заголовок 4</div>
+		    <div class="cont">
+			<p>asdasdsadasdasdasdasdasda</p>
+			<p>asdasdsadasdasdasdasdasda</p>
+		    </div>
+		</div>
+		<div class='item'>
+		    <div class="header">заголовок 5</div>
+		    <div class="cont">
+			<p>asdasdsadasdasdasdasdasda</p>
+			<p>asdasdsadasdasdasdasdasda</p>
+		    </div>
+		</div>
+		<div class='item'>
+		    <div class="header">заголовок 6</div>
+		    <div class="cont">
+			<p>asdasdsadasdasdasdasdasda</p>
+			<p>asdasdsadasdasdasdasdasda</p>
+		    </div>
+		</div>
+		<div class='item'>
+		    <div class="header">заголовок 7</div>
+		    <div class="cont">
+			<p>asdasdsadasdasdasdasdasda</p>
+			<p>asdasdsadasdasdasdasdasda</p>
+		    </div>
+		</div>
+		<div class='item'>
+		    <div class="header">заголовок 8</div>
+		    <div class="cont">
+			<p>asdasdsadasdasdasdasdasda</p>
+			<p>asdasdsadasdasdasdasdasda</p>
+		    </div>
+		</div>
+		<div class='item'>
+		    <div class="header">заголовок 9</div>
+		    <div class="cont">
+			<p>asdasdsadasdasdasdasdasda</p>
+			<p>asdasdsadasdasdasdasdasda</p>
+		    </div>
+		</div>
+	    </div>
+	    <div class="btns">
+		<a class="all" href="#">свернуть все</a>
+		<a class="show" href="#">показать все</a>
+	    </div>
+	</div>
+    </body>
+</html>

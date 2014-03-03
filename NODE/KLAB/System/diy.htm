@@ -1,0 +1,390 @@
+ <!DOCTYPE HTML>
+
+<html>
+	<head>
+		<title>threeGrids</title>
+		<meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
+		<link type='text/css' rel='stylesheet' href="http://Services.web-manufacture.net/Styles/System.default.css" />
+		
+		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Utils.js"></script>
+		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/DOM.js"></script>
+		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Events.js"></script>
+		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Log.js"></script>
+		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Url.js"></script>
+		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Net.js"></script>
+		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Jasp.js"></script>
+		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Modules.js"></script>
+		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/ui.js"></script>
+		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/storage.js"></script>
+		
+		
+		<style>
+		#SpecialistsTable {
+				float: left;
+				width: 550px;
+			}
+			
+			#SpecialistsTable .table-object .add-button,
+			#SpecialistsTable.mass-mode .table-object .select-indicator 
+			{
+				display: inline-block;
+			}
+			
+			#SpecialistsTable.mass-mode .table-object .add-button,
+			#SpecialistsTable .table-object .select-indicator {
+				display: none;
+			}
+			
+			#SpecialistsTable .table-object:hover{
+				background-color: #FFC;
+			}
+			
+			#SpecialistsTable .table-object.selected{
+				background-color: #FFE886;
+			}
+			
+			
+			#SpecialistsTable .table-object .additional-info{
+					
+			}
+			
+			#SpecialistsTable.mass-mode .table-object .additional-info{
+				display: none;	
+			}
+			
+			#SpecialistsTable .table-object.selected .additional-info{
+				display: inline-block;	
+			}
+			
+			#SpecialistsTable .table-object .content-panel{
+				width: 400px;
+			}
+			
+			#SpecialistsTable .table-object .right-panel{
+				width: 28px;
+			}
+			
+			
+			#SpecialistsTable .table-object .left-panel{
+				text-align: right;
+				width: 80px;
+			}
+			
+			#SpecialistsTable .table-object .full-name {
+				font-size: 20px;
+				color: #00AAFF;
+			}
+			
+			#SpecialistsTable .plate {
+				box-shadow: 1px 1px 1px #838B8B;
+				color: white;
+				max-width: 70px;
+				overflow: hidden;
+				white-space: nowrap;
+			}		
+			
+			#SpecialistsTable .speciality.plate{
+				background-color: #71CCB6;
+			}
+			
+			#SpecialistsTable .category.plate{
+				background-color: #FF653E;
+			}
+			
+			#SpecialistsTable .org-type.plate{
+				background-color: #42786B;
+			}
+			
+			
+			
+			.visit .telephone,
+			.visit .e-mail,
+			.specialist .telephone,
+			.specialist .e-mail{
+				color: #70A188;					
+			}
+			.visit .telephone .field,
+			.visit .e-mail .field,
+			.specialist .telephone .field,
+			.specialist .e-mail .field{
+				display: inline-block;	
+			}
+			
+			.specialist .field-pic{
+				height:20px;
+				width:20px;
+				background-size:cover; 
+				margin: 0 0 -5px 0;/*убрала нижний отступ*/
+				display: inline-block;
+			}
+			
+			
+			.specialist .ShowHideSmallPlate.hide{
+				background-image:url('http://cdn1.iconfinder.com/data/icons/CrystalClear/128x128/apps/package.png');
+			}
+			
+			.specialist .ShowHideSmallPlate{
+				float: right;
+				margin: 3px 3px 0 0;
+				background-image:url('http://cdn1.iconfinder.com/data/icons/nuvola2/128x128/apps/package.png');
+			}
+			
+			
+			.visit .telPic,
+			.specialist .telPic{
+				background-image:url('http://cdn3.iconfinder.com/data/icons/token/Token,%20128x128,%20PNG/Telephone.png');
+				
+			}
+			.visit .mailPic,
+			.specialist .mailPic{
+				background-image:url('http://cdn3.iconfinder.com/data/icons/token/Token,%20128x128,%20PNG/Envelope.png');
+			}
+			#VisitsTable{
+				width: 550px;
+				float:left;
+			}
+			
+		</style>	
+		
+		
+	</head>
+	<body>
+		<include url='http://services.web-manufacture.net/Grids/UMGrids.htm'></include>
+		<include url='http://services.web-manufacture.net/UI/HtmlElements.htm'></include>
+		
+		<div id="SpecialistsTable" class='uni-table default-theme' storage-url="http://unimedica3.web-manufacture.net:1000/specialists">
+			<div id='EditSpecForm' class='edit-object-form prototype' extend='UMGrids.EditFormActions'>
+				<!--<input type="submit" value="Submit" />-->
+				
+				<div class='object-header'>
+					Правка записи
+				</div>
+				<div class='object-content'>
+					<div class='left-panel'>
+						<div class="speciality addInfo scroll_child" size="1">
+							<div class='speciality-item prototype'> Выбрать профессию </div>
+						</div>
+					</div>					
+					<div class='content-panel'>
+						<br/>
+						<input class="input full-name" field='fullName' default-text="ФИО">
+						<br/>
+						<input class="input telephone" field='telephone' default-text="telephone">
+						<br/>
+						<input class="input e-mail" field='e-mail' default-text="e-mail">
+					</div>
+					<div class='right-panel'>
+					</div>
+				</div>
+				<div class='object-footer controls-panel'>
+					<div class='btn-ira ok ' title='OK' onclick = 'this.Get("^.edit-object-form").Save();'> OK </div>
+					<div class='btn-ira clear ' onclick = 'this.Get("^.edit-object-form").Clear();' title='Clear'> Clear </div>
+					<div class='btn-ira cancel ' onclick = 'this.Get("^.edit-object-form").Cancel();' title='Cancel' > Cancel </div>
+				</div>
+				
+			</div>	
+			
+			<div id='SpecProto' class="table-object prototype" extend='UMGrids.TableObject'>
+				
+				<div class='object-header'>
+					
+				</div>
+				<div class='object-content'>
+					<div class='left-panel'>
+						<div class='panel org-types'>
+							<div class="org-type spec-field field" field="org-type">ОП</div>					
+						</div>
+					</div>					
+					<div class='content-panel'>
+						<div class="content-line organisation-info">
+							<div class="org-name field" field="org-name"> "Засада", особое отделение №666 </div>
+							<!--<div class='org-town spec-field field additional-info' field='org-town'>
+пгт Бобруйск
+</div>
+
+<div class='org-address spec-field field additional-info' field='org-address'>
+улица 1-я За Линией Октябрьской Железной Дороги
+</div>-->					
+						</div>
+						
+						<div class="content-line specialist-info">
+							<div class="speciality plate field" field="speciality"> Техник по племенному делу </div>
+							<div class='index field additional-info' field='index'>A95</div>
+							<div class="full-name spec-field field" field="fullName">Иванов Иван Иваныч</div>
+						</div>
+						
+						<div class="content-line additional-info">
+							<div class="telephone spec-field">
+								<div class="telPic field-pic"></div>
+								<div field="telephone" class="telephone field">063-777-77-77</div>
+							</div>
+							<div class="e-mail spec-field">
+								<div class="mailPic field-pic"></div>
+								<div field="e-mail" class="e-mail field">ivanov@mail.ru</div>
+							</div>
+							<div field="diagram" class="diagram  spec-field field">
+								
+							</div>
+						</div>
+					</div>
+					<div class='right-panel'>
+						<div class='panel control-panel'>
+							<div class='select-indicator indicator'></div>
+							<div class="edit-button small-object-button" onclick="this.Get('^.table-object').EditAction();" title="Edit"></div>
+							<div class="delete-button small-object-button" onclick="this.Get('^.table-object').DeleteAction();" title="Delete"></div>
+							<div class='add-button small-object-button' title="Add new" onclick="this.Get('^.table-object').AddAction();">	</div>
+						</div>
+					</div>
+				</div>
+				<div class="object-footer">
+					
+				</div>		
+				
+				
+			</div>
+			
+		</div>
+		
+		<div id="VisitsTable" class='uni-table' storage-url="http://unimedica3.web-manufacture.net:1000/visits">
+			
+			<div id='EditVisitForm' class='edit-object-form prototype' extend='UMGrids.EditFormActions'>
+				<!--<input type="submit" value="Submit" />-->
+				
+				<div class='object-header'>
+					Правка записи
+				</div>
+				<div class='object-content'>
+					<div class='left-panel'>
+						<div class="speciality addInfo scroll_child" size="1">
+							<div class='speciality-item prototype'> Выбрать профессию </div>
+						</div>
+					</div>					
+					<div class='content-panel'>
+						<br/>
+						<input class="input visit-date" field='date' default-text="Дата">
+						<br/>
+						<input class="input visit-org-name" field='org-name' default-text="организация">
+						<br/>
+						<input class="input visit-spec" field='fullName' default-text="ФИО">
+						<br/>
+						<input class="input visit-index" field='index' default-text="Показатель">
+					</div>
+					<div class='right-panel'>
+					</div>
+				</div>
+				<div class='object-footer controls-panel'>
+					<div class='btn-ira ok ' title='OK' onclick = 'this.Get("^.edit-object-form").Save();'> OK </div>
+					<div class='btn-ira clear ' onclick = 'this.Get("^.edit-object-form").Clear();' title='Clear'> Clear </div>
+					<div class='btn-ira cancel ' onclick = 'this.Get("^.edit-object-form").Cancel();' title='Cancel' > Cancel </div>
+				</div>
+				
+			</div>
+			
+			
+			<div class='uni-table-content'>
+				<div class='table-header' > 
+					<div class='table-controls'> 
+						<div class='connection-indicator online' title="Online" onclick="this.Get('^.uni-table').GoOffline()">Вы он-лайн</div>
+						<div class='connection-indicator offline' title="Offline" onclick="this.Get('^.uni-table').GoOnline()">Вы офф-лайн</div>
+						<div class='add-button small-object-button' title="Add new record" onclick="this.Get('^.uni-table').AddObjectAction()"> </div>
+						<div class='mass-switcher small-object-button' title="Mass Mode" onclick="var ut = this.Get('^.uni-table'); ut._eventCheck('OnMassMode', null, WS.ToggleClass(ut, 'mass-mode')); "> </div>
+					</div>
+					<div class='content-line visit-info table-head'>
+						<div class='visit-date classic-table'>Дата</div>
+						<div class='visit-org-name classic-table'>Организация</div>
+						<div class='visit-spec classic-table'>Специалист</div>
+						<div class='visit-index classic-table'>Показатель</div>
+					</div>
+				</div>
+				<!--<div вот сюда заголовок-->
+				<div class='objects-container'>
+					
+				</div>
+			</div>
+			
+			<div id='VisitProto' class='table-object prototype' extend='UMGrids.TableObject'>
+					<div class='visit-date classic-table field' field='date'></div>
+					<div class='visit-org-name classic-table field' field='org-name'></div>
+					<div class='visit-spec classic-table field' field='fullName'></div>
+					<div class='visit-index classic-table field' field='index'></div>
+				<div class='panel control-panel'>
+					<div class='select-indicator indicator'></div>
+					<div class="edit-button small-object-button" onclick="this.Get('^.table-object').EditAction();" title="Edit"></div>
+					<div class="delete-button small-object-button" onclick="this.Get('^.table-object').DeleteAction();" title="Delete"></div>
+					
+				</div>
+				
+			</div>
+		</div>
+		<style>
+			#VisitsTable .objects-container{
+				display: inline-block;
+				border-collapse: collapse;	
+			}
+			#VisitsTable .uni-table-content .mass-switcher {
+				background-image: url("http://www.iconsearch.ru/uploads/icons/fatcow/32x32/page_white_stack.png");
+			}
+			#VisitsTable .uni-table-content .add-button {
+				background-image: url("http://cdn2.iconfinder.com/data/icons/onebit/PNG/onebit_31.png");
+			}
+			#VisitsTable .uni-table-content .edit-button {
+				background-image: url("http://cdn3.iconfinder.com/data/icons/prettyoffice/128/edit.png");
+			}
+			
+			#VisitsTable .uni-table-content .delete-button {
+				background-image: url("http://cdn3.iconfinder.com/data/icons/softwaredemo/PNG/128x128/DeleteRed.png");
+			}
+			
+			#VisitsTable .objects-container .table-object .object-content{
+				display: table-cell;
+				margin: 0;
+			}
+			.content-line.visit-info.table-head{
+				display: inline-table;
+				border-collapse: collapse;
+				background-color: silver;
+				border-bottom-width: 0;
+			}
+			.content-line.visit-info.table-head .classic-table{
+				border: 1px solid black;
+				display: table-cell;
+				padding: 2px;
+				margin: 0px;
+				border-bottom-width: 0;
+			}
+			
+			#VisitsTable .objects-container .table-object{
+				display: table-row;
+				border-collapse: collapse;
+				margin: 0px;
+			}
+			#VisitsTable .objects-container .table-object .classic-table{
+				display: table-cell;
+				border: 1px solid black;
+				border-collapse: collapse;
+				margin: 0px;
+			}
+			
+			#VisitsTable .classic-table.visit-date{
+				width: 80px;
+				padding: 2px;
+			}
+			#VisitsTable .classic-table.visit-org-name{
+				width: 150px;
+				padding: 2px;
+			}
+			#VisitsTable .classic-table.visit-spec{
+				width: 150px;
+				padding: 2px;
+			}
+			#VisitsTable .classic-table.visit-index{
+				width: 80px;
+				padding: 2px;
+			}
+			
+			
+		</style>
+		
+	</body>
+	
+</html>	

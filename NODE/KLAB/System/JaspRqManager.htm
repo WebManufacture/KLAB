@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<script src="System.JS.js" type="text/javascript" key="System.JS"></script>
+<script src="System.Jasp.js" type="text/javascript" key="System.JS"></script>
+<script src="System.Ajax.js" type="text/javascript" key="System.Ajax"></script>
+<script src="System.Utils.js" type="text/javascript" key="System.Utils"></script>
+<script src="System.Modules.js" type="text/javascript"></script>
+<link href="System.default.css" rel="stylesheet" type="text/css"/>
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+<include url="System.Notification.htm"></include>
+<include url="System.Toolbars.htm"></include>
+<include url="System.Windows.htm"></include>
+
+<win class="text-editor ui-block" >
+    <div class="header toolbar">
+	<div class="menuitem" tooltip="RUN" icon="exec.png"  onclick="RQB.Run()"></div>
+	<div class="menuitem text-mode active" tooltip="TEXT" icon="text.png"  onclick="RQB.Results = 'text'; this.cls('active'); W.get('.menuitem.html-mode').rcs('active');">ТЕКСТ</div>
+	<div class="menuitem html-mode" tooltip="HTML" icon="html.png"  onclick="RQB.Results = 'html'; this.cls('active'); W.get('.menuitem.text-mode').rcs('active');">HTML</div>
+	<div class="status"></div>
+    </div>
+    <div class='request-builder' style="width: 100%;">	
+	<div class='request-url'></div>
+	<br/>
+	<br/>
+	<div class="request-types options-block" style="width: 90px;">
+	    Тип запроса: 
+	    <div class="rtype rt-get current" rtype="GET">GET</div>
+	    <div class="rtype rt-post" rtype="POST">POST</div>
+	    <div class="rtype rt-put" rtype="PUT">PUT</div>
+	    <div class="rtype rt-delete" rtype="DELETE">DELETE</div>
+	    <div class="rtype rt-option" rtype="OPTION">OPTION</div>
+	    <!--for selector='.rtype'>
+	    <on event='click'>
+	    <do>		
+	</do>
+	</on>
+	</for-->
+	    <div class="clear"></div>
+	</div>
+	<div class="request-files options-block" style="width: 250px;">
+	    Обработчик: 
+	    <div class="rfile rf-jasp current oline">system.jasp.ashx</div>
+	    <div class="rfile rf-handler oline">system.handler.ashx</div>
+	    <div class="rfile rf-content oline">system.contentHandler.ashx</div>
+	    <div class="clear"></div>
+	</div>
+	<div class="request-jtypes options-block" style="width: 90px;">
+	    Тип: 
+	    <div class="jtype jt-append current oline" jtype=''>Нет типа</div>
+	    <div class="jtype jt-append oline" jtype='set'>set</div>
+	    <div class="jtype jt-append oline" jtype='delete'>delete</div>
+	    <div class="jtype jt-append oline" jtype='append'>append</div>
+	    <div class="jtype jt-prepend oline" jtype='prepend'>prepend</div>
+	    <div class="jtype jt-addclass oline" jtype='class'>+class</div>
+	    <div class="jtype jt-delclass oline" jtype='class'>-class</div>
+	    <div class="clear"></div>
+	</div>
+	<div class="clear"></div>	
+	<br/>
+	<br/>
+	Файл
+	<input class="file-editor" type="text" style="width: 100%;"/>
+	<br/>
+	<br/>
+	Другие параметры запроса
+	<input class="params-editor" type="text" style="width: 100%;"/>
+	<br/>	
+	<br/>
+	Селектор
+	<textarea class="selector-editor" style="width: 100%;"></textarea>
+	<div class="clear"></div>
+	Содержимое
+	<textarea class="content-editor" style="width: 100%;"></textarea>
+    </div>
+    <div class="results"></div>
+</win>  
+
+<script type="text/javascript" key="TextEditor">
+    RQB = {};    
+    
+    RQB.Method = "GET";
+    RQB.JType = "";
+    RQB.Selector = "";
+    RQB.File = "";
+    RQB.Data = "";
+    RQB.SysHandler = "system.jasp.ashx";
+    RQB.Results = 'text';
+    
+    RQB.Init = function(){
+	W.MapEvent(".rtype", "click", RQB.SelectMethod);
+	W.MapEvent(".rfile", "click", RQB.SelectFile);
+	W.MapEvent(".jtype", "click", RQB.SelectJType);
+	W.get(".selector-editor").onchange = RQB.OnSelectorChange;
+	W.get(".file-editor").onchange = RQB.OnFileChange;
+	var ue = W.get(".file-editor");
+	ue.onchange = RQB.OnFileChange;
+	RQB.File = ue.value;
+	W.get(".content-editor").onchange = RQB.OnContentChange;
+	W.get(".params-editor").onchange = RQB.OnParamsChange;
+	RQB.RefreshUrl();
+    };  
+    
+    RQB.RefreshUrl = function(){
+	RQB.Url = AX.GetSystemUrl(RQB.SysHandler);
+	var rq = W.get(".request-url");
+	rq.clear();
+	rq.adv("method ru-line", RQB.Method + "    ");
+	rq.adv("url ru-line", AX.GetSystemUrl());
+	rq.adv("file ru-line", RQB.SysHandler);
+	RQB.Url = RQB.SetUrlParam(RQB.Url, "type", RQB.JType);
+	RQB.Url = RQB.SetUrlParam(RQB.Url, "file", RQB.File);	
+	RQB.Url = RQB.SetUrlParam(RQB.Url, "selector", RQB.Selector);
+	RQB.Url = RQB.SetUrlParam(RQB.Url, null, RQB.OParams);
+    };
+    
+    RQB.SetUrlParam = function(url, paramName, value){
+	var firstParam = url.indexOf("?");
+	var rq = W.get(".request-url");
+	if (value && value != ""){
+	    if (check(paramName)){
+		value = paramName + "=" + encodeURI(value);
+	    }
+	    else{
+		value = encodeURI(value);
+	    }
+	    if (firstParam < 0){
+		url += "?" + value;
+		rq.adv("ru-line url-param" , "?" + value);
+	    }
+	    else{
+		url += "&" + value;
+		rq.adv("ru-line url-param" , "&amp;" + value);
+	    }
+	}
+	return url;
+    }
+	
+    RQB.OnSelectorChange = function(event){
+	    RQB.Selector = this.value;
+	    RQB.RefreshUrl();
+	};
+    
+    RQB.OnFileChange = function(event){
+	RQB.File = this.value;
+	RQB.RefreshUrl();
+    };
+    
+    RQB.OnContentChange = function(event){
+	RQB.Data = this.value;
+	RQB.RefreshUrl();
+    };
+    
+    RQB.OnParamsChange = function(event){
+	RQB.OParams = this.value;
+	RQB.RefreshUrl();
+    };
+    
+    
+    RQB.SelectMethod = function(){
+	var current = W.get(".rtype.current");
+	current.rcs("current");
+	this.cls("current");
+	RQB.Method = this.attr("rtype");
+	RQB.RefreshUrl();
+    };
+    
+    RQB.SelectFile = function(){
+	var current = W.get(".rfile.current");
+	current.rcs("current");
+	this.cls("current");
+	RQB.SysHandler = this.html();
+	RQB.RefreshUrl();
+    };
+    
+    RQB.SelectJType = function(){
+	var current = W.get(".jtype.current");
+	current.rcs("current");
+	this.cls("current");
+	RQB.JType = this.attr("jtype");
+	RQB.RefreshUrl();
+    };
+    
+    RQB.Run = function(){
+	var req = new XMLHttpRequest;
+	req.url = RQB.Url;
+	req.open(RQB.Method, req.url, true);
+        req.onerror = RQB.RError;
+        req.onload = RQB.RLoaded;
+	req.onreadystatechange = RQB.RState;
+        req.send(RQB.Data);
+        return req;
+    };
+    
+    
+    RQB.RError = function(){
+	
+    };
+    
+    RQB.RState = function(){
+	
+    };
+    
+    RQB.RLoaded = function(){
+	var res = W.get(".results");
+	if (RQB.Results == "text"){
+	    res.textContent = this.responseText;
+	    var html = res.innerHTML;
+	    html = html.replace(/\n/g, "<br/>");
+	    res.innerHTML = html;
+	    AX.PostHTML(AX.GetSystemUrl("system.highlite.ashx?lang=HTML"), html, res, RQB.HLLoaded);
+	}
+	if (RQB.Results == "html"){
+	    res.innerHTML = this.responseText;
+	}
+    };
+    
+    RQB.HLLoaded = function(results){
+	
+    }
+	
+	
+    RQB.Init();
+	
+    </script>
+    
+    <style type="text/css">
+	body{
+	    background-color: #eee;  
+	    padding-top: 100px;
+	    font-size: 11px;
+	}
+	
+	.options-block
+	    {
+	    width: 150px;
+	    float: left;
+	    margin-right: 10px;
+	}
+	
+	.request-types .rtype
+	    {
+	    background-color: white;
+	    padding: 2px 10px;
+	    border: solid 1px gray;
+	    color: gray;
+	    text-align: center;
+	}
+	
+	.request-types .rtype:hover{
+	    color: black;
+	    cursor: pointer;
+	}
+	
+	.request-types .rtype.current
+	    {
+	    background-color: yellow;
+	    font-weight: bold;
+	    color: black;
+	}
+	
+	.oline{
+	    color: #666;
+	}
+	
+	.oline:not(.current):hover{
+	    text-decoration: underline;
+	    color: blue;
+	    cursor: pointer;
+	}
+	
+	.oline.current{
+	    color: black;
+	    font-weight: bold;
+	}
+	
+	
+	.request-url .ru-line.method{
+	    color: gray;
+	    font-weight: bold;
+	}
+	
+	.request-url .ru-line.url{
+	    color: #0C39A2;
+	}
+	
+	.request-url .ru-line.file{
+	    color: #770088;
+	}
+	
+	.request-url .ru-line.url-param{
+	    color: #FF554A;
+	}
+	
+	
+	.ru-line{
+	    display: inline;
+	}
+	
+	.menuitem.active{
+	    background-color: yellow;
+	}
+    </style>
+    
+    

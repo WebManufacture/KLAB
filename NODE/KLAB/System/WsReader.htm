@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type"></meta>
+
+<title>WS reader</title>
+
+<link type='text/css' rel='stylesheet' href="System.default.css"/>
+<script type="text/javascript" src="Utils.js"></script>
+<script type="text/javascript" src="DOM.js"></script>
+<script type="text/javascript" src="Url.js"></script>
+<script type="text/javascript" src="Ajax.js"></script>
+<script type="text/javascript" src="Jasp.js"></script>
+
+<script type='text/javascript'>
+    function index(){
+	var webSocket = new WebSocket('ws://localhost:30000');
+ 
+	webSocket.onopen = function(event) {
+	    text('onopen');
+	    webSocket.send("Hello Web Socket!");
+	};
+	
+	webSocket.onmessage = function(event) {
+	    text('onmessage, ' + event.data);
+	    webSocket.close();
+	};
+ 
+	webSocket.onclose = function(event) {
+	    text('onclose');
+	};
+	
+	webSocket.onerror = function(event) {
+	    text('Error');
+	};
+    }
+    
+    function text(txt){
+	DOM(".result").innerHTML = txt;
+    }
+    
+    //window.setInterval(
+    WS.DOMload(index);
+</script>
+
+<div class='result'>Инициализация</div>

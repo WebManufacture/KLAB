@@ -1,0 +1,113 @@
+﻿<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+	<head>
+		<meta http-equiv="Content-Type" content="text/html; charset=iso-8859-1"/>
+		<title>Printers</title>
+		
+		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Utils.js"></script>
+		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/DOM.js"></script>
+		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Url.js"></script>
+
+		
+		<style type="text/css">
+
+
+			
+			.container{
+				margin-left: 200px;
+				margin-top: 20px;
+				width: 200px;
+				height: 300px;
+				border: 1px solid navy;
+				background-color: aqua;
+			}
+
+			.btn, .asinc{
+				margin: 50px;
+				margin-top: 5px;
+				border: 1px solid none;
+				width: 88px;
+				height: 30px;
+				border-radius: 5px;
+				background-color: teal;
+			}
+			
+			.asinc{
+				display: none;
+			}
+			.btn:hover{	
+				background-color: navy;
+			}
+			.a{
+				display: none;
+			}
+			input{
+				margin: 5px;
+				margin-top: 20px;
+				width: 188px;
+			}
+		</style>
+		<script>
+			
+			
+			var print = {
+				
+				Init: function(){
+					print.input = DOM.get('input');
+					print.btn = DOM.get('.btn');
+					print.asinc = DOM.get('.asinc');
+					print.a = DOM.get('.a');
+					print.btn.onclick = print.Go;
+					
+				},
+				
+				Go: function(){
+					if (print.input.value.length !== 10) return alert('Invalid S/N');
+					var sn = print.input.value;
+					print.btn.style.display = 'none';
+					print.asinc.style.display = 'block';
+					print.Req(sn);	
+				},
+				
+				Req: function(sn){
+					window.open('http://web-manufacture.net:6888/' + sn + '.eeprom' + '?sn=' + sn);
+					print.asinc.style.display = 'none';
+					print.btn.style.display = 'block';
+				},
+				
+				UploadDoc: function(files){
+					if (files.length > 0){
+						var frq = new XMLHttpRequest();
+						frq.open("POST", "", true);
+						frq.setRequestHeader("Content-Type", "application/binary");
+						frq.overrideMimeType('application/binary');
+						frq.onload = function(){
+							window.fname = this.responseText;
+							//InitialDiv.hide();
+							//initDoc("/printer/" + fname + ".eeprom");
+						}
+						frq.setRequestHeader("Content-Length", files[0].size);
+						frq.send(files[0]);
+					}
+				}
+
+			
+			};
+
+			
+			window.onload = print.Init;
+			
+			//WS.DOMload(print.Init);	
+			
+		</script>
+	</head>
+	<body>
+		<div class='container'>
+			<input type='text'>
+			<div class='btn'></div>
+			<div class='asinc'>wait</div>
+			<input type='file' text='Upload' title='Upload' value='Upload' onchange="print.UploadDoc(this.files)"></input>
+		</div>
+	</body>
+</html>
+

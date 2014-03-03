@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html>
+  <head>
+<script src="System.JS.js" type="text/javascript" key="System.JS"></script>
+<script src="System.Ajax.js" type="text/javascript" key="System.Ajax"></script>
+<script src="System.Utils.js" type="text/javascript" key="System.Utils"></script>
+<link rel="stylesheet" href="System.default.css"/>
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+  
+<script type="text/javascript" key="TextEditor">
+        
+  
+    Editor = {}; 
+  
+    Editor.Init = function(){
+      //var meta = document.createElement("meta");
+      //meta.setAttribute("content", "text/html; charset=utf-8");
+      //meta.setAttribute("http-equiv", "Content-Type");
+      //W.Body.parentNode.firstChild.appendChild(meta);
+      Editor.fileName = "Mobile.htm";
+      X.ContentGet(Editor.fileName, Editor.LoadFileComplete);
+    }
+  
+
+    Editor.LoadFileComplete = function(received, result, xmlHttp) {
+      var parsers = "";
+      Editor.TextEditor = W.get(".txtcode");
+      Editor.TextEditor.value = this.responseText;
+    }
+
+    Editor.SaveFile = function() {
+     	if (Editor.fileName != null) {
+          var btn = W.get(".menuitem.save");
+          if (Check(btn)){
+             btn.hide();
+          }
+          var content = Editor.TextEditor.value;
+          var request = X.ContentSave(Editor.fileName, content, Editor.SaveComplete);
+        }
+    }
+      
+    Editor.SaveComplete = function(){
+    	var status = W.get(".header .status");
+        var name = W.Wrap(this.responseText).get(".name");
+        Notify.Show("Сохранено - " + name.html());
+        var btn = W.get(".menuitem.save");
+        btn.show();
+    }
+
+    W.OnLoad(Editor.Init);
+
+</script>
+  
+<style type="text/css">
+  body{
+   background-color: #eee;  
+  }
+
+</style>
+</head>
+<body>
+  
+<div class="header toolbar menu">
+  <div class="menuitem text-editor save" tooltip="Сохранить" onclick="Editor.SaveFile();">Сохранить</div>
+  <div class="menuitem text-editor reindent" onclick="Editor.TextReindentAll();"></div>
+  <div class="status"></div>
+</div>
+<textarea class="txtcode">
+  
+</textarea>
+
+<div class="file-list">
+  
+  </div>
+</body>
+</html>
