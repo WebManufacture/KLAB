@@ -1,0 +1,1574 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+		<link type='text/css' rel='stylesheet' href="http://Services.web-manufacture.net/Styles/System.default.css" />
+		
+		<link type='text/css' rel='stylesheet' href="identification.css" />
+		
+		<script type="text/javascript" src="http://services.web-manufacture.net/Base/v1.3/Utils.js"></script>
+		<script type="text/javascript" src="http://services.web-manufacture.net/Base/v1.3/DOM.js"></script>
+		<script type="text/javascript" src="http://services.web-manufacture.net/Base/v1.3/Url.js"></script>
+		<script type="text/javascript" src="http://services.web-manufacture.net/Base/v1.3/Events.js"></script>
+		<script type="text/javascript" src="http://services.web-manufacture.net/Base/v1.3/Log.js"></script>
+		<script type="text/javascript" src="http://services.web-manufacture.net/Base/v1.3/Net.js"></script>
+		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Jasp.js"></script>
+		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Modules.js"></script>
+		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/ui.js"></script>
+		
+		<script type='text/javascript' src='http://services.web-manufacture.net/SysUtils/NodeEnvironment.js'></script>
+		<script type='text/javascript' src='http://klab.web-manufacture.net/Modules/Channels.js'></script>
+		
+		<script type='text/javascript' src='Semantic.js'></script>
+		<script type='text/javascript' src='Identification.js'></script>
+		<script type='text/javascript' src='fias.js'></script>
+	</head>
+	<body>
+		<include url='http://services.web-manufacture.net/ui/Wizards.js'></include>
+		<include url='http://services.web-manufacture.net/ui/Toolbars.htm'></include>
+		<include url='http://services.web-manufacture.net/ui/Win.htm'></include>
+		<include url='http://services.web-manufacture.net/ui/popup.htm'></include>
+		<include url='http://services.web-manufacture.net/ui/UiUtils.htm'></include>
+		<include url='http://services.web-manufacture.net/ui/htmlelements.htm'></include>
+		<include url='http://services.web-manufacture.net/Grids/Grids.htm'></include>
+		<include url='http://services.web-manufacture.net/Grids/SimpleGrids.js'></include>
+		<script type='text/javascript'>
+			WS.DOMload(function(){
+				SemanticConfigurator.Show = function(){
+					var box = this.get(".semantic-box");
+					//for (var
+					this.show();	
+				}
+			});
+			
+			SemanticUI = {
+				Reparse : function(tokens){
+					if (!tokens) {
+						if (SemanticUI.currentData){
+							SemanticUI.ParseData({data : SemanticUI.currentData});
+							return;
+						}
+						tokens = SemanticUI.currentTokens;
+					}
+					if (tokens){
+						SemanticInput.hide();
+						if (typeof tokens == 'string'){
+							SemanticInput.value = tokens;
+							tokens = NeuroParser.ParseToken(tokens);
+						}
+						SemanticUI.ParseTokens(tokens);
+					}				
+					else{
+						SemanticInput.show();							
+					}
+				},
+				
+				ParseTokens : function(tokens){
+					SemanticUI.currentTokens = tokens;
+					for (var i = 0; i <  tokens.length; i++){
+						tokens[i]["@id"] = "verb" + (i + 1);	
+					}
+					SemanticParsing.show();	
+					var box = SemanticParsing.get(".parsing-results");
+					box.clear();
+					var rb = SemanticParsing.get(".object-description.prototype");
+					box.add(rb.clone());
+					
+					
+					for (var i = 0; i < tokens.length; i++){
+						SemanticUI.InitVerb(box.div(".parsed-verb"), tokens[i]);
+					}					
+					for (var i = 0; i < tokens.length; i++){
+						var token = tokens[i];
+						var verbId = token["@id"];
+						var verb = box.get("#" + verbId);
+						PointersNet.Process(token);
+						if (token._finished){
+							var pToken = null;
+							if (token.direction && token.direction == "prev"){
+								if (i > 0){
+									pToken = tokens[i-1];
+								}
+							}
+							if (token.direction && token.direction == "next"){
+								if (i < tokens.length - 1){
+									pToken = tokens[i+1];
+								}
+							}	
+							
+							if (pToken && token.ptype){
+								if (pToken[token.ptype]){
+									pToken[token.ptype]++;
+								}
+								else{
+									pToken[token.ptype]	= 1;
+								}
+							}
+						}						
+					}
+					var gobj = {
+						regionId : null,
+						cityId : null,
+						streetId : null
+					}
+					for (var i = 0; i < tokens.length; i++){
+						var verbId = tokens[i]["@id"];
+						var verb = box.get("#" + verbId)
+						var token = tokens[i];
+						if (!token._finished && token._type == 'string'){
+							if (token.parent > 1){								
+								ParentsNet.Process(token);
+								if (token._finished && token.parentId){
+									gobj.parentId = token.parentId;
+								}
+								else{
+									token.parentId = gobj.parentId = (Math.random() + "").replace("0.", "");
+									ParentsNet.MergeVerb(token._content, { parentId : gobj.parentId});
+									token._finished = true;
+									SavePNet();
+								}
+								gobj.parent = token._content;
+								SemanticUI.MergeVerbDiv(verb, token);
+								continue;
+							}
+							if (token.client > 1){
+								ClientsNet.Process(token);
+								if (token._finished && token.clientId){
+									gobj.clientId = token.clientId;
+								}
+								else{
+									token.clientId = gobj.clientId = (Math.random() + "").replace("0.", "");
+									ClientsNet.MergeVerb(token._content, { clientId : gobj.clientId});
+									token._finished = true;
+									SaveCNet();
+								}
+								gobj.client = token._content;
+								SemanticUI.MergeVerbDiv(verb, token);
+								continue;
+							}
+							RegionsNet.Process(token);
+							if (token.regionId){
+								gobj.regionId = token.regionId;
+								gobj.region = token._content;
+							}							
+						}
+						SemanticUI.MergeVerbDiv(verb, token);
+					}
+					for (var i = 0; i < tokens.length; i++){
+						var verbId = tokens[i]["@id"];
+						var verb = box.get("#" + verbId)
+						var token = tokens[i];
+						if (!token._finished){
+							if (token.region > 1){
+								SemanticUI.loadRegionData(verb, token, gobj);
+								continue;
+							}
+						}
+						SemanticUI.MergeVerbDiv(verb, token);
+					}
+					SemanticUI.gobj = gobj;
+					
+					var parseRoomsCallback = function(){
+						for (var i = 0; i < tokens.length; i++){
+							var verbId = tokens[i]["@id"];
+							var verb = box.get("#" + verbId)
+							var token = tokens[i];
+							if (!token._finished){
+								if (token.room >= 1){
+									SemanticUI.loadRoomData(verb, token, gobj, SemanticUI.SetEndValues);
+									continue;
+								}
+							}
+							SemanticUI.MergeVerbDiv(verb, token);
+						}
+					}
+					var parseHouseCallback = function(){
+						for (var i = 0; i < tokens.length; i++){
+							var verbId = tokens[i]["@id"];
+							var verb = box.get("#" + verbId)
+							var token = tokens[i];
+							if (!token._finished){
+								if (token.house >= 1){
+									SemanticUI.loadHouseData(verb, token, gobj, parseRoomsCallback);
+									continue;
+								}
+							}
+							SemanticUI.MergeVerbDiv(verb, token);
+						}
+					}
+					var parseStreetsCallback = function(){
+						for (var i = 0; i < tokens.length; i++){
+							var verbId = tokens[i]["@id"];
+							var verb = box.get("#" + verbId)
+							var token = tokens[i];
+							if (!token._finished){
+								if (token.address > 1){
+									SemanticUI.loadStreetData(verb, token, gobj, parseHouseCallback);
+									continue;
+								}
+							}
+							SemanticUI.MergeVerbDiv(verb, token);
+						}
+					}
+					for (var i = 0; i < tokens.length; i++){
+						var verbId = tokens[i]["@id"];
+						var verb = box.get("#" + verbId)
+						var token = tokens[i];
+						if (!token._finished){
+							if (token.city > 1){
+								SemanticUI.loadCityData(verb, token, gobj, parseStreetsCallback);
+								continue;
+							}
+						}
+						SemanticUI.MergeVerbDiv(verb, token);
+					}												
+					
+					/*
+					for (var i = 0; i < tokens.length; i++){
+						var verbId = tokens[i]["@id"];
+						var verb = box.get("#" + verbId)
+						SemanticUI.MergeVerbDiv(verb, tokens[i]);
+					}*/
+				},
+				
+				SetEndValues : function(){
+					if (SemanticUI.gobj.parentId){
+						SemanticParsing.get("[field='parentId']").textContent = SemanticUI.gobj.parentId;
+						SemanticParsing.get("[field='parent']").textContent = SemanticUI.gobj.parent;
+					}
+					if (SemanticUI.gobj.clientId){
+						SemanticParsing.get("[field='clientId']").textContent = SemanticUI.gobj.clientId;
+						SemanticParsing.get("[field='client']").textContent = SemanticUI.gobj.client;
+					}
+					if (SemanticUI.gobj.regionId){
+						SemanticParsing.get("[field='regionId']").textContent = SemanticUI.gobj.regionId;
+						SemanticParsing.get("[field='region']").textContent = SemanticUI.gobj.region;
+					}
+					if (SemanticUI.gobj.cityId){
+						SemanticParsing.get("[field='cityId']").textContent = SemanticUI.gobj.cityId;
+						SemanticParsing.get("[field='city']").textContent = SemanticUI.gobj.city;
+					}
+					if (SemanticUI.gobj.streetId){
+						SemanticParsing.get("[field='streetId']").textContent = SemanticUI.gobj.streetId;
+						SemanticParsing.get("[field='street']").textContent = SemanticUI.gobj.street;
+					}
+					if (SemanticUI.gobj.house){
+						SemanticParsing.get("[field='house']").textContent = SemanticUI.gobj.house;
+					}						
+					if (SemanticUI.gobj.room){
+						SemanticParsing.get("[field='room']").textContent = SemanticUI.gobj.room;
+					}
+				},
+				
+				loadRegionData : function(verb, token){
+					verb.add(".loading");
+					VerbTypes.region.query(token._content, function(result){
+						verb.del(".loading");	
+						for (var i = 0; i < result.length; i++){
+							var line = result[i];
+							if (line.aolevel == 1){
+								token.regionId = line.aoguid;
+								gobj.region = line.offname;
+								var node = RegionsNet.MergeVerb(token._content, {regionId : token.regionId, level : 1});
+								SaveRNet();
+								token._finished = true;
+								SemanticUI.MergeVerbDiv(verb, token);
+								SemanticUI.Reparse();
+								return;
+							}
+						}
+						for (var i = 0; i < result.length; i++){
+							var line = result[i];
+							if (line.aolevel == 2){
+								token.regionId = line.aoguid;
+								gobj.region = line.offname;
+								var node = RegionsNet.MergeVerb(token._content, {regionId : token.regionId, level : 2});
+								SaveRNet();
+								token._finished = true;
+								SemanticUI.MergeVerbDiv(verb, token);
+								SemanticUI.Reparse();
+								return;
+							}
+						}						
+						for (var i = 0; i < result.length; i++){
+							var line = result[i];
+							if (line.aolevel == 3){
+								token.regionId = line.aoguid;
+								gobj.region = line.offname;
+								var node = RegionsNet.MergeVerb(token._content, {regionId : token.regionId, level : 3});
+								SaveRNet();
+								token._finished = true;
+								SemanticUI.MergeVerbDiv(verb, token);
+								SemanticUI.Reparse();
+								return;
+							}
+						}
+						verb.add(".problem");
+						SemanticUI.MergeVerbDiv(verb, token);
+					});
+				},
+				
+				loadCityData : function(verb, token, gobj, callback){
+					if (gobj.regionId){
+						verb.add(".loading");
+						VerbTypes.city.queryFiltered(gobj.regionId, token._content, function(result){
+							verb.del(".loading");	
+							for (var i = 0; i < result.length; i++){
+								var line = result[i];
+								if (line.aolevel == 4){
+									token.cityId = line.aoguid;
+									gobj.city = line.offname;
+									token.level = 4;
+									gobj.cityId = token.cityId
+									token._finished = true;
+									SemanticUI.MergeVerbDiv(verb, token);
+									if (callback){
+										callback();	
+									}
+									return;
+								}
+							}
+							for (var i = 0; i < result.length; i++){
+								var line = result[i];
+								if (line.aolevel == 5){
+									token.cityId = line.aoguid;
+									gobj.city = line.offname;
+									token.level = 5;
+									gobj.cityId = token.cityId
+									token._finished = true;
+									SemanticUI.MergeVerbDiv(verb, token);
+									if (callback){
+										callback();	
+									}
+									return;
+								}
+							}						
+							for (var i = 0; i < result.length; i++){
+								var line = result[i];
+								if (line.aolevel == 6){
+									token.cityId = line.aoguid;
+									gobj.city = line.offname;
+									token.level = 6;
+									gobj.cityId = token.cityId
+									token._finished = true;
+									SemanticUI.MergeVerbDiv(verb, token);
+									if (callback){
+										callback();	
+									}
+									return;
+								}
+							}
+							verb.add(".problem");
+							SemanticUI.MergeVerbDiv(verb, token);
+						});
+					}
+				},
+				
+				loadStreetData : function(verb, token, gobj, callback){
+					if (gobj.cityId){
+						verb.add(".loading");
+						VerbTypes.street.queryFiltered(gobj.cityId, token._content, function(result){
+							verb.del(".loading");	
+							for (var i = 0; i < result.length; i++){
+								var line = result[i];
+								if (line.aolevel == 7){
+									token.streetId = line.aoguid;
+									gobj.street = line.offname;
+									token.level = 7;
+									gobj.streetId = token.streetId;									
+									token._finished = true;
+									SemanticUI.MergeVerbDiv(verb, token);
+									if (callback){
+										callback();	
+									}
+									return;
+								}
+							}
+							verb.add(".problem");
+							SemanticUI.MergeVerbDiv(verb, token);
+						});
+					}
+				},
+				
+				loadHouseData : function(verb, token, gobj, callback){
+					if (token._type == 'decimal'){
+						token._finished = true;
+						gobj.house = token._content;
+					}
+					else{
+						verb.add(".problem");
+					}
+					SemanticUI.MergeVerbDiv(verb, token);
+					if (callback){
+						callback();	
+					}
+				},
+				
+				loadRoomData : function(verb, token, gobj, callback){
+					if (token._type == 'decimal'){
+						token._finished = true;
+						gobj.room = token._content;
+					}
+					else{
+						verb.add(".problem");
+					}
+					SemanticUI.MergeVerbDiv(verb, token);
+					if (callback){
+						callback();	
+					}
+				},
+				
+				/*
+				data.ClientId = Clients.GetCellValue(cells[13]);
+				data.ParentClient = Clients.GetCellValue(cells[1]);
+				data.ParentClientId = Clients.GetCellValue(cells[14]);
+				data.ClientSource = Clients.GetCellValue(cells[2]);
+				data.RegionSource = Clients.GetCellValue(cells[3]);
+				data.CitySource = Clients.GetCellValue(cells[4]);
+				data.AddressFSource = Clients.GetCellValue(cells[5]);
+				data.AddressUSource = Clients.GetCellValue(cells[6]);
+				data.INN = Clients.GetCellValue(cells[7]);
+				data.CityId = null;
+				data.RegionId = null;
+				data.Address = "";
+				data.Client = "";
+				data.Comments = "";
+				data.Postal = null;
+				*/
+				
+				ParseData : function(item){
+					var data = item.data;
+					SemanticUI.currentData = data;
+					var tokens = [];
+					NeuroParser.ParseTokens(data.RegionSource, { region : 1 }, tokens);
+					NeuroParser.ParseTokens(data.CitySource, { city : 1 }, tokens);
+					NeuroParser.ParseTokens(data.AddressFSource, { address : 1 }, tokens);
+					NeuroParser.ParseTokens(data.ParentClient, { parent : 1 }, tokens);
+					NeuroParser.ParseTokens(data.ClientSource, { client : 1 }, tokens);
+					SemanticUI.ParseTokens(tokens);
+				},
+				
+				MergeVerbDiv : function(div, obj){
+					for (var item in obj){
+						if (item.start("_")) continue;	
+						if (item.start(".") && obj[item] > 0) {
+							div.add(item);
+							continue;
+						}
+						if (item.start("@")) {
+							div.set(item, obj[item]);
+							continue;
+						}
+						div.set("@data-" + item, obj[item]);
+					}
+					if (obj._finished){
+						div.add(".parsed");	
+					}
+					if (obj.vtype){
+						div.cls(obj.vtype);	
+					}
+				},
+				
+				InitVerb : function(div, obj){
+					div.data = obj;
+					div.textContent = obj._content;
+					this.MergeVerbDiv(div, obj);
+					div.onclick = function(){
+						SemanticUI.ShowVerbPopup(obj);
+					}
+				},
+				
+				ShowVerbPopup: function(obj){
+					var win = SemanticUI.CreatePopupForm(obj);
+					if (obj._finished){						
+						var vList = win.get(".values-list");
+						vList.show();
+						vList.clear();
+						vList.onclick = function(){
+							this._all(".invisible").show();	
+						}
+						for (var prop in obj)
+						{
+							var value = obj[prop];
+							if (typeof(value) == "function") continue;
+							if (typeof(value) == "object") {
+								var vItem = vList.div(".item.object.invisible");
+								vItem.div(".prop", prop);
+								vItem.div(".value", DOM.formatJSON(obj));
+								continue;
+							}
+							vList.add(WS.JsonToHtml({
+								"@class" : typeof(value),
+								".item" : true,
+								".invisible" : prop.start("_"),
+								property:{
+									".prop" : true,
+									"@prop" : prop,
+									textContent : prop + ":"
+								},
+								value :{
+									".value": true,
+									textContent: value + ""
+								}
+							}));
+						}
+					}
+					else{							
+						var wizard = win.get(".wizard-box");
+						wizard.show();
+						wizard = new Wizard(VerbTypeWizard, wizard, SemanticUI.WizardComplete);
+					}
+					
+				},
+				
+				WizardComplete : function(obj){
+					if (obj && obj.vtype){
+						if (obj.vtype == 'pointer'){
+							delete obj["@id"];
+							var win = this.get("^.window");
+							if (win){
+								var data = win.obj;
+								win.del();
+								var node = PointersNet.MergeVerb(data._content, obj);
+								SaveNet();
+							}
+						}
+						SemanticUI.Reparse();
+					}
+				},
+				
+				CreatePopupForm : function(obj){
+					var win = VerbManagePrototype.clone();					
+					win.obj = obj;
+					var verb = win.get(".verb");
+					var text = obj._content;
+					verb.textContent = text;
+					if (obj._finished){
+						win.add(".known");	
+					}
+					else{
+						win.add(".unknown");	
+					}
+					win.all(".simple-grid").del(".initialized");
+					win = Win.CreateWindow(win);
+					WS.Body.add(win);
+					win.Show();
+					win.id = '';
+					C.Process(win, "ui-processing");
+					return win;
+				},
+				
+				SearchRegion : function(){
+					var win = SearchWin.clone();					
+					win.all(".simple-grid").del(".initialized");
+					win.title = 'Поиск региона'
+					win = Win.CreateWindow(win);
+					WS.Body.add(win);
+					win.Show();
+					win.id = '';
+					win.get(".SearchBtn").onclick = function(){
+						if (win.get(".SearchInput").value.length > 3){
+							win.add(".loading");
+							VerbTypes.region.query(win.get(".SearchInput").value.toLowerCase(), function(result){
+								win.del(".loading");
+								win.get(".simple-grid").ShowObjects(result);
+								win.all(".simple-grid .object-item").each(function(item){
+									item.onclick = function(){
+										var line = item.data;
+										win.del();
+										SemanticUI.gobj.regionId = line.aoguid;
+										SemanticUI.gobj.region = line.offname;
+										SemanticUI.gobj.cityId = "";
+										SemanticUI.gobj.city = "";
+										SemanticUI.gobj.streetId = "";
+										SemanticUI.gobj.street = "";
+										var node = RegionsNet.MergeVerb(line.formalname, {regionId : line.aoguid, level : line.aolevel});
+										SaveRNet();
+										SemanticUI.SetEndValues();									
+									}
+								});
+							});
+						}
+					}
+					C.Process(win, "ui-processing");
+					return win;
+				},
+				
+				SearchCity : function(){
+					if (!SemanticUI.gobj.regionId) return;
+					var win = SearchWin.clone();					
+					win.all(".simple-grid").del(".initialized");
+					win.title = 'Поиск города'
+					win = Win.CreateWindow(win);
+					WS.Body.add(win);
+					win.Show();
+					win.id = '';
+					win.get(".SearchBtn").onclick = function(){
+						if (win.get(".SearchInput").value.length > 3){
+							win.add(".loading");
+							VerbTypes.city.queryFiltered(SemanticUI.gobj.regionId, win.get(".SearchInput").value.toLowerCase(), function(result){
+								win.del(".loading");
+								win.get(".simple-grid").ShowObjects(result);
+								win.all(".simple-grid .object-item").each(function(item){
+									item.onclick = function(){
+										var line = item.data;
+										win.del();
+										SemanticUI.gobj.cityId = line.aoguid;
+										SemanticUI.gobj.city = line.offname;
+										SemanticUI.gobj.streetId = "";
+										SemanticUI.gobj.street = "";
+										SemanticUI.SetEndValues();									
+									}
+								});
+							});
+						}
+					}
+					C.Process(win, "ui-processing");
+					return win;
+				},
+				
+				SearchStreet : function(){
+					if (!SemanticUI.gobj.cityId) return;
+					var win = SearchWin.clone();					
+					win.all(".simple-grid").del(".initialized");
+					win.title = 'Поиск города'
+					win = Win.CreateWindow(win);
+					WS.Body.add(win);
+					win.Show();
+					win.id = '';
+					win.get(".SearchBtn").onclick = function(){
+						if (win.get(".SearchInput").value.length > 3){
+							win.add(".loading");
+							VerbTypes.street.queryFiltered(SemanticUI.gobj.cityId, win.get(".SearchInput").value.toLowerCase(), function(result){
+								win.del(".loading");
+								win.get(".simple-grid").ShowObjects(result);
+								win.all(".simple-grid .object-item").each(function(item){
+									item.onclick = function(){
+										var line = item.data;
+										win.del();
+										SemanticUI.gobj.streetId = line.aoguid;
+										SemanticUI.gobj.street = line.offname;
+										SemanticUI.SetEndValues();									
+									}
+								});
+							});
+						}
+					}
+					C.Process(win, "ui-processing");
+					return win;
+				}
+			};
+		</script>
+		
+		<win id='VerbManagePrototype' class='prototype window verb-manager' title='Verb editor'>
+			<div class='verb'>
+				
+			</div>			
+			<div class='values-list invisible'>
+				
+			</div>						
+			<div class='wizard-box invisible'>
+				
+			</div>
+		</win>
+		
+		<div class='prototype' id='verb-wizards'>
+			<div id='VerbTypeWizard' class='invisible wizard'>
+				<div class='verb-type abbreviation boxed link' vtype='abbreviation' next='#PointerDirectionWizard' add='vtype=pointer'>
+					Указатель
+				</div>
+				<div class='verb-type region boxed link' vtype='region' next='#RegionTypeWizard' add='vtype=region'>
+					Регион
+				</div>
+				<div class='verb-type city boxed link' vtype='address' next='#CityTypeWizard' add='vtype=city'>
+					Город
+				</div>
+				<div class='verb-type street boxed link end' add='vtype=street'>
+					Улица
+				</div>
+				<div class='verb-type client boxed link' vtype='client' next='#PointerDirectionWizard' add='vtype=parent'>
+					Название сети
+				</div>
+				<div class='verb-type client boxed link' vtype='client' next='#PointerDirectionWizard' add='vtype=client'>
+					Клиент
+				</div>
+				<div class='verb-type other boxed link' vtype='other' next='#PointerDirectionWizard' add='vtype=other'>
+					Прочее
+				</div>				
+				<div class='verb-type ignore boxed link' vtype='ignore' next='#PointerDirectionWizard' add='vtype=ignore'>
+					Игнорировать
+				</div>
+			</div>
+			<div id='PointerDirectionWizard' class='invisible wizard'>
+				<div class='hint' style='color: navy; font-weight: bold;'>
+					Тип указателя:
+				</div>
+				<div class='verb-type abbreviation boxed link' next='#PointerTypeWizard' value='direction=next'>
+					Префиксный <span class='example' style='color: green'>(ООО Ригла)</span>
+				</div>
+				<div class='verb-type region boxed link' next='#PointerTypeWizard' value='direction=prev'>
+					Постфиксный <span class='example' style='color: green'>(Ульяновская обл)</span>
+				</div>				
+				<div class='verb-type region boxed link' next='#PointerTypeWizard' value=''>
+					Инвариантный <span class='example' style='color: green'>(Респ Тыва, Тыва респ.)</span>
+				</div>
+			</div>
+			<div  id='PointerTypeWizard' class='invisible wizard'>
+				<div class='hint' style='color: navy; font-weight: bold;'>
+					Указывает на:
+				</div>
+				<div class='pointer-type boxed link end' add='.region=1' value='level=1,ptype=region'>
+					Регион
+				</div>				
+				<div class='pointer-type boxed link end' add='.region=1' value='level=2,ptype=region'>
+					Авт. Округ
+				</div>				
+				<div class='pointer-type boxed link end'  add='.region=1' value='level=3,ptype=region'>
+					Район
+				</div>
+				<div class='pointer-type boxed link end'  add='.city=1'  value='level=4,ptype=city'>
+					Город
+				</div>
+				<div class='pointer-type boxed link end'  add='.city=1' value='level=5,ptype=city'>
+					Внутригородская терр.
+				</div>
+				<div class='pointer-type boxed link end'  add='.city=1'  value='level=6,ptype=city' >
+					Насел. пункт
+				</div>
+				<div class='pointer-type boxed link end'   add='.address=1'  value='level=7,ptype=address' >
+					Улица
+				</div>
+				<div class='pointer-type boxed link end'  add='.house=1'  value='level=8,ptype=house' >
+					Строение
+				</div>				
+				<div class='pointer-type boxed link end'  add='.room=1'  value='level=9,ptype=room' >
+					Помещение
+				</div>				
+				<div class='pointer-type boxed link end'  add='.parent=1,ptype=parent'>
+					Название сети
+				</div>				
+				<div class='pointer-type boxed link end'  add='.client=1,ptype=client' >
+					Клиент
+				</div>
+				<div class='pointer-type boxed link end'  add='.index=1,ptype=index'>
+					Индекс
+				</div>
+			</div>
+			<div class='verb-type-select invisible address' vtype='address'>
+				<div class='simple-grid vts-grid initialized'>
+					<div class="object-template prototype boxed link">
+						<span class='shortname' field='shortname'></span>
+						<span class='level' field='level'></span>
+						<span class='offname' field='offname'></span>
+						<span class='postalcode' field='postalcode'></span>
+					</div>					
+				</div>
+			</div>
+			<div class='verb-type-select invisible region' vtype='region'>
+				<div class='simple-grid vts-grid initialized'>
+					<div class="object-template prototype boxed link">
+						<span class='shortname' field='shortname'></span>
+						<span class='level' field='level'></span>
+						<span class='offname' field='offname'></span>
+						<span class='postalcode' field='postalcode'></span>
+					</div>					
+				</div>
+			</div>
+			
+			<div class='controls'>
+				Cвободный поиск: <input type='text' id='fsClientBox'/>
+				<div class='btn-ira' title='искать'>
+					искать
+				</div>
+			</div>
+		</div>
+		
+		<win id='SemanticParsing' class='invisible window' title='Распознаватель' >
+			<div class='btn-ira invisible ok' onclick="SemanticUI.Reparse(SemanticInput.value);">				
+				Распознать
+			</div>
+			<input type='text' style='width: 70%' class='invisible' id='SemanticInput' value='Филиал ООО "Ригла" в г. Чебоксары 429335 ЧР, г. Канаш, ул. Железнодорожная, дом 89, помещение №4. -'/>
+			<div class='parsing-results'>
+				
+			</div>						
+			<div class='object-description prototype'>
+				<div class="parent line link">
+					Сеть: <span class="field id" field="parentId"> </span> <span class="field" field="parent"> Не распознан </span>
+				</div>
+				<div class="client line link">
+					Клиент: <span class="field  id" field="clientId">  </span> <span class="field" field="client"> Не распознан </span>
+				</div>
+				<div class="Location">
+					<div class="region line link" onclick='SemanticUI.SearchRegion()'>
+						Регион: <span class="field id" field="regionId"></span> <span class="field" field="region"> Не распознан </span>									
+					</div>
+					<div class="city line link" onclick='SemanticUI.SearchCity()'>
+						Город: <span class="field id" field="cityId"></span> <span class="field" field="city"> Не распознан </span>									
+					</div>
+					<div class="address line link" onclick='SemanticUI.SearchStreet()'>
+						Адрес: <span class="field id" field="streetId"></span> <span class="field" field="street"> Не распознана </span> &nbsp;
+						<span class="field" field="house"> </span>, <span class="field" field="room">  </span>
+					</div>				
+				</div>	
+			</div>		
+			
+		</win>
+		
+		<win id='SearchWin' class='prototype window search-win'>
+				<input type='text' style='width: 70%' class='SearchInput' value=''/>
+				<div class='btn-ira ok SearchBtn'>				
+					Найти
+				</div>
+				<div class='simple-grid initialized'>
+					<div class="object-template prototype boxed link">
+						<span class='shortname' field='shortname'></span>
+						<span class='level' field='level'></span>
+						<span class='offname' field='offname'></span>
+						<span class='postalcode' field='postalcode'></span>
+					</div>					
+				</div>
+			</win>
+		
+		<win id='SemanticConfigurator' class='invisible screen-center' title='Нейросеть'>
+			<div class='semantic-box'>
+				
+			</div>
+		</win>
+		
+		<script type='text/javascript'>
+			
+			
+			Clients = {};
+			
+			Clients.Init = function(){
+				InputFileBlock.addEventListener("dragenter", function(e){
+					e.stopPropagation();
+					e.preventDefault();
+					this.add(".feedback");
+				}, false);
+				InputFileBlock.addEventListener("dragleave", function(e){
+					e.stopPropagation();
+					e.preventDefault();
+					this.del(".feedback");
+				}, false);
+				InputFileBlock.addEventListener("drop", function(e){
+					this.del(".feedback");
+					if (e && e.dataTransfer && e.dataTransfer.files){
+						e.stopPropagation();
+						e.preventDefault();
+						var files = e.dataTransfer.files;
+						if (files && files.length > 0){
+							for (var i = 0; i < files.length; i++){
+								Clients.HandleFile(files[i]);
+							}
+						}						
+					}
+				}, false);
+				
+				
+				
+				ParsedClientsGrid.ParseObject = function(){
+					
+				}
+			}
+			
+			Clients.HandleFile = function(file){
+				if (file.type != "text/xml") {
+					return;
+				}
+				var reader = new FileReader();
+				reader.onload = function(result){
+					var data = document.createElement("xml");
+					data.innerHTML = reader.result;
+					var rows = data.all("row");
+					if (rows){
+						rows.each(function(row){
+							ParsedClientsGrid.AddObject(Clients.ParseRow(row));
+						});
+					}	
+				};
+				reader.readAsText(file);				
+			}
+			
+			Clients.ParseRow = function(row){
+				var data = {};
+				var cells = row.all("cell");
+				data.id = (Math.random() + "").replace("0.", "");
+				data['.draft'] = true;
+				data.ClientId = Clients.GetCellValue(cells[13]);
+				data.ParentClient = Clients.GetCellValue(cells[1]);
+				data.ParentClientId = Clients.GetCellValue(cells[14]);
+				data.ClientSource = Clients.GetCellValue(cells[2]);
+				data.RegionSource = Clients.GetCellValue(cells[3]);
+				data.CitySource = Clients.GetCellValue(cells[4]);
+				data.AddressFSource = Clients.GetCellValue(cells[5]);
+				data.AddressUSource = Clients.GetCellValue(cells[6]);
+				data.INN = Clients.GetCellValue(cells[7]);
+				data.CityId = null;
+				data.StreetId = null;
+				data.RegionId = null;
+				data.Address = "";
+				data.House = "";
+				data.Room = "";
+				data.Client = "";
+				data.Comments = "";
+				data.Postal = null;
+				return data;
+			}
+			
+			Clients.GetCellValue = function(value){
+				if (value && value != "-") return value.textContent;
+				return null;
+			}
+			
+			WS.DOMload(Clients.Init);
+			
+		</script>
+		<div class='header toolbar'>
+			<div class='menuitem dictionary' id='serverStartMenu' onclick="RegionsGridWin.Show();">
+				Регионы
+			</div>
+			<div class='separator'>
+				
+			</div>
+			<div class='menuitem' onclick="SemanticParsing.Show();">
+				Обучить сеть
+			</div>
+			<div class='menuitem'  onclick="SaveNet();">
+				Сохранить сеть
+			</div>
+			<div class='menuitem' onclick="SemanticConfigurator.Show();">
+				Показать сеть
+			</div>
+		</div>
+		<win id='ClientsImportWin' class='window invisible' title='Импорт клиентов'>
+			
+			<div id='InputFileBlock'>
+				Перетащите сюда EXCEL 2003 XML файл для добавления к разбору.
+			</div>
+			
+		</win>
+		<div id='ParsedClientsGrid' class='grid load-immediate' storage-url='http://web-manufacture.net/identification/clients'>
+			<div class="content">
+				<div class="table-header">						
+					<input class="search-input hintable" style="width:400px; align:center;">
+					<div class="selection-box">
+						<div class="select-some select-btn" onclick="this.Get(&quot;^.grid&quot;).SelectAnyAction()">Выбраных: {<span class="selected-items-text"></span>}</div>
+						<div class="select-all select-btn" onclick="this.Get(&quot;^.grid&quot;).SelectAllAction()">Выбрать всех</div>
+						<div class="clear-selection select-btn invisible" onclick="this.Get(&quot;^.grid&quot;).ClearSelectionAction()">Снять выделение</div>
+					</div>
+					<div class="search-params invisible">				
+						<a class="search-item" href="#">Искать все что содержит</a>				
+						<a class="search-item" href="#">Искать в поле</a>				
+						<a class="search-item" href="#">Искать </a>				
+					</div>					
+					<div class="table-controls">	
+						<div class="add-button small-object-button" title="Импорт клиентов" onclick="ClientsImportWin.Show();">	</div>
+						<div class="mass-switcher small-object-button" title="Mass Mode" onclick="var ut = this.Get('^.grid'); ut._eventCheck('OnMassMode', null, WS.ToggleClass(ut, 'mass-mode')); ">	</div>
+					</div>
+				</div>
+				<div class="objects-container">
+				</div>
+			</div>
+			<div class='table-object prototype' >
+				<div class="object-header">
+					
+				</div>
+				<div class="object-content">
+					<div class="left-panel">
+						<div class="panel control-panel">
+							<div class="edit-button small-object-button" onclick="this.Get('^.table-object').EditAction();" title="Edit"></div>
+							<div class="parse-button small-object-button" onclick='SemanticUI.ParseData(this.get("^.table-object"));' title="Parse"></div>
+							<div class="delete-button small-object-button" onclick="this.Get('^.table-object').DeleteAction();" title="Delete"></div>
+						</div>
+					</div>					
+					<div class="content-panel">
+						
+						<div class="ids content-line">
+							ID: 
+							<span class="field" field="ClientId">ID</span>
+							<span class="field" field="ParentClientId">Нет родителя</span>
+							<span class="field" field="RegionId"></span>								
+							<span class="field" field="CityId"></span>
+							<span class="field" field="StreetId"></span>
+							<span class="field" field="Building"></span>
+						</div>
+						<div class="Client content-line" onclick='SemanticUI.ParseClient(this.get("^.table-object"));'>
+							Клиент: 
+							<div class="field" field="Client" >Не распознан</div>
+							<div class="field" field="ParentClient" onclick='SemanticUI.ParseParent(this.get("^.table-object"));'></div>
+							<div class="field source" field="ClientSource">Клиент Первичка</div>
+							<div class="field" field="Annotation" >Не распознан</div>
+						</div>
+						<div class="Location">
+							<div class="Region content-line" onclick='SemanticUI.ParseRegion(this.get("^.table-object"));'>
+								Регион: 
+								<div class="field" field="Region">Не распознан</div>									
+								<div class="field source" field="RegionSource">Регион Первичка</div>
+							</div>
+							<div class="City content-line" onclick='SemanticUI.ParseCity(this.get("^.table-object"));'>
+								Город: 
+								<div class="field" field="Postal"></div>
+								<div class="field" field="City">Не распознан</div>
+								<div class="field source" field="CitySource">Город Первичка</div>
+							</div>
+							<div class="Address content-line" onclick='SemanticUI.ParseAddress(this.get("^.table-object"));'>
+								Адрес: 
+								<div class="field" field="Address">Не распознан</div>
+								<div class="field source" field="AddressFSource">Адрес клиента Фактический</div>
+								<div class="field source" field="AddressUSource">Адрес клиента Юридический</div>
+							</div>
+							
+						</div>
+						<div class="field content-line" field="INN">ИНН</div>	
+					</div>
+					<div class="right-panel">
+						
+					</div>
+				</div>
+				<div class="object-footer">
+					
+				</div>			
+			</div>
+            <div class="edit-object-form prototype" id='clientEditObj' extend="formEditor">
+                <div class="object-header">
+                    <div class='row'>
+                        <span class='label'>Исходная строка:</span>
+                        <span class='source-string field' field='AddressFSource'></span>
+                    </div>
+                </div>
+                <div class="object-content">
+                    <div class='row'>
+                        <div class='half-row invisible'>
+                            <div class='row'>
+                                <div class='input-wraper'>
+                                    <textarea onselect='console.info(arguments);getSelected(this);'></textarea>
+                                </div>
+                            </div>
+                            <!--div class='row'>
+                                <div class='input-wraper'>
+                                    <span>г.Харьков</span>,<span>ул.Сумская</span>,<span>5</span>,<span>10</span>
+                                </div>
+                            </div-->
+                        </div>
+                        <div class='half-row'>
+                            <!--div class='row'>
+                                <span class='label'>Сеть:</span>
+                                <input class='field invisible' field='ParentClientId' />
+                                <div class="input-wraper input-block">
+                                    <input fieldC='ParentClientId' class='hintable-box' type='text' />
+                                </div>
+                                <span class='field' field='ParentClient'></span>
+                            </div-->
+                            <div class='row'>
+                                <span class='label'>Регион:</span>
+                                <input class='field invisible' field='RegionId' />
+                                <div class="input-wraper input-block">
+                                    <input fieldC='RegionId' class='hintable-box' type='text' />
+                                </div>
+                                <span class='field' field='RegionSource'></span>
+                            </div>
+                            <div class='row'>
+                                <span class='label'>Город:</span>
+                                <input class='field invisible' field='CityId' />
+                                <div class="input-wraper input-block">
+                                    <input fieldC='CityId' class='hintable-box' disabled='disabled' type='text' />
+                                </div>
+                                <span class='field' field='CitySource'></span>
+                            </div>
+                            <div class='row'>
+                                <span class='label'>Улица:</span>
+                                <input class='field invisible' field='StreetId' />
+                                <div class="input-wraper input-block">
+                                    <input fieldC='StreetId' class='hintable-box' disabled='disabled' type='text' />
+                                </div>
+                                <span class='field' field='AddressFSource'></span>
+                            </div>
+                            <div class='row'>
+                                 <span class='label'>Помещение:</span>
+                                 <div class="input-wraper input-block">
+                                     <input field='Building'  type='text' />
+                                 </div>
+                             </div>
+                             <!--div class='row'>
+                                 <span class='label'>Дом:</span>
+                                 <div class="input-wraper input-block">
+                                     <input fieldC='House'  type='text' />
+                                 </div>
+                             </div>
+                             <div class='row'>
+                                 <span class='label'>Офис:</span>
+                                 <div class="input-wraper input-block">
+                                     <input fieldC='Room'  type='text' />
+                                 </div>
+                             </div-->
+                            <div class='row'>
+                                <span class='label'>Клиент:</span>
+                                <input class='field invisible' field='ClientId' />
+                                <div class="input-wraper input-block">
+                                    <input fieldC='ClientId' class='hintable-box' type='text' />
+                                </div>
+                                <span class='field' field='ClientSource'></span>
+                            </div>
+                            <div class='row'>
+                                <span class='label'>Примечание:</span>
+                                <div class="input-wraper input-block">
+                                    <textarea field='Annotation'></textarea>
+                                </div>
+                            </div>
+                        </div>
+                        <div class='clearfix'></div>
+                    </div>
+                </div>
+                <div class="object-footer controls-panel">
+                    <div class="btn-ira ok " title="OK" onclick="this.Get(&quot;^.edit-object-form&quot;).Save(); event.stopPropagation();"> OK </div>
+                    <div class="btn-ira clear " onclick="this.Get(&quot;^.edit-object-form&quot;).Clear(); event.stopPropagation();" title="Clear"> Clear </div>
+                    <div class="btn-ira cancel " onclick="console.info(this.Get('^.edit-object-form')); this.Get(&quot;^.edit-object-form&quot;).Cancel(); event.stopPropagation();" title="Cancel"> Cancel </div>
+                </div>
+            </div>
+		</div>
+        <script type='text/javascript'>
+            function getSelected(elem){
+               // var range = elem.createTextRange();
+                /*range.setStart(elem, elem.selectionStart);
+                range.setEnd(elem, elem.selectionEnd);   */
+                console.info('');
+                //alert(elem.value.substring(elem.selectionStart, elem.selectionEnd));
+            }
+            var formEditor = {};
+            WS.DOMload(function(){
+                EV.AddHandler("OnModuleRegistered", function(){
+                    formEditor.__proto__ = Grids.EditFormActions;
+                    console.info('proto', formEditor);
+                    formEditor.Create = function(){
+                        //C.Process(this, "ui-processing");
+                        //var parentClientField = this.get('[fieldC="ParentClientId"]');
+                        var clientField = this.get('[fieldC="ClientId"]');
+                        var regionField = this.get('[fieldC="RegionId"]');
+                        var cityField =  this.get('[fieldC="CityId"]');
+                        var streetField = this.get('[fieldC="StreetId"]');
+                        var buildingField = this.get('[field="Building"]');
+                        var AnnotationField = this.get('[field="Annotation"]');
+
+                        //var parentClientFieldInv = this.get('[field="ParentClientId"]');
+                        var clientFieldInv = this.get('[field="ClientId"]');
+                        var regionFieldInv = this.get('[field="RegionId"]');
+                        var cityFieldInv =  this.get('[field="CityId"]');
+                        var streetFieldInv = this.get('[field="StreetId"]');
+
+                        /*parentClientField.Controller = {
+                            OnInit: function(){
+                                var self = this;
+                                console.info(this, arguments);
+                                var parentClientsSrorage = new SimpleStorage('http://web-manufacture.net/identification/parentclientsdictionary');
+                                parentClientsSrorage.all({}, function(results){
+                                    for (var i = 0; i < results.length; i++){
+                                        var result = results[i];
+                                        var item = self.AddSearchItem(result.Title);
+                                        item.aoguid = result._id;
+                                    }
+                                });
+                            },
+                            OnApply: function(searchItem){
+                                this.aoguid = searchItem.aoguid;
+                                parentClientFieldInv.value = searchItem.aoguid;
+                                clientField.focus();
+                            }
+                        };*/
+
+                        clientField.Controller = {
+                            OnInit: function(){
+                                var self = this;
+                                console.info(this, arguments);
+                                var clientsSrorage = new SimpleStorage('http://web-manufacture.net/identification/clientsdictionary');
+                                clientsSrorage.all({}, function(results){
+                                    for (var i = 0; i < results.length; i++){
+                                        var result = results[i];
+                                        var item = self.AddSearchItem(result.Title);
+                                        item.aoguid = result._id;
+                                    }
+                                });
+                            },
+                            OnApply: function(searchItem){
+                                this.aoguid = searchItem.aoguid;
+                                clientFieldInv.value = searchItem.aoguid;
+                                AnnotationField.focus();
+                            }
+                        };
+
+                        regionField.Controller = {
+                            OnFilter: function(str, searchBox){
+                                var self = this;
+                                if (str.length < 1) {
+                                    searchBox.all(".search-item").del();
+                                    return;
+                                }
+                                if (str.length > 1) return;
+                                VerbTypes.region.query(str, function(results){
+                                    for (var i = 0; i < results.length; i++){
+                                        var result = results[i];
+                                        var item = self.AddSearchItem(result.formalname);
+                                        item.aoguid = result.aoguid;
+                                    }
+                                });
+                            },
+                            OnApply: function(searchItem){
+                                this.aoguid = searchItem.aoguid;
+                                regionFieldInv.value = searchItem.aoguid;
+								cityField.value = '';
+                                cityField.del('@disabled');
+                                cityField.focus();
+                            }
+                        };
+
+                        cityField.Controller = {
+                            OnFilter: function(str, searchBox){
+                                var self = this;
+                                if (str.length < 1) {
+                                    searchBox.all(".search-item").del();
+                                    return;
+                                }
+                                if (str.length > 1) return;
+
+                                VerbTypes.city.queryFiltered(regionField.aoguid, str, function(results){
+                                    for (var i = 0; i < results.length; i++){
+                                        var result = results[i];
+                                        var item = self.AddSearchItem(result.formalname);
+                                        item.aoguid = result.aoguid;
+                                    }
+                                });
+                            },
+                            OnApply: function(searchItem){
+                                this.aoguid = searchItem.aoguid;
+                                cityFieldInv.value = searchItem.aoguid;
+								streetField.value = '';
+                                streetField.del('@disabled');
+                                streetField.focus();
+                            }
+                        };
+
+                        streetField.Controller = {
+                            OnFilter: function(str, searchBox){
+                                var self = this;
+                                if (str.length < 1) {
+                                    searchBox.del(".search-item");
+                                    return;
+                                }
+                                if (str.length > 1) return;
+                                VerbTypes.street.queryFiltered(cityField.aoguid, str, function(results){
+                                    for (var i = 0; i < results.length; i++){
+                                        var result = results[i];
+                                        var item = self.AddSearchItem(result.formalname);
+                                        item.aoguid = result.aoguid;
+                                    }
+                                });
+                            },
+                            OnApply: function(searchItem){
+                                this.aoguid = searchItem.aoguid;
+                                streetFieldInv.value = searchItem.aoguid;
+                                buildingField.focus();
+                            }
+                        };
+
+                        C.Process(this, "ui-processing");
+                    };
+                    formEditor.OnLoad = function(){
+                        var self = this;
+                        var FieldsInv = this.all('input[field]');
+
+
+                        for (var i = 0; i < FieldsInv.length; i++){
+                            var FieldInvVal = FieldsInv[i].value;
+                            var FieldInvAttrName = FieldsInv[i].get('@field');
+                            if (!FieldInvVal)
+                                continue;
+                            if (FieldInvAttrName === 'ParentClientId' || FieldInvAttrName === 'ClientId')
+                                continue;
+                            selectByAOGUID(FieldInvVal, (function(fieldVal, fieldName){
+                                return function(res){
+                                    var field = self.get('[fieldC="' + fieldName +'"]');
+                                    field.value = res[0].formalname;
+                                }
+                            })(FieldInvVal, FieldInvAttrName));
+                        }
+                        function selectByAOGUID(auguid, callback){
+                            fias.get("SELECT FORMALNAME FROM addrobj WHERE AOGUID = '" + auguid + "'" , callback);
+                        }
+                    };
+                    formEditor.Save = function(){
+                        var self = this;
+                        var counter = 0;
+                        /*var pcString = this.get('[fieldC="ParentClientId"]');
+                        var pcId = this.get('[field="ParentClientId"]'); */
+                        var cString = this.get('[fieldC="ClientId"]');
+                        var cId = this.get('[field="ClientId"]');
+
+                        /*if (pcString.value && ! pcId.value){
+                            counter++;
+                            var pcStorage = new SimpleStorage('http://web-manufacture.net/identification/parentclientsdictionary');
+                            pcStorage.set({Title: pcString.value}, function(result){
+                                pcId.value = result._id;
+                                if (!--counter){
+                                    formEditor.__proto__.Save.apply(self);
+                                }
+                            });
+                        }*/
+                        if (cString.value && ! cId.value){
+                            counter++;
+                            var cStorage = new SimpleStorage('http://web-manufacture.net/identification/clientsdictionary');
+                            var dataObj = {Title: cString.value};
+                            if (pcId.value)
+                                dataObj.ParentId = pcId.value;
+                            cStorage.set(dataObj, function(result){
+                                cId.value = result._id;
+                                if (!--counter){
+                                    formEditor.__proto__.Save.apply(self);
+                                }
+                            });
+                        }
+                        if (!counter)
+                            formEditor.__proto__.Save.apply(self);
+
+                      console.info(this, arguments);
+                    };
+                }, 'http://services.web-manufacture.net/grids/grids.htm');
+            });
+        </script>
+		<script type='text/javascript'>
+			Regions = {};
+			
+			Regions.Init = function(){
+				var box = RegionsGrid.get(".import-box");
+				box.addEventListener("dragenter", function(e){
+					e.stopPropagation();
+					e.preventDefault();
+					this.add(".feedback");
+				}, false);
+				box.addEventListener("dragleave", function(e){
+					e.stopPropagation();
+					e.preventDefault();
+					this.del(".feedback");
+				}, false);
+				box.addEventListener("drop", function(e){
+					this.del(".feedback");
+					box.hide();
+					if (e && e.dataTransfer && e.dataTransfer.files){
+						e.stopPropagation();
+						e.preventDefault();
+						var files = e.dataTransfer.files;
+						if (files && files.length > 0){
+							for (var i = 0; i < files.length; i++){
+								Regions.HandleFile(files[i]);
+							}
+						}						
+					}
+				}, false);
+				RegionsGrid.oninit = function(){
+					RegionsGrid._internalCreateObject = RegionsGrid.CreateObject;
+					RegionsGrid.CreateObject = Regions.CreateObjectReplacer;
+					RegionsGrid.Load({Type: 100});
+					//RegionsGrid.Load();
+				}
+			};
+			
+			Regions.HandleFile = function(file){
+				if (file.type != "text/xml") {
+					return;
+				}
+				var reader = new FileReader();
+				reader.onload = function(result){
+					var data = document.createElement("xml");
+					data.innerHTML = reader.result;
+					var rows = data.all("row");
+					var items = [];
+					if (rows){
+						rows.each(function(row){
+							items.push(Regions.ParseRow(row));
+						});
+						RegionsGrid.Storage.add(items);
+					}	
+				};
+				reader.readAsText(file);	
+			};
+			
+			Regions.Types = {
+				"100" : "region",
+				"1" : "city",
+				"4" : "pgt"
+			}
+			
+			Regions.CreateObjectReplacer = function(obj){
+				obj = this._internalCreateObject(obj);	
+				var type = Regions.Types[obj.Type + ''];
+				if (type){
+					obj.add("." + type);
+				}
+				obj.onclick = Regions.ActivateRegion;
+				obj.id = "area" + obj.AreaId;
+				if (obj.ParentAreaId){
+					var parent = this.get(".content #area" + obj.ParentAreaId);
+					if (parent){
+						parent.get(".internal-place").add(obj);	
+					}
+				}
+				return obj;
+			}
+			
+			Regions.ActivateRegion = function(event){
+				if (this.is('.loading')) return;
+				if (this.is('.loaded')) {
+					this.get(".internal-place").show(true);
+					event.stopPropagation();
+					return;
+				}
+				this.add(".loading");
+				var item = this;
+				var areaId = parseInt(this.AreaId);
+				if (isNaN(areaId)) return;
+				event.stopPropagation();
+				RegionsGrid.Load({ParentAreaId: areaId}, function(){
+					item.del(".loading");
+					item.add(".loaded");
+				});
+			}
+			
+			Regions.ParseRow = function(row){
+				var data = {};
+				var cells = row.all("cell");
+				data.AreaId = Regions.GetCellIntValue(cells[0]);
+				data.ParentAreaId = Regions.GetCellIntValue(cells[1]);
+				data.Title = Regions.GetCellValue(cells[3]);				
+				if (data.Title) data.Title = data.Title.toLowerCase()
+				data.Type = Regions.GetCellIntValue(cells[2]);
+				return data;
+			}
+			
+			Regions.GetCellValue = function(value){
+				if (value) return value.textContent;
+				return null;
+			}
+			
+			Regions.GetCellIntValue = function(value){
+				if (value) {
+					value = parseInt(value.textContent);
+					if (isNaN(value)) value = null;
+					return value;
+				}
+				return null;
+			}
+			
+			Regions.ShowImport = function(){
+				var box = RegionsGrid.get(".import-box");
+				if (box.is(".invisible")){
+					box.show();
+				}
+				else{
+					box.hide();	
+				}
+			};
+			
+			WS.DOMload(Regions.Init);
+		</script>
+		<style type='text/css'>
+			#RegionsGrid .import-box{
+				width: 100%;
+				height: 40px;
+				border: dashed 3px #aca;
+				border-radius: 10px;
+				text-align : center;
+				padding-top : 15px;
+				font-size: 15px;
+				color: gray;
+			}
+			
+			#RegionsGrid .import-box.feedback{
+				background-color: #ffc;	
+				color: #ffc;
+			}
+			
+			#RegionsGrid .table-object{
+				border-color: #ccc;	
+			}
+			
+			#RegionsGrid .table-object>.internal-place{
+				padding-left: 10px;	
+			}
+			
+			#RegionsGrid .table-object.loading{
+				background-color: gray;	
+			}
+			
+			#RegionsGrid .table-object.loading *{
+				display: none;
+			}
+			
+			#RegionsGrid .table-object.loaded{
+				border: solid 1px black;
+				margin-top: 10px;
+				margin-bottom: 10px;
+			}
+			
+			#RegionsGrid .table-object.region{
+				cursor: pointer;	
+			}
+			
+			#RegionsGrid .table-object.region{
+				background-color : #ffc;					
+			}
+			
+			#RegionsGrid .table-object.region>.content-panel .field{
+				font-size: 18px;
+				font-weight: bold;
+				padding-top: 5px;				
+			}
+		</style>
+		<win id='RegionsGridWin' class='window invisible' title='Справочник регионов'>
+			<div id='RegionsGrid' class='grid' storage-url='http://web-manufacture.net/identification/regions'>
+				<div class="content" >
+					<div class="table-header">			
+						<input class="search-input hintable" style="width:400px; align:center;">
+						<div class="table-controls">	
+							<div class="add-button small-object-button" title="Импорт клиентов" onclick="Regions.ShowImport();">	</div>
+						</div>
+						<div class="import-box invisible">	
+							
+						</div>
+					</div>
+					<div class="objects-container" style="max-height: 400px; overflow-y: scroll;">
+					</div>
+				</div>
+				<div class='table-object prototype item'>
+					<div class="right-panel">
+						<div class="panel control-panel">
+							<div class="edit-button small-object-button" onclick="this.Get('^.table-object').EditAction(); event.stopPropagation();" title="Edit"></div>
+							<div class="add-button small-object-button" onclick="this.Get('^.table-object').AddAction(); event.stopPropagation();" title="Add"></div>
+							<div class="delete-button small-object-button" onclick="this.Get('^.table-object').DeleteAction(); event.stopPropagation();" title="Delete"></div>
+						</div>
+					</div>					
+					<div class="content-panel">
+						<span field="ParentAreaId" class='field invisible id'></span>
+						<span field="AreaId" class='field invisible id'></span>
+						<span field="Type" class='field invisible'>Тип</span>
+						<span field="Title" class='field'>Название</span>
+					</div>
+					<div class="object-footer internal-place">
+					</div>
+				</div>
+				<div class="edit-object-form prototype" extend="Grids.EditFormActions">
+					<div class="object-header">
+
+					</div>
+					<div class="object-content">
+						<input class="field" field="Title" type='text'/>
+					</div>
+					<div class="object-footer controls-panel">
+						<div class="btn-ira ok " title="OK" onclick="this.Get(&quot;^.edit-object-form&quot;).Save(); event.stopPropagation();"> OK </div>
+						<div class="btn-ira clear " onclick="this.Get(&quot;^.edit-object-form&quot;).Clear(); event.stopPropagation();" title="Clear"> Clear </div>
+						<div class="btn-ira cancel " onclick="this.Get(&quot;^.edit-object-form&quot;).Cancel(); event.stopPropagation();" title="Cancel"> Cancel </div>
+					</div>
+				</div>
+			</div>
+		</win>
+		
+	</body>
+</html>

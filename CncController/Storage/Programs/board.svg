@@ -1,0 +1,21 @@
+#board.svg
+<svg
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   width="744.09448819"
+   height="1052.3622047"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.48.2 r9819"
+   x-ratio='0.3'    y-ratio='0.3'
+   >
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1">
+    <path
+       style="fill:#000000"
+       d="m 12.45,67 l 0,0 l 40,-59.996 L 30.95,39 L 13.05,10.2 m 47.3,53.3 L 79.34,9.804 z m 34.79,-0.3 l 0.2,-0.1 L 79.44,9.804 M 148.5,62.4 L 152.1,4.504 L 119.9,22.4 l 30,15.7 l -29.2,22.1"
+       id="path4939" />
+  </g>
+</svg>

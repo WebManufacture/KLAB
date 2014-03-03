@@ -1,0 +1,63 @@
+<style id="JASP-Styles" type="text/css" class="JASP-Styles">
+  
+</style>
+
+
+<context id="jasp-extentions">
+	
+</context>
+
+<protection id="jasp-extentions">
+	
+</protection>
+
+
+<handler class="jasp-message jasp-handler" parent="#tags-handler" for="save">
+  var file = message.getAttribute("file");
+  var path = message.getAttribute("xpath");
+  message.setAttribute("urlbase", "save");
+  message.setAttribute("url", file);
+  if (path != null && path != "")
+  {
+    message.setAttribute("xpath", path);
+  }
+  $$.Handlers.LoadHandler(message);
+</handler>
+
+
+<handler class="jasp-message jasp-handler" parent="#tags-handler" for="xss">
+   var style = document.getElementById("JASP-Styles");
+   ParseXss($$.Current, style);
+</handler>
+ 
+<script type="text/javascript">
+  function ParseXss(element, style)
+  {
+    var selector = element.getAttribute("selector");
+    if (element.parentSelector != undefined)
+    {
+      selector = element.parentSelector + selector;
+    }
+    var stylesString = "";
+    for (var i = 0; i < element.children.length; i++)
+    {
+      var rule = element.children[i];
+      if (rule.tagName.toLowerCase() == 'selector'){
+        rule.parentSelector = selector;
+        ParseXss(rule, style);
+        continue;
+      }
+      if (rule.tagName.toLowerCase() != 'rule'){
+        continue;
+      }
+      var name = rule.getAttribute("name");
+      var value = rule.getAttribute("value");
+      stylesString += name + ":" + value + ";";
+    }
+    stylesString = selector + "{" + stylesString + "}";
+    style.sheet.insertRule(stylesString, style.sheet.cssRules.length);
+  }   
+
+</script>
+
+<event id='msg_BaseUI_INITIALIZED' target-id='msg_BaseUI_INITIALIZED' class="jasp-message" type="single"></event>

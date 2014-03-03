@@ -1,0 +1,73 @@
+ <!DOCTYPE HTML>
+<html>
+    <head>
+	<title>Логи</title>
+	<link type='text/css' rel='stylesheet' href="http://Services.web-manufacture.net/Styles/System.default.css"/>
+	<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Utils.js"></script>
+	<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/DOM.js"></script>
+	<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Events.js"></script>
+	<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Log.js"></script>
+	<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Url.js"></script>
+	<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Ajax.js"></script>
+	<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Jasp.js"></script>
+	<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Modules.js"></script>
+	<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+	<style type="text/css">
+	    .log-item .header{
+	        color:blue;
+	    }
+	</style>
+    </head>
+    <body>
+	<div class='log-container'>
+	    
+	</div>
+	<script type='text/javascript'>
+	    
+	    //Log.txt
+	    
+	    function Init(){				    
+		ax.get("Log.txt", ResultReturned);
+	    }
+	    
+	    function ResultReturned(data){
+		var log = DOM.get(".log-container");
+		//var item = log.div(".log-item", "hello2"); 
+		var startIndex = data.indexOf("[", 0);
+		
+		while (startIndex >= 0){
+		    var index2 = data.indexOf ('\n', startIndex);
+		    if (index2 < 0) break;
+	
+		    var subind2= data.indexOf (']', startIndex);
+		    while (subind2<index2){
+		    var datum = data.substring(startIndex, subind2); 		   
+			var item = log.div(".log-item");
+			item.div(".header.datum",  datum);
+      		        startIndex=data.indexOf("[", subind2);
+			var subind2= data.indexOf (']', startIndex);
+		    }
+			
+		    startIndex=data.indexOf("ERROR"||"INFO"||"DEBUG");
+		    if (startIndex>=0 || startIndex>index2) break;
+			var status=data.substring (startIndex,"&nbsp");
+		    var x= lengthOf(status);
+		    startIndex+=x;
+		        
+		    startIndex = data.indexOf("[", index2);
+		    if (startIndex >= 0){
+			//var item = log.div(".log-item");
+			//item.div(".header",  str1);
+			var str2 = data.substring(index2,startIndex);
+			item.div(".inner",  str2);
+		    }
+		    else{
+			var item = log.div(".log-item", str1);
+		    }
+		}
+	    }
+	    
+	    WS.DOMload(Init);
+	</script>	
+    </body>
+</html>

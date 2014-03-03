@@ -1,0 +1,48 @@
+#lqfp48.svg
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   version="1.1"
+   width="90"
+   height="90"
+   x-ratio="0.1" y-ratio='0.1'
+   id="svg2">
+  <g
+     inkscape:groupmode="layer"
+     id="layer5"
+     inkscape:label="Mill"
+     style="display:inline">
+    <path
+       style="fill:none;stroke:lime;stroke-width:2;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       d="M 30,10 L 35,10 L 35,-20 L 35,45 L 40,45 L 40,110 L 40,80 L 45,80 L 45,90 L 45,110"
+       id="path3479" />
+    <path
+       style="fill:none;stroke:lime;stroke-width:2;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       d="M 55,110 L 55,80 L 60,80 L 60,110 L 60,80 L 65,80 L 65,110 L 65,80 L 70,80 L 70,110 L 70,80 L 75,80 L 75,110 L 75,80 L 80,75 L 110,75 L 110,65"
+       id="path4110"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="ccccccccccccccccc" />
+    <path
+       style="fill:none;stroke:lime;stroke-width:2;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       d="M 110,70 L 80,70 L 55,70 L 55,30 L 40,30 L 40,-20"
+       id="path4114"
+       inkscape:connector-curvature="0"
+       sodipodi:nodetypes="cccccc" />
+    <path
+       style="fill:none;stroke:lime;stroke-width:2;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       d="M 30,-20 L 30,10 L 25,10 L 25,-20 L 25,10 L 20,10 L 20,-20 L 20,10 L 15,10 L 15,-20 L 15,10 L 10,15 L -20,15 L 10,15 L 10,20 L -20,20 L 10,20 L 10,25 L -20,25 L 10,25 L 10,30 L -20,30 L 10,30 L 10,35 L -20,35 L 10,35 L 10,40 L -20,40 L 10,40 L 10,45 L -20,45 L 10,45 L 10,50 L -20,50 L 10,50 L 10,55 L -20,55 L 10,55 L 10,60 L -20,60 L 10,60 L 10,65 L -20,65 L 10,65 L 10,70 L -20,70 L 10,70 L 10,75 L -20,75 L 10,75 L 15,80 L 15,110 L 15,80 L 20,80 L 20,110 L 20,80 L 25,80 L 25,110 L 25,80 L 30,80 L 30,110"
+       id="path4105" />
+    <path
+       inkscape:connector-curvature="0"
+       id="path4118"
+       style="fill:none;stroke:lime;stroke-width:2;stroke-miterlimit:4;stroke-opacity:1;stroke-dasharray:none"
+       d="M 50,10 L 45,10 L 45,-20 L 35,-20 M 110,65 L 80,65 L 80,60 L 110,60 L 80,60 L 80,55 L 110,55 L 80,55 L 80,50 L 110,50 L 80,50 L 80,45 L 110,45 L 80,45 L 80,40 L 110,40 L 80,40 L 80,35 L 110,35 L 80,35 L 80,30 L 110,30 L 80,30 L 80,25 L 110,25 L 80,25 L 80,20 L 110,20 L 80,20 L 80,15 L 110,15 L 80,15 L 75,10 L 75,-20 L 75,10 L 70,10 L 70,-20 L 70,10 L 65,10 L 65,-20 L 65,10 L 60,10 L 60,-20 L 60,10 L 55,10 L 55,-20 L 55,10 L 50,10 L 50,-20"
+       sodipodi:nodetypes="ccccccccccccccccccccccccccccccccccccccccccccccccccccc" />
+  </g>
+</svg>

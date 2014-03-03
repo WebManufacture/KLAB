@@ -1,0 +1,401 @@
+<?xml version="1.0"?>
+<?mso-application progid="Excel.Sheet"?>
+<Workbook xmlns="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:o="urn:schemas-microsoft-com:office:office"
+ xmlns:x="urn:schemas-microsoft-com:office:excel"
+ xmlns:ss="urn:schemas-microsoft-com:office:spreadsheet"
+ xmlns:html="http://www.w3.org/TR/REC-html40">
+ <DocumentProperties xmlns="urn:schemas-microsoft-com:office:office">
+  <Author>alexlab256</Author>
+  <LastAuthor>Mirror</LastAuthor>
+  <Created>2013-04-19T06:45:24Z</Created>
+  <LastSaved>2013-06-22T18:02:38Z</LastSaved>
+  <Version>12.00</Version>
+ </DocumentProperties>
+ <ExcelWorkbook xmlns="urn:schemas-microsoft-com:office:excel">
+  <WindowHeight>8955</WindowHeight>
+  <WindowWidth>20955</WindowWidth>
+  <WindowTopX>360</WindowTopX>
+  <WindowTopY>45</WindowTopY>
+  <ProtectStructure>False</ProtectStructure>
+  <ProtectWindows>False</ProtectWindows>
+ </ExcelWorkbook>
+ <Styles>
+  <Style ss:ID="Default" ss:Name="Normal">
+   <Alignment ss:Vertical="Bottom"/>
+   <Borders/>
+   <Font ss:FontName="Calibri" x:CharSet="204" x:Family="Swiss" ss:Size="11"
+    ss:Color="#000000"/>
+   <Interior/>
+   <NumberFormat/>
+   <Protection/>
+  </Style>
+  <Style ss:ID="s16">
+   <Font ss:FontName="Calibri" x:CharSet="204" x:Family="Swiss" ss:Size="11"
+    ss:Color="#000000" ss:Bold="1"/>
+  </Style>
+  <Style ss:ID="s17">
+   <Font ss:FontName="Calibri" x:CharSet="204" x:Family="Swiss" ss:Size="11"
+    ss:Color="#FF0000"/>
+  </Style>
+  <Style ss:ID="s18">
+   <Font ss:FontName="Calibri" x:CharSet="204" x:Family="Swiss" ss:Size="11"
+    ss:Color="#0070C0"/>
+  </Style>
+  <Style ss:ID="s19">
+   <Font ss:FontName="Calibri" x:CharSet="204" x:Family="Swiss" ss:Size="11"
+    ss:Color="#0070C0" ss:Bold="1"/>
+  </Style>
+ </Styles>
+ <Worksheet ss:Name="Лист1">
+  <Table ss:ExpandedColumnCount="15" ss:ExpandedRowCount="17" x:FullColumns="1"
+   x:FullRows="1" ss:DefaultRowHeight="15">
+   <Column ss:AutoFitWidth="0" ss:Width="238.5"/>
+   <Column ss:Width="174"/>
+   <Column ss:AutoFitWidth="0" ss:Width="308.25"/>
+   <Column ss:AutoFitWidth="0" ss:Width="135"/>
+   <Column ss:AutoFitWidth="0" ss:Width="204.75"/>
+   <Column ss:AutoFitWidth="0" ss:Width="555"/>
+   <Column ss:AutoFitWidth="0" ss:Width="86.25"/>
+   <Column ss:AutoFitWidth="0" ss:Width="69"/>
+   <Column ss:Width="90.75"/>
+   <Column ss:Width="167.25"/>
+   <Column ss:Width="193.5"/>
+   <Column ss:Width="106.5"/>
+   <Column ss:Width="125.25"/>
+   <Column ss:Index="15" ss:Width="117.75"/>
+   <Row>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">Филиал@Клиент Первичка@Регион Первичка@Город Первичка@Адрес клиента Фактический</Data></Cell>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">Филиал</Data></Cell>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">Клиент Первичка</Data></Cell>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">Регион Первичка</Data></Cell>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">Город Первичка</Data></Cell>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">Адрес клиента Фактический</Data></Cell>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">Адрес клиента Юридический</Data></Cell>
+    <Cell ss:StyleID="s16"><Data ss:Type="String">ИНН</Data></Cell>
+    <Cell ss:StyleID="s19"><Data ss:Type="String">Город</Data></Cell>
+    <Cell ss:StyleID="s19"><Data ss:Type="String">Регион</Data></Cell>
+    <Cell ss:StyleID="s19"><Data ss:Type="String">Адрес</Data></Cell>
+    <Cell ss:StyleID="s19"><Data ss:Type="String">Клиент</Data></Cell>
+    <Cell ss:StyleID="s19"><Data ss:Type="String">Комментарии</Data></Cell>
+    <Cell ss:StyleID="s19"><Data ss:Type="String">ID Client</Data></Cell>
+    <Cell ss:StyleID="s19"><Data ss:Type="String">ID Client Родительский</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">ФИЛИАЛ Катрен Казань@МОСКВА, ООО &quot;Ригла&quot; (Чувашия)@Чувашская респ.@г. Канаш@ул. Железнодорожная, д,89,помещение 1</Data></Cell>
+    <Cell><Data ss:Type="String">ФИЛИАЛ Катрен Казань</Data></Cell>
+    <Cell><Data ss:Type="String">МОСКВА, ООО &quot;Ригла&quot; (Чувашия)</Data></Cell>
+    <Cell><Data ss:Type="String">Чувашская респ.</Data></Cell>
+    <Cell><Data ss:Type="String">г. Канаш</Data></Cell>
+    <Cell><Data ss:Type="String">ул. Железнодорожная, д,89,помещение 1</Data></Cell>
+    <Cell><Data ss:Type="String">-</Data></Cell>
+    <Cell><Data ss:Type="String">7724211288</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">Канаш г</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">Чувашская Республика - Чувашия</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">ул. Железнодорожная, д. 89, пом. № 4</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">Ригла, ООО</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">Бывшая Аптека №2736</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="Number">1</Data></Cell>
+    <Cell ss:StyleID="s18"/>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">ФИЛИАЛ Катрен Казань@МОСКВА, ООО &quot;Ригла&quot; (Чувашия)@Чувашская респ.@г. Канаш@ул. Железнодорожная, д,89,помещение 1</Data></Cell>
+    <Cell><Data ss:Type="String">ФИЛИАЛ Катрен Казань</Data></Cell>
+    <Cell><Data ss:Type="String">МОСКВА, ООО &quot;Ригла&quot; (Чувашия)</Data></Cell>
+    <Cell><Data ss:Type="String">Чувашская респ.</Data></Cell>
+    <Cell><Data ss:Type="String">г. Канаш</Data></Cell>
+    <Cell><Data ss:Type="String">ул. Железнодорожная, д,89,помещение 1</Data></Cell>
+    <Cell><Data ss:Type="String">-</Data></Cell>
+    <Cell><Data ss:Type="String">-</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">Канаш г</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">Чувашская Республика - Чувашия</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">ул. Железнодорожная, д. 89, пом. № 4</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">Ригла, ООО</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">Бывшая Аптека №2736</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="Number">1</Data></Cell>
+    <Cell ss:StyleID="s18"/>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">ФИЛИАЛ РОСТА Нижний Новгород@Ригла/ООО/Чебоксары@-@Чебоксары@91:Канаш.Аптека№2736.ул.Железнодорожная.д.89.пом№4</Data></Cell>
+    <Cell><Data ss:Type="String">ФИЛИАЛ РОСТА Нижний Новгород</Data></Cell>
+    <Cell><Data ss:Type="String">Ригла/ООО/Чебоксары</Data></Cell>
+    <Cell><Data ss:Type="String">-</Data></Cell>
+    <Cell><Data ss:Type="String">Чебоксары</Data></Cell>
+    <Cell><Data ss:Type="String">91:Канаш.Аптека№2736.ул.Железнодорожная.д.89.пом№4</Data></Cell>
+    <Cell><Data ss:Type="String">-</Data></Cell>
+    <Cell><Data ss:Type="String">-</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">Канаш г</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">Чувашская Республика - Чувашия</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">ул. Железнодорожная, д. 89, пом. № 4</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">Ригла, ООО</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">Бывшая Аптека №2736</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="Number">1</Data></Cell>
+    <Cell ss:StyleID="s18"/>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">ФИЛИАЛ СИА Казань@Ригла ООО Чебоксары@Чувашская респ.@Канаш@Филиал ООО &quot;Ригла&quot; в г. Чебоксары&#13;&#10;429335 ЧР, г. Канаш, ул. Железнодорожная, дом 89, помещение №4.</Data></Cell>
+    <Cell><Data ss:Type="String">ФИЛИАЛ СИА Казань</Data></Cell>
+    <Cell><Data ss:Type="String">Ригла ООО Чебоксары</Data></Cell>
+    <Cell><Data ss:Type="String">Чувашская респ.</Data></Cell>
+    <Cell><Data ss:Type="String">Канаш</Data></Cell>
+    <Cell><Data ss:Type="String">Филиал ООО &quot;Ригла&quot; в г. Чебоксары&#13;&#10;429335 ЧР, г. Канаш, ул. Железнодорожная, дом 89, помещение №4.</Data></Cell>
+    <Cell><Data ss:Type="String">-</Data></Cell>
+    <Cell><Data ss:Type="String">7724211288</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">Канаш г</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">Чувашская Республика - Чувашия</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">ул. Железнодорожная, д. 89, пом. № 4</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">Ригла, ООО</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">Бывшая Аптека №2736</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="Number">1</Data></Cell>
+    <Cell ss:StyleID="s18"/>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">ФИЛИАЛ ЦВП Казань@Ф-л ООО Ригла г.Канаш,Железнодорожная,89@Чувашская республика@г Канаш@429335, г Канаш, Респ Чувашская - Чувашия, ул Железнодорожная, д.89,пом.№4</Data></Cell>
+    <Cell><Data ss:Type="String">ФИЛИАЛ ЦВП Казань</Data></Cell>
+    <Cell><Data ss:Type="String">Ф-л ООО Ригла г.Канаш,Железнодорожная,89</Data></Cell>
+    <Cell><Data ss:Type="String">Чувашская республика</Data></Cell>
+    <Cell><Data ss:Type="String">г Канаш</Data></Cell>
+    <Cell><Data ss:Type="String">429335, г Канаш, Респ Чувашская - Чувашия, ул Железнодорожная, д.89,пом.№4</Data></Cell>
+    <Cell><Data ss:Type="String">-</Data></Cell>
+    <Cell><Data ss:Type="String">-</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">Канаш г</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">Чувашская Республика - Чувашия</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">ул. Железнодорожная, д. 89, пом. № 4</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">Ригла, ООО</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">Бывшая Аптека №2736</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="Number">1</Data></Cell>
+    <Cell ss:StyleID="s18"/>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">ФК Пульс@ООО &quot;Ригла&quot;@Чувашская Респ@-@429335 ЧР, г.Канаш, ул. Железнодорожная, д. 89, пом. № 4</Data></Cell>
+    <Cell><Data ss:Type="String">ФК Пульс</Data></Cell>
+    <Cell><Data ss:Type="String">ООО &quot;Ригла&quot;</Data></Cell>
+    <Cell><Data ss:Type="String">Чувашская Респ</Data></Cell>
+    <Cell><Data ss:Type="String">-</Data></Cell>
+    <Cell><Data ss:Type="String">429335 ЧР, г.Канаш, ул. Железнодорожная, д. 89, пом. № 4</Data></Cell>
+    <Cell><Data ss:Type="String">-</Data></Cell>
+    <Cell><Data ss:Type="String">-</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">Канаш г</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">Чувашская Республика - Чувашия</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">ул. Железнодорожная, д. 89, пом. № 4</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">Ригла, ООО</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">Бывшая Аптека №2736</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="Number">1</Data></Cell>
+    <Cell ss:StyleID="s18"/>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">ФИЛИАЛ Пульс Казань@ООО &quot;Ригла&quot;@Чувашская Респ@-@429335 ЧР, г.Канаш, ул. Железнодорожная, д. 89, пом. № 4</Data></Cell>
+    <Cell><Data ss:Type="String">ФИЛИАЛ Пульс Казань</Data></Cell>
+    <Cell><Data ss:Type="String">ООО &quot;Ригла&quot;</Data></Cell>
+    <Cell><Data ss:Type="String">Чувашская Респ</Data></Cell>
+    <Cell><Data ss:Type="String">-</Data></Cell>
+    <Cell><Data ss:Type="String">429335 ЧР, г.Канаш, ул. Железнодорожная, д. 89, пом. № 4</Data></Cell>
+    <Cell><Data ss:Type="String">-</Data></Cell>
+    <Cell><Data ss:Type="String">-</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">Канаш г</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">Чувашская Республика - Чувашия</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">ул. Железнодорожная, д. 89, пом. № 4</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">Ригла, ООО</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">Бывшая Аптека №2736</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="Number">1</Data></Cell>
+    <Cell ss:StyleID="s18"/>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">ФИЛИАЛ АХ Воронеж@Ефимьев А. И. ИП, В. Мамон, ул. Василевского, д. 29@Воронежская область@-@396461, Воронежская обл, с.Верхний Мамон, пл.Братская, д. 7, литер А</Data></Cell>
+    <Cell><Data ss:Type="String">ФИЛИАЛ АХ Воронеж</Data></Cell>
+    <Cell><Data ss:Type="String">Ефимьев А. И. ИП, В. Мамон, ул. Василевского, д. 29</Data></Cell>
+    <Cell><Data ss:Type="String">Воронежская область</Data></Cell>
+    <Cell><Data ss:Type="String">-</Data></Cell>
+    <Cell><Data ss:Type="String">396461, Воронежская обл, с.Верхний Мамон, пл.Братская, д. 7, литер А</Data></Cell>
+    <Cell><Data ss:Type="String">-</Data></Cell>
+    <Cell><Data ss:Type="String">-</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">Верхний Мамон с</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">Воронежская обл</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">ул. Площадь Братская, д. 7, литер А</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">Ефимьев АН, ПБОЮЛ</Data></Cell>
+    <Cell ss:StyleID="s18"/>
+    <Cell ss:StyleID="s18"><Data ss:Type="Number">3</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="Number">2</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">ФИЛИАЛ АХ Воронеж@Ефимьев ПБОЮЛ, В. Мамон@Воронежская область@-@396460, Воронежская обл., с.Верхний Мамон, ул. Площадь Братская, д.7, литер А</Data></Cell>
+    <Cell><Data ss:Type="String">ФИЛИАЛ АХ Воронеж</Data></Cell>
+    <Cell><Data ss:Type="String">Ефимьев ПБОЮЛ, В. Мамон</Data></Cell>
+    <Cell><Data ss:Type="String">Воронежская область</Data></Cell>
+    <Cell><Data ss:Type="String">-</Data></Cell>
+    <Cell><Data ss:Type="String">396460, Воронежская обл., с.Верхний Мамон, ул. Площадь Братская, д.7, литер А</Data></Cell>
+    <Cell><Data ss:Type="String">-</Data></Cell>
+    <Cell><Data ss:Type="String">360600040241</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">Верхний Мамон с</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">Воронежская обл</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">ул. Площадь Братская, д. 7, литер А</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">Ефимьев АН, ПБОЮЛ</Data></Cell>
+    <Cell ss:StyleID="s18"/>
+    <Cell ss:StyleID="s18"><Data ss:Type="Number">3</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="Number">2</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">ФИЛИАЛ АХ Воронеж@Ефимьев ПБОЮЛ, В. Мамон@Воронежская область@-@396461, Воронежская обл, с.Верхний Мамон, пл.Братская, д. 7, литер А</Data></Cell>
+    <Cell><Data ss:Type="String">ФИЛИАЛ АХ Воронеж</Data></Cell>
+    <Cell><Data ss:Type="String">Ефимьев ПБОЮЛ, В. Мамон</Data></Cell>
+    <Cell><Data ss:Type="String">Воронежская область</Data></Cell>
+    <Cell><Data ss:Type="String">-</Data></Cell>
+    <Cell><Data ss:Type="String">396461, Воронежская обл, с.Верхний Мамон, пл.Братская, д. 7, литер А</Data></Cell>
+    <Cell><Data ss:Type="String">-</Data></Cell>
+    <Cell><Data ss:Type="String">360600040241</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">Верхний Мамон с</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">Воронежская обл</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">ул. Площадь Братская, д. 7, литер А</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">Ефимьев АН, ПБОЮЛ</Data></Cell>
+    <Cell ss:StyleID="s18"/>
+    <Cell ss:StyleID="s18"><Data ss:Type="Number">3</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="Number">2</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">ФИЛИАЛ АХ Воронеж@Ефимьев ПБОЮЛ, В. Мамон@Воронежская@-@396460, Воронежская обл., с.Верхний Мамон, ул. Площадь Братская, д.7, литер А</Data></Cell>
+    <Cell><Data ss:Type="String">ФИЛИАЛ АХ Воронеж</Data></Cell>
+    <Cell><Data ss:Type="String">Ефимьев ПБОЮЛ, В. Мамон</Data></Cell>
+    <Cell><Data ss:Type="String">Воронежская</Data></Cell>
+    <Cell><Data ss:Type="String">-</Data></Cell>
+    <Cell><Data ss:Type="String">396460, Воронежская обл., с.Верхний Мамон, ул. Площадь Братская, д.7, литер А</Data></Cell>
+    <Cell><Data ss:Type="String">-</Data></Cell>
+    <Cell><Data ss:Type="String">360600040241</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">Верхний Мамон с</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">Воронежская обл</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">ул. Площадь Братская, д. 7, литер А</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">Ефимьев АН, ПБОЮЛ</Data></Cell>
+    <Cell ss:StyleID="s18"/>
+    <Cell ss:StyleID="s18"><Data ss:Type="Number">3</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="Number">2</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">ФИЛИАЛ СИА Воронеж@Ефимьев А.Н. ИП Верхний Мамон Воронежская область@Воронежская@Верхний Мамон@396460, Воронежская область, Верхнемамонский район, с.Верхний Мамон, ул.Дорожная, д.9 а, нежилое здание,литер А</Data></Cell>
+    <Cell><Data ss:Type="String">ФИЛИАЛ СИА Воронеж</Data></Cell>
+    <Cell><Data ss:Type="String">Ефимьев А.Н. ИП Верхний Мамон Воронежская область</Data></Cell>
+    <Cell><Data ss:Type="String">Воронежская</Data></Cell>
+    <Cell><Data ss:Type="String">Верхний Мамон</Data></Cell>
+    <Cell><Data ss:Type="String">396460, Воронежская область, Верхнемамонский район, с.Верхний Мамон, ул.Дорожная, д.9 а, нежилое здание,литер А</Data></Cell>
+    <Cell><Data ss:Type="String">-</Data></Cell>
+    <Cell><Data ss:Type="String">360600040241</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">Верхний Мамон с</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">Воронежская обл</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">ул. Дорожная, д. 9, литер А</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">Ефимьев АН, ПБОЮЛ</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">нежилое здание</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="Number">4</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="Number">2</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">ФИЛИАЛ СИА Воронеж@Ефимьев А.Н. ИП Верхний Мамон Воронежская область@Воронежская@Верхний Мамон@396460, Воронежская область, Верхнемамонский район,с. Верхний Мамон, ул.Василевского, д.29,нежилое здание,литер А,А1,этаж:1</Data></Cell>
+    <Cell><Data ss:Type="String">ФИЛИАЛ СИА Воронеж</Data></Cell>
+    <Cell><Data ss:Type="String">Ефимьев А.Н. ИП Верхний Мамон Воронежская область</Data></Cell>
+    <Cell><Data ss:Type="String">Воронежская</Data></Cell>
+    <Cell><Data ss:Type="String">Верхний Мамон</Data></Cell>
+    <Cell><Data ss:Type="String">396460, Воронежская область, Верхнемамонский район,с. Верхний Мамон, ул.Василевского, д.29,нежилое здание,литер А,А1,этаж:1</Data></Cell>
+    <Cell><Data ss:Type="String">-</Data></Cell>
+    <Cell><Data ss:Type="String">360600040241</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">Верхний Мамон с</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">Воронежская обл</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">ул. Василевского, д. 29, литер А</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">Ефимьев АН, ПБОЮЛ</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">нежилое здание, этаж: 1</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="Number">5</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="Number">2</Data></Cell>
+   </Row>
+   <Row>
+    <Cell><Data ss:Type="String">ФИЛИАЛ ЦВП Воронеж@Ефимьев А.Н.(Василевского,29) п.В.Мамон@Воронежская область@Верхнемамонский р-н с Верхний Мамон@396461, с Верхний Мамон, Верхнемамонский р-н, Воронежская обл, ул Василевского, 29</Data></Cell>
+    <Cell><Data ss:Type="String">ФИЛИАЛ ЦВП Воронеж</Data></Cell>
+    <Cell><Data ss:Type="String">Ефимьев А.Н.(Василевского,29) п.В.Мамон</Data></Cell>
+    <Cell><Data ss:Type="String">Воронежская область</Data></Cell>
+    <Cell><Data ss:Type="String">Верхнемамонский р-н с Верхний Мамон</Data></Cell>
+    <Cell><Data ss:Type="String">396461, с Верхний Мамон, Верхнемамонский р-н, Воронежская обл, ул Василевского, 29</Data></Cell>
+    <Cell><Data ss:Type="String">-</Data></Cell>
+    <Cell><Data ss:Type="String">-</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">Верхний Мамон с</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">Воронежская обл</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">ул. Василевского, д. 29, литер А</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">Ефимьев АН, ПБОЮЛ</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">нежилое здание, этаж: 1</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="Number">5</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="Number">2</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:StyleID="s17"><Data ss:Type="String">ФИЛИАЛ ФК Воронеж@Ефимьев А.Н. ИП с.Верхний Мамон, Воронежская область@Воронеж@-@-</Data></Cell>
+    <Cell ss:StyleID="s17"><Data ss:Type="String">ФИЛИАЛ ФК Воронеж</Data></Cell>
+    <Cell ss:StyleID="s17"><Data ss:Type="String">Ефимьев А.Н. ИП с.Верхний Мамон, Воронежская область</Data></Cell>
+    <Cell ss:StyleID="s17"><Data ss:Type="String">Воронеж</Data></Cell>
+    <Cell ss:StyleID="s17"><Data ss:Type="String">-</Data></Cell>
+    <Cell ss:StyleID="s17"><Data ss:Type="String">-</Data></Cell>
+    <Cell ss:StyleID="s17"><Data ss:Type="String">-</Data></Cell>
+    <Cell><Data ss:Type="String">-</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">Верхний Мамон с</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">Воронежская обл</Data></Cell>
+    <Cell ss:StyleID="s18"/>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">Ефимьев АН, ПБОЮЛ</Data></Cell>
+    <Cell ss:StyleID="s18"/>
+    <Cell ss:StyleID="s18"><Data ss:Type="Number">6</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="Number">2</Data></Cell>
+   </Row>
+   <Row>
+    <Cell ss:Index="9" ss:StyleID="s18"><Data ss:Type="String">Верхний Мамон с</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">Воронежская обл</Data></Cell>
+    <Cell ss:StyleID="s18"/>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">Ефимьев АН, ПБОЮЛ</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="String">Сеть Аптек</Data></Cell>
+    <Cell ss:StyleID="s18"><Data ss:Type="Number">2</Data></Cell>
+    <Cell ss:StyleID="s18"/>
+   </Row>
+  </Table>
+  <WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel">
+   <PageSetup>
+    <Header x:Margin="0.3"/>
+    <Footer x:Margin="0.3"/>
+    <PageMargins x:Bottom="0.75" x:Left="0.7" x:Right="0.7" x:Top="0.75"/>
+   </PageSetup>
+   <Print>
+    <ValidPrinterInfo/>
+    <PaperSizeIndex>141</PaperSizeIndex>
+    <HorizontalResolution>300</HorizontalResolution>
+    <VerticalResolution>300</VerticalResolution>
+   </Print>
+   <Selected/>
+   <Panes>
+    <Pane>
+     <Number>3</Number>
+     <ActiveRow>15</ActiveRow>
+     <ActiveCol>10</ActiveCol>
+    </Pane>
+   </Panes>
+   <ProtectObjects>False</ProtectObjects>
+   <ProtectScenarios>False</ProtectScenarios>
+  </WorksheetOptions>
+ </Worksheet>
+ <Worksheet ss:Name="Лист2">
+  <Table ss:ExpandedColumnCount="1" ss:ExpandedRowCount="1" x:FullColumns="1"
+   x:FullRows="1" ss:DefaultRowHeight="15">
+  </Table>
+  <WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel">
+   <PageSetup>
+    <Header x:Margin="0.3"/>
+    <Footer x:Margin="0.3"/>
+    <PageMargins x:Bottom="0.75" x:Left="0.7" x:Right="0.7" x:Top="0.75"/>
+   </PageSetup>
+   <ProtectObjects>False</ProtectObjects>
+   <ProtectScenarios>False</ProtectScenarios>
+  </WorksheetOptions>
+ </Worksheet>
+ <Worksheet ss:Name="Лист3">
+  <Table ss:ExpandedColumnCount="1" ss:ExpandedRowCount="1" x:FullColumns="1"
+   x:FullRows="1" ss:DefaultRowHeight="15">
+  </Table>
+  <WorksheetOptions xmlns="urn:schemas-microsoft-com:office:excel">
+   <PageSetup>
+    <Header x:Margin="0.3"/>
+    <Footer x:Margin="0.3"/>
+    <PageMargins x:Bottom="0.75" x:Left="0.7" x:Right="0.7" x:Top="0.75"/>
+   </PageSetup>
+   <ProtectObjects>False</ProtectObjects>
+   <ProtectScenarios>False</ProtectScenarios>
+  </WorksheetOptions>
+ </Worksheet>
+</Workbook>

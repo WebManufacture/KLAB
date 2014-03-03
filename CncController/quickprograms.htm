@@ -1,0 +1,55 @@
+<div id='QProgramsWin' class='window invisible' title='Quick programs'>
+	
+</div>
+<style type='text/css'>
+	
+	#QProgramsWin .prog {
+		cursor: pointer;
+		color:navy;
+		padding: 5px 10px;
+	}
+	
+	#QProgramsWin .prog:hover {
+		background-color: #DDD;
+	}
+
+</style>
+<script type='text/javascript'>
+	WS.Body.add(QProgramsWin);
+		
+	QProgramsWin._addProg = function (name, fpath) {
+		var prog = DOM.div(".prog", name);
+		prog.set("@path", fpath);
+		prog.fpath = fpath;
+		this.add(prog);
+		//prog.onclick = PointsWin.pointShow;
+		prog.ondblclick = QProgramsWin.progActivate;
+		return prog;
+	};
+		
+	QProgramsWin.pointShow = function(){
+		Preview.DisplayPoint(PointsWin.getCommand(this.coord));
+	};
+	
+	
+	QProgramsWin.progActivate = function(){
+		CncUI.QuickProgram(this.fpath);	
+	};
+	
+	QProgramsWin.Load = function(){
+		this.all(".prog").del();
+		Storage.All("programs", function(files){
+			if (files && typeof(files) == 'object'){
+				for (var i =0; i< files.length; i++){
+					var file = files[i];
+					var ext = file.name.split('.');
+					if (ext[1] && ext[1] == 'qcnc'){
+						QProgramsWin._addProg(ext[0], file.name);					
+					}
+				}
+			}
+		});
+	};
+		
+	QProgramsWin.Load();
+</script>

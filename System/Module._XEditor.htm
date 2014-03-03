@@ -1,0 +1,390 @@
+<div class="element-menu">
+    <div class="item" icon="css.png" onclick="XE.ShowCss();">              
+    </div>
+    <div class="item" icon="delete-mini.png" onclick="XE.Menu.Delete();">              
+    </div>
+</div>
+
+<include url="System.Toolbars.htm"></include>
+    <include url="System.XEditor.js"></include>
+
+<style type="text/css">
+    .xml_editor
+    {
+        /* background: #FFF;
+        border: solid 1px black;
+        position: absolute;
+        width: 300px;
+        height: 300px;
+        top: 0px;
+        left: 0px;
+        z-index: 190;
+        background-image:url(data:image/gif;base64,R0lGODlhAwADAIAAANve4f/7/yH5BAAAAAAALAAAAAADAAMAAAIETHAZBQA7);
+    	*/
+    }
+  
+  .window .xml_editor{
+    position: relative;
+  }
+  
+  
+ 
+  .xml_editor .element-menu
+  {
+    background-color: rgba(240, 240, 0, 0.8);
+    border: solid 1px silver;
+    width: 50px;
+    position: absolute;
+    z-index: 10;
+    left: 0px;  
+    padding 1px 4px;  
+    top: 80px;
+  }
+  
+   .xml_editor .element-menu .item
+    {
+    width: 18px;
+    height: 18px;
+    float: left;
+    background: white no-repeat center center;
+    border: 1px solid gray;
+    cursor: pointer;
+  }
+  
+  .xml_editor .element-menu .item:hover;
+  {
+    background-color: red;
+    
+  }
+    
+  /* ------------- CONTENT ================= */
+  
+    .xml-content
+    {
+        background: white;
+        height: 100%;
+        width: 100%;
+        padding-left: 50px;
+        position: relative;
+        box-sizing: border-box;
+        -moz-box-sizing: border-box;
+    }
+  
+
+    .xml-content .element
+    {
+      margin-left: 15px;
+      border-left: dotted 1px gray;
+      display: block;
+      color: #333;
+      border: 1px solid transparent;
+      font-size: 12px;
+    }
+  
+  /* .xml-content .element.dragging
+    {
+    position: absolute;
+  }
+  
+  
+  .xml-content .element.dragging .line{
+    display: none;
+  }
+  
+  */
+  
+  .xml-content .element.dragging
+  {
+     width: 200px;  
+    overflow: hidden;
+  }
+  
+  
+  .xml-content .element.dragging .indicator{
+    display: none;
+  }
+  
+    .xml-content .element.over
+    {
+       border: solid 1px #CCC;     
+    }
+  
+    .xml-content .element.over>.name
+    {
+       text-shadow: 1px 1px 1px silver;
+    }
+  
+  
+    .xml-content .element.selected
+    {
+        background-color: #EEE!important;
+    }
+  
+    .xml-content .element.hided
+    {
+        border-bottom: solid 1px gray;
+    }
+  
+    .xml-content .element.hided>.rollup
+    {
+        display: none;
+    }
+    
+    .xml-content .element.editing
+    {
+        background-color: #CDF;
+    }
+    
+    .xml-content .element.current .cpart
+    {
+        color: red!important;
+    }
+  
+    .xml-content .indicator
+    {
+        width: 15px;
+        height: 15px;
+        float: left;
+        cursor: pointer;
+        text-align: center;
+    }
+  
+    .xml-content .indicator:hover
+    {
+        background-color: #EEE;
+    }
+  
+    .xml-content .element>.name
+    {
+        color: navy;
+        font-weight: bold;
+        cursor: pointer;
+        float: left;
+    }
+ 
+    .xml-content .element>.id
+    {
+        color: #CC00CC;
+        float: left;
+        padding-left: 3px;
+    cursor: pointer;
+    }
+    
+    .xml-content .classes
+    {
+        color: #006600;
+        float: left;
+    }
+  
+  
+    .xml-content .classes>.class-item
+    {
+        display: inline;
+        padding-left: 3px;    
+        cursor: pointer;
+    }
+  
+  
+    
+    .xml-content .attribute
+    { 
+      color: silver;
+      display: block;
+      margin-left: 20px;
+      float: left;
+    }
+  
+    .xml-content .attribute .aname
+    { 
+      display: inline;
+      color: #006699;
+    cursor: pointer;
+    }
+  
+    .xml-content .attribute .avalue
+    { 
+      display: inline;
+    }  
+  
+  
+  .xml-content .attribute.editing .avalue
+  {
+    background-color: #ACF;
+    color: black;
+  }
+  
+    .xml-content .element>.childs>.value
+    {
+        display: block;
+        padding-left: 20px;
+    }
+  
+      .xml-content .element>.childs
+    {
+      
+        padding-left: 10px;
+    }
+
+
+  
+  
+    .xml-content input[type="text"]
+    {
+        font-weight: bold;
+        width: 100%;
+        border: none;
+        background-color: transparent;
+    }
+  
+     .xml-content .value textarea
+    {
+        width: 100%;
+        border: none;
+        background-color: transparent;
+    }
+  
+    .xml-content .attribute input[type="text"]
+    {
+        width: 100%;
+        background-color: transparent;
+        border: none;
+    }
+  
+  .xml-content .css
+        {
+            clear: both;
+            padding-top: 10px;
+        }
+        
+  .xml-content  .css .selector
+        {
+            float: left;
+            color: #006699;
+        }
+  
+    .xml-content  .css .selector.class
+        {
+            color: green;
+        }
+  
+      .xml-content  .css .selector.id
+        {
+            color: #CC00CC;
+        }
+  
+        .xml-content  .css .selector.meta
+        {
+            color: orange;
+        }
+
+        
+  .xml-content  .css .body
+        {
+            clear: both;
+    
+            position: relative;
+            padding-left: 15px;
+        }
+        
+  .xml-content  .css .body .prop
+        {
+            clear: both;
+        }
+  
+  .xml-content  .css .body:hover .maket
+        {
+           display : block;
+        }
+  
+        
+  .xml-content  .css .body .prop .name, .css .body .prop .val
+        {
+      		display: inline;
+        }
+        
+  .xml-content  .css .body .prop .name
+        {
+            color: navy;
+        }
+  
+    .xml-content  .css .body .maket
+        {
+    width: 100px;
+    display: none;
+    float: left;
+    height: 100px;
+    position: absolute;
+    top: 0px;
+    left: 200px;
+    border: solid 1px gray;
+        }
+  
+  .xml-content  .css .body .maket .inner{
+    border: solid 1px #EEE; 
+    width: 100%;
+    height: 100%;
+  }
+        
+    
+    /* Element styles */ 
+  
+    .xml-content .element[name="link"] > .attribute[name="href"]
+    {
+        display: inline;
+    }  
+    
+  
+    .xml-content .element[name="script"] > .attribute[name="src"],  .xml-content .element[name="script"] > .attribute[name="type"]
+    {
+        display: inline;
+    }
+  
+    .xml-content .element[name="link"]>.name, .xml-content .element[name="style"]>.name
+    {
+        color: #0099FF;
+    }
+  
+    .xml-content .element[name="module"]{
+      background-color: #FFFFF4
+    }
+  
+    .xml-content .element[name="module"]>.name{
+      color: #F70;
+    }
+  
+    .xml-content .element[name="win"]>.name{
+       color: #460;
+    }
+    
+    .xml-content .element[name="unknown"]>.name{
+	color: #EEE;
+    }
+  
+    .xml-content .element[name="include"]>.name,
+    .xml-content .element[name="context"]>.name
+    {
+        color: #80A;
+    }
+  
+    .xml-content .element[name="win"]
+    {
+        background-color: #EEFFF4;
+    }
+  
+    .xml-content .element[name="style"]>.attribute[name="type"]
+    {
+        display: inline;
+    }
+  
+    .xml-content .element[name="style"]>.childs
+    {
+      
+        padding-left:30px;
+    }
+
+  
+     .xml-content .class-item.filtered,  .xml-content .name.filtered,  .xml-content .id.filtered
+    {
+        background-color: yellow;
+    }
+</style>

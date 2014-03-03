@@ -1,0 +1,6 @@
+#dline.qcnc
+L [param1] [param2]
+Z r+40 S10000
+Z r-40
+X r[param3] S6000
+LF

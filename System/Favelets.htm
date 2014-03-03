@@ -1,0 +1,165 @@
+<div class="favline" icon="http://system.web-manufacture.net/Images/emblem-system.png" onclick="Command('Load', 'Bookmarks.htm');">Стартовая страница</div>
+<div class="favline" icon="http://system.web-manufacture.net/Images/sticker.png" style="background-size: 45px 45px;" onclick="LoadModule('Module.Stickers.htm');">Стикеры</div>
+<div class="favline" icon="http://system.web-manufacture.net/Images/calendar.png" onclick="LoadModule('Calendar.htm');">Календарь</div>
+<div class="favline image-loader" icon="http://system.web-manufacture.net/Images/upload-small.png" onclick="LoadModule('ImageLoader.htm');">Корзинка</div>
+<div class="favline logging" icon="http://system.web-manufacture.net/Images/guake.png" onclick="LoadModule('System.Log.htm');">Консоль</div>
+<div class="favline" icon="http://system.web-manufacture.net/Images/gnome-app-install-star.png" onclick="AddFavorites();">В Закладки</div>
+<div class="favline" icon="http://system.web-manufacture.net/Images/gnome-app-install-star.png" onclick="ShowFavorites();" style="width: 350px;">Закладки</div>
+<div class="favline" icon="http://system.web-manufacture.net/Images/gnome-app-install-star.png" onclick="chrome.tts.speak('Darina, I love you!');" style="width: 350px;">Say</div>
+
+<div class="fav-sections invisible">
+    Loading...
+</div>
+<div class="bsave invisible">
+</div>
+
+<style type="text/css">
+    
+    .favline{
+	background-position: left center;
+	background-repeat: no-repeat;
+	border-bottom: 1px solid silver;
+	padding-left: 50px;
+	padding-top: 20px;
+	cursor: pointer;
+	display: block;
+	font-size: 14px;
+	margin: 2px;
+	text-align: center;
+	vertical-align: middle;
+	min-height: 50px;
+	min-width: 50px;
+	box-sizing: border-box;
+    }
+    
+    .fav-sections{
+	border: solid 1px gray;
+	min-height: 40px;
+	min-width: 100px;
+	padding: 20px;
+    }
+    
+    .fav-sections .section{
+	cursor: pointer;
+	border-bottom: solid 1px silver;
+	
+    }
+
+    .fav-sections .section:hover{
+	color: blue;
+    }
+    
+    .fav-sections .name{
+	font-size: 12px;
+	color: gray;
+    }
+
+    .bookmark{
+	border-bottom: 1px solid #CCCCCC;
+	overflow: hidden;
+	cursor: pointer;
+	padding-left: 10px;
+    }
+	    
+    .bookmark:hover{
+	background-color:#EEE;
+    }
+	    
+    .bsection{
+	width: 300px;
+    }
+	    
+	    
+    .bsection .bstitle{
+	border-bottom: 1px solid #CCCCCC;
+	color: blue;
+	cursor: pointer;
+	font-size: 16px;
+	font-weight: bold;
+	overflow: hidden;
+	padding : 5px 5px 5px 20px;
+    }
+    
+    .bsection .bstitle:hover
+    {
+	color: gray;
+    }
+	    
+	    
+    .bsection .bslist{
+
+    }
+   
+</style>
+
+<script type="text/javascript">
+    
+    
+    function AddFavorites(){
+	favSections.toggle();
+    }
+    
+    function ShowFavorites(){
+	bsave.toggle();
+    }
+    
+    function loadFavSections(){
+	X.Get("bookmarksSave.htm?" + Math.random(100), addFavSections);
+    }
+    
+    var favSections = W.get(".fav-sections");
+    var bsave = W.get(".bsave");
+    
+    function addFavSections(result){
+	bsave.html(this.responseText);
+	var html = bsave.findAll(".bsection:not(.prototype)");
+	var bks = bsave.findAll(".bookmark");
+	for (var i = 0; i < bks.length; i++){
+	    bks[i].onclick = LoadBookmark;
+	}
+	favSections.Text("");
+	var sect = favSections.adv("name");
+	for (var i = 0; i < html.length; i++){
+	    var sect = html[i];
+	    var nsect = favSections.adv("section", " --" + sect.get('.bstitle').Text());
+	    nsect.section = sect;
+	    nsect.sectid = sect.id;
+	    nsect.onclick = sectionSelected;
+	}
+	var sect = favSections.adv("section new", " --Новая...");
+        sect.sectid = "NewSect";
+	sect.onclick = sectionSelected;
+	chrome.tabs.getSelected(null, getTabName);
+    }
+    
+    function sectionSelected(){
+	var section = this.sectid;
+	if (this.has("new")){
+	    this.section = bsave.get(".bsection.prototype").clone(true);
+	    bsave.add(this.section);
+	    var id = Math.ceil(Math.random()*100);
+	    this.section.get(".bstitle").Text("Новая секция " + id);
+	    this.section.id = "NewSection" + id;
+	}
+	favSections.hide();
+	var bproto = bsave.get(".bookmark.prototype").clone(true);
+	var bmark = this.section.get(".bslist").insert(bproto);
+	bmark.get(".btitle").Text(favSections.get(".name").Text());
+	bmark.attr("url", favSections.get(".name").attr("url"));
+	X.ContentSave("bookmarksSave.htm", bsave.html());
+    }
+    
+    function getTabName(tab){
+	favSections.get(".name").Text(tab.title);
+	favSections.get(".name").attr("url", tab.url)
+    }
+
+    function LoadBookmark(){
+	chrome.tabs.create({url: this.attr("url")});
+    }
+    
+    loadFavSections();
+    
+</script>
+
+

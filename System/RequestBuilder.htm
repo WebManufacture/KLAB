@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html>
+	<head>
+		<meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
+		<link type='text/css' rel='stylesheet' href="http://Services.web-manufacture.net/Styles/System.default.css" />
+		
+		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Utils.js"></script>
+		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/DOM.js"></script>
+		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Events.js"></script>
+		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Log.js"></script>
+		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Url.js"></script>
+		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Net.js"></script>
+		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Jasp.js"></script>
+		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Modules.js"></script>
+		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/ui.js"></script>
+		
+		
+		
+		
+		
+		<style type="text/css">
+			body{
+				padding-top: 100px;
+				font-size: 12px;
+				font-family : monospace;
+			}
+			
+			.toolbar .status{
+				
+			}
+			
+			.menuitem.run-btn.executing      
+			{
+				background-color: red!important;
+			}
+			
+			.options-block
+			{
+				width: 150px;
+				float: left;
+				margin-right: 10px;
+			}
+			
+			.toolbar .menuitem.rtype:hover{
+				background-color: green;	
+			}
+			
+			.toolbar .menuitem.rtype{
+				font-size: 15px;	
+				font-weight: bold;
+				box-sizing : border-box;
+				-moz-box-sizing: border-box;
+			}
+			
+			.toolbar:hover .menuitem.rtype{
+				padding-top: 10px;
+			}
+			
+			.toolbar .menuitem.rtype.current
+			{
+				background-color: navy;				
+				color: white;
+			}
+			
+			.oline{
+				color: #666;
+			}
+			
+			.oline:not(.current):hover{
+				text-decoration: underline;
+				color: blue;
+				cursor: pointer;
+			}
+			
+			.oline.current{
+				color: black;
+				font-weight: bold;
+			}
+			
+			
+			
+			.request{
+				text-align: left;
+				padding-left: 20px;
+				font-size: 14px;
+				font-weight: bold;
+				padding-top: 20px;
+			}
+			
+			.request .status{
+				color: green;
+			}
+			
+			.request.error .status{
+				color: red;
+			}
+			
+			
+			.request-url .ru-line.method{
+				color: gray;
+				font-weight: bold;
+			}
+			
+			.request-url .ru-line.host{
+				color: #0C39A2;
+			}
+			
+			.request-url .ru-line.file{
+				color: #770088;
+			}
+			
+			.request-url .ru-line.url-param{
+				color: #FF554A;
+			}
+			
+			
+			.ru-line{
+				display: inline;
+			}
+			
+			.menuitem.active{
+				background-color: yellow;
+			}
+			
+			.results.error{
+				border: solid 1px red;
+			}
+			
+			.results .error-text{
+				color: red;
+			}
+			
+			#rqHistory{
+				background-color: white;
+				border: 1px solid navy;
+				border-radius: 10px 10px 10px 10px;
+				cursor: default;
+				font-size: 12px;
+				height: 300px;
+				overflow: hidden;
+				padding: 7px;
+				position: fixed;
+				right: 1%;
+				text-align: left;
+				top: 1%;
+				width:20%;
+				z-index: 20;
+			}
+			
+			#rqHistory .history-line div{
+				display: inline-block;	
+			}
+			
+			
+			#rqHistory .history-line .request-hits{
+				width: 20px;
+			}
+						
+			#rqHistory .history-line .request-method{
+				width: 80px;
+				font-weight: bold;
+				color: navy;
+			}
+			
+						
+			#rqHistory .history-line .request-url{
+				overflow: hidden;
+			}
+		</style>
+	</head>
+	<body>
+		<include url='http://services.web-manufacture.net/UI/Toolbars.htm'></include>
+		<include url='http://services.web-manufacture.net/UI/UiUtils.htm'></include>
+		<include url='http://services.web-manufacture.net/UI/HtmlElements.htm'></include>
+		<div class="header toolbar">
+			<div class="menuitem run-btn" tooltip="RUN" icon="http://cdn2.iconfinder.com/data/icons/oxygen/48x48/actions/exec.png"  onclick="RQB.Run()"></div>
+			<div class="menuitem text text-mode active" tooltip="TEXT" icon="text.png"  onclick="RQB.Results = 'text';  DOM.all('.menuitem.html-mode').rcs('active'); this.cls('active');">ТЕКСТ</div>
+			<div class="menuitem text html-mode" tooltip="HTML" icon="html.png"  onclick="RQB.Results = 'html';  DOM.all('.menuitem.text-mode').rcs('active'); this.cls('active');">HTML</div>
+			<div class="menuitem text json-mode" tooltip="JSON" icon="json.png"  onclick="RQB.Results = 'json';  DOM.all('.menuitem.text-mode').rcs('active'); this.cls('active');">JSON</div>
+			<div class="menuitem debug-mode" tooltip="DEBUG" icon="http://cdn4.iconfinder.com/data/icons/cc_mono_icon_set/blacks/48x48/bug.png"  onclick="RQB.Debug = !RQB.Debug; this.style.backgroundColor = RQB.Debug ? 'red' : '';"></div>
+			<div class="separator"></div>
+			<div class="menuitem text rtype rt-get current" rtype="GET">GET</div>
+			<div class="menuitem text rtype rt-post" rtype="POST">POST</div>
+			<div class="menuitem text rtype rt-put" rtype="PUT">PUT</div>
+			<div class="menuitem text rtype rt-delete" rtype="DELETE">DEL</div>
+			<div class="menuitem text rtype rt-option" rtype="OPTIONS">OPT</div>
+			<div class="menuitem text rtype rt-head" rtype="HEAD">HEAD</div>
+			<div class="menuitem text rtype rt-search" rtype="SEARCH">SRCH</div>
+		</div>
+		<div class='request-builder' style="width: 100%;">	
+			<div class="request">
+				<span class='request-url'></span>
+				<span class="request-result"></span>
+				
+				<div class="request-headers"></div>
+			</div>
+			<div class="request-params" style="width: 80%; float: left;">
+				
+				<label>URL:</label><input class="url-editor hintable" id='UrlInput' type="text" style="width: 100%;"/>
+				<label>Другие параметры запроса:</label><input class="params-editor" type="text" style="width: 100%;"/>
+				<label>Содержимое</label><textarea class="content-editor" style="width: 100%;"></textarea>
+			</div>
+			<div class="clear"></div>
+		</div>
+		<div class="results"></div>
+		<div id="rqHistory"></div>
+		
+		<script type="text/javascript" key="TextEditor">
+			RQB = {};    
+			
+			RQB.Method = "GET";
+			RQB.JType = "";
+			RQB.BaseUrl = "";
+			RQB.Data = "";
+			RQB.Results = 'text';
+			RQB.Debug = false;
+			
+			RQB.Init = function(){
+				DOM.all(".rtype").each(function(item){ item.onclick = RQB.SelectMethod});
+				DOM.all(".rfile").each(function(item){ item.onclick = RQB.SelectFile});
+				DOM.all(".jtype").each(function(item){ item.onclick = RQB.SelectJType});
+				RQB.BaseUrl = DOM(".url-editor").value;
+				RQB.OParams = DOM(".params-editor").value;
+				DOM.get(".url-editor").onchange = RQB.OnFileChange;
+				DOM.get(".content-editor").onchange = RQB.OnContentChange;
+				DOM.get(".params-editor").onchange = RQB.OnParamsChange;
+				DOM.get(".url-editor").onblur = RQB.OnFileChange;
+				DOM.get(".content-editor").onblur = RQB.OnContentChange;
+				DOM.get(".params-editor").onblur = RQB.OnParamsChange;
+				RQB.RefreshUrl();
+			};  
+			
+			RQB.RefreshUrl = function(){
+				var urlParams = {};
+				if (RQB.OParams){
+					if (RQB.OParams.start("?")){
+						RQB.OParams = RQB.OParams.substr(1);
+					}
+				}
+				var url = RQB.Url = Url.Resolve(RQB.BaseUrl, RQB.OParams);
+				var rq = DOM.get(".request-url");
+				rq.clear();
+				rq.div(".method.ru-line", RQB.Method + "    ");
+				if (url.host){
+					rq.div(".host.ru-line", url.getBase());
+				}
+				if (url.pathname){
+					rq.div(".file.ru-line", url.pathname);
+				}				
+				url.fill();
+				rq.div(".url-param.ru-line", url.search);
+			};
+			
+			RQB.SetUrlParam = function(url, paramName, value){
+				var firstParam = url.indexOf("?");
+				var rq = DOM.get(".request-url");
+				if (value && value != ""){
+					if (check(paramName)){
+						value = paramName + "=" + encodeURIComponent(value);
+					}
+					else{
+						value = encodeURIComponent(value);
+					}
+					if (firstParam < 0){
+						url += "?" + value;
+						rq.div(".ru-line.url-param" , "?" + value);
+					}
+					else{
+						url += "&" + value;
+						rq.div(".ru-line.url-param" , "&" + value);
+					}
+				}
+				return url;
+			};
+			
+			RQB.OnSelectorChange = function(event){
+				RQB.Selector = this.value;
+				RQB.RefreshUrl();
+			};
+			
+			RQB.OnFileChange = function(event){
+				RQB.BaseUrl = this.value;
+				RQB.RefreshUrl();
+			};
+			
+			RQB.OnContentChange = function(event){
+				RQB.Data = this.value;
+				RQB.RefreshUrl();
+			};
+			
+			RQB.OnParamsChange = function(event){
+				RQB.OParams = this.value;
+				RQB.RefreshUrl();
+			};
+			
+			
+			RQB.SelectMethod = function(){
+				var current = DOM.get(".rtype.current");
+				current.rcs("current");
+				this.cls("current");
+				RQB.Method = this.attr("rtype");
+				RQB.RefreshUrl();
+			};
+			
+			RQB.SelectFile = function(){
+				var current = DOM.get(".rfile.current");
+				current.rcs("current");
+				this.cls("current");
+				RQB.SysHandler = this.html();
+				RQB.RefreshUrl();
+			};
+			
+			RQB.SelectJType = function(){
+				var current = DOM.get(".jtype.current");
+				current.rcs("current");
+				this.cls("current");
+				RQB.JType = this.attr("jtype");
+				RQB.RefreshUrl();
+			};
+			
+			RQB.Run = function(){
+				var req = new XMLHttpRequest;
+				req.url = RQB.Url;
+				var url = Request.ParseUrl(req.url + "");
+				document.title = "RB " + req.url + "";
+				req.open(RQB.Method, req.url, true);
+				if (RQB.Debug){
+					req.setRequestHeader("debug-mode", "trace");
+				}
+				req.setRequestHeader("Referer", url.host);
+				//req.onerror = RQB.RError;
+				//req.onload = RQB.RLoaded;
+				req.onreadystatechange = RQB.RState;
+				
+				DOM.get(".menuitem.run-btn").cls("executing");
+				var rqResDiv = DOM.get(".request-result");
+				rqResDiv.innerHTML = '<span class="start">' + (new Date()).formatTime(true) + "</i>";
+				req.send(RQB.Data);
+				RQH.add(RQB.Method, req.url, RQB.Data);
+				return req;
+			};
+			
+			
+			RQB.RError = function(){
+				
+			};
+			
+			RQB.RState = function(){
+				if (this.readyState == 4){
+					RQB.ProcessResult.call(this, this.responseText);	
+				}
+			};
+			
+			RQB.RLoaded = function(){
+				
+			};
+			
+			RQB.ProcessResult = function(result){
+				DOM.get(".menuitem.run-btn").rcs("executing");
+				var rqDiv = DOM.get(".request");
+				rqDiv.rcs('error');
+				var rqResDiv = DOM.get(".request-result");
+				rqResDiv.innerHTML = '   <span class="status">status: ' + this.status + "</span>  " + rqResDiv.innerHTML  + " - <span class='stop'>" + (new Date()).formatTime(true) + "</span>";
+				var res = DOM.get(".results");
+				res.rcs("error");
+				
+				var arh = this.getAllResponseHeaders();
+				if (arh){
+					DOM(".request-headers").textContent = arh;
+				}
+				if (this.status != 200){
+					res.cls("error");
+					rqDiv.cls("error");
+				}
+				if (RQB.Debug){
+					res.textContent = result;
+					var html = res.innerHTML;
+					html = html.replace(/\n/g, "<br/>");
+					res.innerHTML = html;
+					return;
+				}
+				var ct = this.getResponseHeader("Content-Type");
+				if (ct){
+					if (ct.contains("application/json") || ct == "text/json" || RQB.Results == "json"){
+						res.innerHTML = "";
+						res.appendChild(DOM.formatJSON(result, true, true));
+						return;
+					}	
+					if (RQB.Results == "text"){
+						res.textContent = result;
+						var html = res.innerHTML;
+						html = html.replace(/\n/g, "<br/>");
+						res.innerHTML = html;
+					}
+					if (RQB.Results == "html"){
+						res.innerHTML = result;
+					}	
+				}
+				else{
+					if (RQB.Results == "json"){
+						res.innerHTML = "";
+						res.appendChild(DOM.formatJSON(result, true, true));
+						return;
+					}	
+					if (RQB.Results == "text"){
+						res.textContent = result;
+						var html = res.innerHTML;
+						html = html.replace(/\n/g, "<br/>");
+						res.innerHTML = html;
+					}
+					if (RQB.Results == "html"){
+						res.innerHTML = result;
+					}	
+				}
+			};
+			
+			RQH = {};
+				
+				RQH.Init = function(){
+					var element = DOM("#rqHistory");
+					Net.get("RQBuilder-History.htm", function(){
+						element.innerHTML = this.responseText;
+						
+					element.All(".history-line").each(RQH.InitLine);
+					});
+				};
+			
+			
+				RQH.Save = function(){
+					var element = DOM("#rqHistory");
+					Files.Save("RQBuilder-History.htm", element.innerHTML);
+				};
+			
+			RQH.InitLine = function(line){
+				line.AttrInnerProperty("method", ".request-method");				
+				line.AttrInnerProperty("url", ".request-url");
+				line.AttrInnerProperty("hits", ".request-hits");
+				if (!line.get(".request-hits")){
+					line.div(".request-hits.line-value");
+				}				
+				if (!line.get(".request-method")){
+					line.div(".request-method.line-value");
+				}
+				if (!line.get(".request-url")){
+					line.div(".request-url.line-value");
+				}
+				line.content = line.get(".request-content");
+				if (!line.content){
+					line.content = line.div(".request-content.invisible");
+				}
+				line.onclick = RQH.ActivateLine;
+			};
+			
+			RQH.add = function(method, url, rqBody){
+				var hst = DOM("#rqHistory");
+				var elem = hst.get(".history-line");
+				if (elem){
+					if (elem.method == method && elem.url == url+"" && elem.content.textContent == rqBody){
+						elem.hits++;
+						RQH.Save();
+						return;
+					}
+				}
+				var div = hst.div(".history-line");
+				hst.ins(div);
+				RQH.InitLine(div);
+				div.content.textContent = rqBody;
+				div.method = method;
+				div.url = url + "";
+				div.hits = 1;
+				RQH.Save();
+			};
+			
+			RQH.ActivateLine = function(){
+				DOM(".content-editor").value = this.content.textContent;
+				RQB.Data = this.content.textContent;
+				DOM("#UrlInput").value = this.url;
+				DOM("#UrlInput").focus();
+				RQB.SelectMethod.call(DOM.get(".menuitem.rtype[rtype='" + this.method + "']"));
+				RQB.Run();
+			}
+			
+			WS.DOMload(RQB.Init);
+			WS.DOMload(RQH.Init);
+		</script>
+	</body>
+</html>

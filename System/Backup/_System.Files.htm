@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+
+<script type="text/javascript" src="System._JS.js"></script>
+<script type="text/javascript" src="System._Utils.js"></script>
+<script type="text/javascript" src="System._Jasp.js"></script>
+<script type="text/javascript" src="System._AJAX.js"></script>
+<script type="text/javascript" src="System._Modules.js"></script>
+
+<include url="System._Notification.htm"></include>
+<include url="System._Toolbars.htm"></include>
+
+<link rel="stylesheet" href="System.default.css"/>
+<title>File System</title>
+<win id="files-block" class="ui-block content"  url="System.Files.htm" style="margin-top: 80px;">
+  <div class="header toolbar">
+    <div class="subbar menu">
+      <div class="menuitem files" icon="reload.png" onclick="FileSystem.Refresh();"></div>
+      <div class="menuitem files round" icon="ButtonUSSR.png" onclick="FileSystem.ClearTagFilter();"></div>
+      <div id="btnEditFile" class="menuitem files advanced ui-handler" icon="edit-mini.png" onclick="LoadFile();"></div>
+      <div id="btnDeleteEntity" class="menuitem files advanced ui-handler" icon="delete-mini.png" onclick="if (confirm('Удалить?')) OnDeleteDoc();"></div>
+      <div class="menuitem files advanced ui-handler" icon="editcopy.png" onclick="CopyFile();">Copy</div>
+      <div id="btnNewFile" class="menuitem files" icon="document-small.png" onclick="OnNewDoc();"></div>
+      <div id="btnNewTag" class="menuitem files" icon="document-new.png" onclick="NewTag();"></div>
+      <div class="menuitem files" icon="upload-small.png" onclick="OnUploadFile();">FILE</div>
+      <div class="menuitem files" icon="upload-small.png" onclick="LoadUrl();">U->C</div>
+      <div class="menuitem files" icon="upload-small.png" onclick="UrlUpLoad();">U->F</div>
+      <div class="menuitem reload" icon="tools-small.png" onclick="FileSystem.ReloadSystem();"></div>
+    </div>
+    
+    <div class="tags-container subbar">
+    </div>
+    <div class="filter subbar">
+    </div>
+  </div>
+  <div class="tree-container">
+
+  </div>  
+  <div id="NewDocDialog" class="dialog">
+    <div class="dialog-inner" id="NewDocDialogInner">
+    <input type="text" id="txtFileName" class="file-name" value="" /><br />
+    <button type="button" id="btnApply" class="dialog-apply">
+      Принять</button>
+    <button type="button" id="btnCancel" class="dialog-close">
+      Отменить</button>
+    </div>
+  </div>
+  <div id="LoadDocDialog" class="dialog">
+    <div class="dialog-inner">
+    <input type="file" id="fileUploader" multiple="multiple" />
+    <button type="button" id="btnApply" class="dialog-apply">
+      Принять</button>
+    <button type="button" id="btnCancel" class="dialog-close">
+      Отменить</button>
+    </div>
+  </div>
+    
+</win>
+
+  <prototypes>
+    
+  </prototypes>
+  
+  <script type="text/javascript" src="System._Files.js">
+
+         
+
+</script>
+
+<style type="text/css" />
+
+.tree-container
+{
+  position: relative;
+  margin-top: 10px;
+  padding-left: 55px;
+  padding-right: 100px;
+}
+  
+.tags-container
+{
+  padding-left: 5px;
+  padding-right: 10px;
+  max-width: 400px;
+}
+  
+.tags-container .tag
+{
+  font-weight: bold; 
+}
+
+.tag
+{
+  color: #33AA88;
+  display: block;
+  float: left;
+  padding-left: 10px;
+  padding-top: 2px;
+  padding-bottom: 2px;
+  padding-right:10px;
+  font-size: 16px;
+  cursor: pointer;
+}
+   
+.filter
+{
+  color: #9900FF;
+  margin: 5px 10px 10px 5px;
+  display: block;
+  float: left;
+}
+
+.filter.active
+{
+  background-color: #CCFF33;
+}
+
+ 
+.tree-container .File
+{
+  color: black;
+  display: block;
+  float: left;
+  clear: both;
+}
+
+.tree-container .file-tag
+{
+  color: #3366AA;
+}
+  
+.tree-container .htm, #files-block .tree-container .html
+{
+  color: #6644AA;
+}
+  
+#files-block
+{
+  display: block;
+}
+
+#files-block .tree-container .File
+{
+  padding-left: 5px;
+  padding-top: 5px;
+  padding-bottom: 5px;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+#files-block .tree-container .File.selected
+{
+  color: #FF00CC!important;
+}
+  
+  
+  #files-block .tree-container .File.drop-ready
+  {
+  border: dotted 1px gray;
+  border-radius : 4px;
+  -moz-border-radius : 4px;
+}
+
+#files-block .tree-container .File.drop-selected
+{
+  border: solid 1px gray;
+  background-color: #CCFFFF;
+}  
+    
+ #files-block .tree-container .File:hover
+    {
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.3);
+  color: Navy;
+  border-bottom: dotted 1px gray;
+}
+
+#files-block .tag:hover
+{
+  color: Green;
+  text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.3);
+}
+
+#files-block .tree-container .File .name
+{
+  display: inline;
+}
+
+#files-block .tree-container .File .tags{
+  display: inline;
+  position: absolute;
+  left: 220px;
+  width: 100%;
+  background: rgba(230, 230, 255, 0.9);
+}
+
+#files-container .upload-frame
+{
+  border: none;
+  height: 40px;
+  width: 300px;
+}
+
+#NewDocDialogInner
+{
+  width: 300px;
+  height: 200px;
+}
+</style>

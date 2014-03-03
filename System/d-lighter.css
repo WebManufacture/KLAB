@@ -1,0 +1,248 @@
+
+	/* Main division element that contains the source code and the buttons */
+.dottoro_highlight {}
+	/* Main table element that contains the source code and the buttons */
+.dr_hl_container {}
+
+	/* Footer cell that contains the footer table */
+.dr_hl_noLineNumbers .dr_hl_footerCell {
+	padding-left:8px;
+}
+
+.dr_hl_lineNumbers .dr_hl_footerCell {
+}
+
+	/* Footer table that contains the buttons and the trademark */
+.dr_hl_footer {
+	margin:0px;
+	border-collapse:collapse;
+	width:100%;
+	line-height:1em;
+}
+
+	/* Footer cells that contain the buttons and the trademark */
+.dr_hl_footer td {
+	padding:3px 10px;
+	color:#6f6f6d;
+	font-family:tahoma;
+	font-size:11px;
+	cursor:pointer;
+}
+
+.dr_hl_footer div {
+	white-space:nowrap;
+}
+
+	/* Footer buttons */
+.dr_hl_viewPlainCell {}
+.dr_hl_copyCell {}
+.dr_hl_printCell {}
+
+.dr_hl_viewPlainCell, .dr_hl_copyCell, .dr_hl_printCell {
+		background-color:#e1e0d2;
+		border:1px solid #cac8a9;
+		border-top:none;
+}
+
+	/* Footer cell that contains the trademark */
+.dr_hl_trademarkCell {
+	width:100%;
+	cursor:default;
+}
+
+	/* Trademark anchor */
+.dr_hl_trademarkCell a:link {color:#989898; text-decoration:none;}
+.dr_hl_trademarkCell a:visited {color:#989898; text-decoration:none;}
+.dr_hl_trademarkCell a:active {color:#989898;}
+.dr_hl_trademarkCell a:hover {text-decoration:underline;}
+
+	/* Division element that contains the source code */
+.dr_hl_codeContainer {
+	border:1px solid #d7d7d7;
+	background-color:#fafafa;
+	color:#000000;
+	font-size:14px; 
+	font-family:monospace;
+	overflow:auto;
+}
+	/* Padding */
+.dr_hl_noLineNumbers .dr_hl_codeContainer{
+	padding: 8px 10px 8px 8px;
+	border-left:#95b7d8 8px solid;
+}
+
+.dr_hl_lineNumbersCell {
+	background-color:#f0f0f0;
+	text-align:right;
+	padding-left:8px;
+	padding-right:6px;
+}
+
+.dr_hl_lineNumberedCodeCell {
+	padding-left:5px;
+	padding-right:10px;
+}
+.dr_hl_lineNumbersCell, .dr_hl_lineNumberedCodeCell {
+	padding-top: 8px;
+	padding-bottom: 8px;
+}
+
+.dr_hl_codeContainer pre {margin:0px !Important; padding:0px !Important;}
+
+
+	/* CSS */
+.dr_hl_codeContainer .css_def 					{}
+.dr_hl_codeContainer .css_com 					{color:#88acc9;}
+.dr_hl_codeContainer .css_invalid 				{color:#ff0000;}
+.dr_hl_codeContainer .css_atrule 				{color:#0000e0;}
+.dr_hl_codeContainer .css_atrule_unknown 		{}
+.dr_hl_codeContainer .css_atrule_media 			{color:#0000e0;}
+.dr_hl_codeContainer .css_atrule_media_unknown 	{}
+.dr_hl_codeContainer .css_atrule_pageselector 	{color:#0000e0;}
+.dr_hl_codeContainer .css_atrule_value 			{color:#008000;}
+.dr_hl_codeContainer .css_atrule_value_unknown 	{}
+.dr_hl_codeContainer .css_id 					{color:#804040;}
+.dr_hl_codeContainer .css_class 				{color:#804040;}
+.dr_hl_codeContainer .css_type 					{color:#804040;}
+.dr_hl_codeContainer .css_type_unknown 			{}
+.dr_hl_codeContainer .css_attr 					{color:#37a5d0;}
+.dr_hl_codeContainer .css_pseudo 				{color:#3c92c9;}
+.dr_hl_codeContainer .css_pseudo_unknown 		{}
+.dr_hl_codeContainer .css_prop 					{color:#0008ac;}
+.dr_hl_codeContainer .css_prop_unknown 			{}
+.dr_hl_codeContainer .css_propvalue 			{color:#7832aa;}
+.dr_hl_codeContainer .css_propvalue_unknown 	{}
+
+.dr_hl_codeContainer .css_atrule a:link 		{color:#0000e0; text-decoration:none;}
+.dr_hl_codeContainer .css_atrule a:visited 		{color:#0000e0; text-decoration:none;}
+.dr_hl_codeContainer .css_atrule a:active 		{color:#0000e0; text-decoration:none;}
+.dr_hl_codeContainer .css_atrule a:hover 		{color:#0000e0; text-decoration:underline;}
+
+.dr_hl_codeContainer .css_pseudo a:link 		{color:#3c92c9; text-decoration:none;}
+.dr_hl_codeContainer .css_pseudo a:visited 		{color:#3c92c9; text-decoration:none;}
+.dr_hl_codeContainer .css_pseudo a:active 		{color:#3c92c9; text-decoration:none;}
+.dr_hl_codeContainer .css_pseudo a:hover 		{color:#3c92c9; text-decoration:underline;}
+
+.dr_hl_codeContainer .css_prop a:link 			{color:#0008ac; text-decoration:none;}
+.dr_hl_codeContainer .css_prop a:visited 		{color:#0008ac; text-decoration:none;}
+.dr_hl_codeContainer .css_prop a:active 		{color:#0008ac; text-decoration:none;}
+.dr_hl_codeContainer .css_prop a:hover 			{color:#0008ac; text-decoration:underline;}
+
+
+						/* HTML */
+.dr_hl_codeContainer .html_def 					{}
+.dr_hl_codeContainer .html_com 					{color:#88acc9;}
+.dr_hl_codeContainer .html_doctype 				{color:#bfbfbf;}
+.dr_hl_codeContainer .html_tagop 				{color:#804000;}
+.dr_hl_codeContainer .html_attrop 				{color:#804000;}
+.dr_hl_codeContainer .html_tag 					{color:#c08000;}
+.dr_hl_codeContainer .html_tag_unknown 			{}
+.dr_hl_codeContainer .html_attr 				{color:#4682b4;}
+.dr_hl_codeContainer .html_attr_unknown 		{}
+.dr_hl_codeContainer .html_attrvalue 			{color:#f58c83;}
+.dr_hl_codeContainer .html_attrvalue_unknown 	{}
+
+.dr_hl_codeContainer .html_doctype a:link 		{color:#bfbfbf; text-decoration:none;}
+.dr_hl_codeContainer .html_doctype a:visited 	{color:#bfbfbf; text-decoration:none;}
+.dr_hl_codeContainer .html_doctype a:active 	{color:#bfbfbf; text-decoration:none;}
+.dr_hl_codeContainer .html_doctype a:hover 		{color:#bfbfbf; text-decoration:underline;}
+
+.dr_hl_codeContainer .html_tag a:link 			{color:#c08000; text-decoration:none;}
+.dr_hl_codeContainer .html_tag a:visited 		{color:#c08000; text-decoration:none;}
+.dr_hl_codeContainer .html_tag a:active 		{color:#c08000; text-decoration:none;}
+.dr_hl_codeContainer .html_tag a:hover 			{color:#c08000; text-decoration:underline;}
+
+.dr_hl_codeContainer .html_attr a:link 			{color:#4682b4; text-decoration:none;}
+.dr_hl_codeContainer .html_attr a:visited 		{color:#4682b4; text-decoration:none;}
+.dr_hl_codeContainer .html_attr a:active 		{color:#4682b4; text-decoration:none;}
+.dr_hl_codeContainer .html_attr a:hover 		{color:#4682b4; text-decoration:underline;}
+
+
+					/* JavaScript */
+.dr_hl_codeContainer .jscript_def 				{}
+.dr_hl_codeContainer .jscript_com 				{color:#88acc9;}
+.dr_hl_codeContainer .jscript_invalid 			{color:#ff0000;}
+.dr_hl_codeContainer .jscript_keyword 			{color:#0000ff;}
+.dr_hl_codeContainer .jscript_number 			{color:#31a310;}
+.dr_hl_codeContainer .jscript_string 			{color:#0080c0;}
+.dr_hl_codeContainer .jscript_regexp 			{color:#008040;}
+.dr_hl_codeContainer .jscript_op 				{}
+.dr_hl_codeContainer .jscript_coreobj 			{color:#9a81fe;}
+.dr_hl_codeContainer .jscript_globconst 		{color:#95a8ea;}
+.dr_hl_codeContainer .jscript_globmethod 		{color:#cf80ff;}
+.dr_hl_codeContainer .jscript_prop 				{color:#38a9d3;}
+.dr_hl_codeContainer .jscript_method 			{color:#a55f8c;}
+
+.dr_hl_codeContainer .jscript_keyword a:link 	{color:#0000ff; text-decoration:none;}
+.dr_hl_codeContainer .jscript_keyword a:visited {color:#0000ff; text-decoration:none;}
+.dr_hl_codeContainer .jscript_keyword a:active 	{color:#0000ff; text-decoration:none;}
+.dr_hl_codeContainer .jscript_keyword a:hover 	{color:#0000ff; text-decoration:underline;}
+
+.dr_hl_codeContainer .jscript_regexp a:link 	{color:#008040; text-decoration:none;}
+.dr_hl_codeContainer .jscript_regexp a:visited 	{color:#008040; text-decoration:none;}
+.dr_hl_codeContainer .jscript_regexp a:active 	{color:#008040; text-decoration:none;}
+.dr_hl_codeContainer .jscript_regexp a:hover 	{color:#008040; text-decoration:underline;}
+
+.dr_hl_codeContainer .jscript_coreobj a:link 	{color:#9a81fe; text-decoration:none;}
+.dr_hl_codeContainer .jscript_coreobj a:visited {color:#9a81fe; text-decoration:none;}
+.dr_hl_codeContainer .jscript_coreobj a:active 	{color:#9a81fe; text-decoration:none;}
+.dr_hl_codeContainer .jscript_coreobj a:hover 	{color:#9a81fe; text-decoration:underline;}
+
+.dr_hl_codeContainer .jscript_globconst a:link 		{color:#95a8ea; text-decoration:none;}
+.dr_hl_codeContainer .jscript_globconst a:visited 	{color:#95a8ea; text-decoration:none;}
+.dr_hl_codeContainer .jscript_globconst a:active	{color:#95a8ea; text-decoration:none;}
+.dr_hl_codeContainer .jscript_globconst a:hover 	{color:#95a8ea; text-decoration:underline;}
+
+.dr_hl_codeContainer .jscript_globmethod a:link 	{color:#cf80ff; text-decoration:none;}
+.dr_hl_codeContainer .jscript_globmethod a:visited 	{color:#cf80ff; text-decoration:none;}
+.dr_hl_codeContainer .jscript_globmethod a:active 	{color:#cf80ff; text-decoration:none;}
+.dr_hl_codeContainer .jscript_globmethod a:hover	{color:#cf80ff; text-decoration:underline;}
+
+.dr_hl_codeContainer .jscript_prop a:link 		{color:#38a9d3; text-decoration:none;}
+.dr_hl_codeContainer .jscript_prop a:visited 	{color:#38a9d3; text-decoration:none;}
+.dr_hl_codeContainer .jscript_prop a:active 	{color:#38a9d3; text-decoration:none;}
+.dr_hl_codeContainer .jscript_prop a:hover 		{color:#38a9d3; text-decoration:underline;}
+
+.dr_hl_codeContainer .jscript_method a:link 	{color:#a55f8c; text-decoration:none;}
+.dr_hl_codeContainer .jscript_method a:visited 	{color:#a55f8c; text-decoration:none;}
+.dr_hl_codeContainer .jscript_method a:active 	{color:#a55f8c; text-decoration:none;}
+.dr_hl_codeContainer .jscript_method a:hover 	{color:#a55f8c; text-decoration:underline;}
+
+
+					/* PHP */
+.dr_hl_codeContainer .php_def 				{}
+.dr_hl_codeContainer .php_outside 			{}
+.dr_hl_codeContainer .php_openclose 		{color:#900080;}
+.dr_hl_codeContainer .php_com 				{color:#9b9b9b;}
+.dr_hl_codeContainer .php_invalid 			{color:#ff0000;}
+.dr_hl_codeContainer .php_keyword 			{color:#0000ff;}
+.dr_hl_codeContainer .php_number 			{color:#31a310;}
+.dr_hl_codeContainer .php_string 			{color:#0080c0;}
+.dr_hl_codeContainer .php_predef 			{color:#4e7c9e;}
+.dr_hl_codeContainer .php_op 				{}
+
+
+					/* VBScript */
+.dr_hl_codeContainer .vbscript_def 				{}
+.dr_hl_codeContainer .vbscript_com 				{color:#88acc9;}
+.dr_hl_codeContainer .vbscript_invalid 			{color:#ff0000;}
+.dr_hl_codeContainer .vbscript_keyword 			{color:#0000ff;}
+.dr_hl_codeContainer .vbscript_number 			{color:#31a310;}
+.dr_hl_codeContainer .vbscript_string 			{color:#0080c0;}
+.dr_hl_codeContainer .vbscript_op 				{}
+.dr_hl_codeContainer .vbscript_opword 			{color:#7f007f;}
+.dr_hl_codeContainer .vbscript_opmultiline		{}
+
+
+					/* XML */
+.dr_hl_codeContainer .xml_def 					{}
+.dr_hl_codeContainer .xml_com 					{color:#88acc9;}
+.dr_hl_codeContainer .xml_cdata 				{color:#88acc9;}
+.dr_hl_codeContainer .xml_invalid 				{color:#ff0000;}
+.dr_hl_codeContainer .xml_tagop 				{color:#804000;}
+.dr_hl_codeContainer .xml_attrop 				{color:#804000;}
+.dr_hl_codeContainer .xml_tag 					{color:#0080c0;}
+.dr_hl_codeContainer .xml_dectag 				{color:#8080c0;}
+.dr_hl_codeContainer .xml_doctype 				{}
+.dr_hl_codeContainer .xml_attr 					{color:#ff8040;}
+.dr_hl_codeContainer .xml_attrvalue 			{color:#008040;}

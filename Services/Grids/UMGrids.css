@@ -1,0 +1,264 @@
+.uni-table{
+	position:relative;	
+}
+
+.uni-table.default-theme{
+	background-color: #FF893B;
+}
+
+.uni-table .selection-box {
+	float:right;
+	display:inline-block;
+	margin-top:3px;
+}
+
+.uni-table .selection-box .ssort{
+	display:block;
+}
+.uni-table .selection-box .select-btn{
+	
+	text-decoration:none;
+	color:#fff;
+	width:104px;
+	height:20px;
+	text-align:center;
+	border:1px solid #fff;
+	cursor:pointer;
+	line-height:20px;
+	font-size:11px;
+	overflow:hidden;
+	padding:1px;
+	margin:0;
+}
+
+.uni-table .selection-box .select-btn:hover{
+	color:#fff;
+	background:#36f;
+}
+
+.uni-table .selection-box .ca:hover,
+.uni-table .selection-box .cb:hover{
+	background-color: #6fc;		
+}
+.uni-table .selection-box .ca, .cb{
+	background:#ddd;
+	color:#000;
+	
+}
+.uni-table .selection-box .cab{
+	display:none;
+}
+
+.uni-table .selection-box:hover .cab{
+	display:block;
+	list-style:none;
+	width:104px;
+	height:20px;
+	position:absolute;
+}
+
+.uni-table .small-object-button
+{	
+	display: inline-block;
+	cursor: pointer;
+	background-size:cover;
+	height: 22px;
+	width: 22px;
+	margin: 2px;
+}
+
+.uni-table .connection-indicator{
+	color: white;
+	cursor: pointer;
+	font-size: 16px;
+	height: 22px;
+	margin: 2px;
+	padding: 0 8px;
+	text-align: center;
+	width: 80px;
+	float: right;
+}
+
+.uni-table:not(.online):not(.offline) .connection-indicator{
+	display: none;	
+}
+
+.uni-table.online .connection-indicator.offline,
+.uni-table.offline .connection-indicator.online{
+	display: none;
+}
+
+.uni-table.default-theme .connection-indicator.online{
+	background-color: green;
+}
+
+.uni-table.default-theme .connection-indicator.offline{
+	background-color: orange;
+}
+
+.uni-table.default-theme  .small-object-button:hover
+{
+	background-color: yellow;
+}
+
+.uni-table.default-theme .small-object-button:active
+{
+	background-color:orange;
+}
+
+.uni-table.default-theme .table-object .select-indicator{
+	background-size: cover;
+	cursor: pointer;
+	display: inline-block;
+	height: 22px;
+	margin: 2px;
+	width: 22px;
+	background-image:url('http://cdn4.iconfinder.com/data/icons/cc_mono_icon_set/blacks/48x48/checkbox_checked.png');
+}
+
+.uni-table.default-theme .table-object.pined .select-indicator{
+	background-image:url('http://cdn4.iconfinder.com/data/icons/cc_mono_icon_set/blacks/48x48/checkbox_unchecked.png');
+}
+
+.uni-table.default-theme .mass-switcher{
+	background-image:url('http://www.iconsearch.ru/uploads/icons/fatcow/32x32/page_white_stack.png');
+}
+
+.uni-table.default-theme.mass-mode .mass-switcher{
+	background-image:url('http://www.iconsearch.ru/uploads/icons/fatcow/32x32/page.png');
+}
+
+.uni-table.default-theme .add-button{
+	background-image:url('http://cdn2.iconfinder.com/data/icons/onebit/PNG/onebit_31.png');
+}
+
+.uni-table.default-theme .delete-button{
+	background-image:url('http://cdn3.iconfinder.com/data/icons/softwaredemo/PNG/128x128/DeleteRed.png');
+}
+
+.uni-table.default-theme .edit-button{
+	background-image:url('http://cdn3.iconfinder.com/data/icons/prettyoffice/128/edit.png');
+}
+
+.uni-table .table-object .left-panel{
+	display: inline-block;
+	vertical-align: top;
+}
+
+
+.uni-table .table-object .right-panel{
+	display: inline-block;
+	vertical-align: top;
+}
+
+.uni-table .table-object .bottom-panel{
+	display: inline-block;
+	width: 100%;
+	height:10px;
+}
+
+.uni-table .table-object .content-panel{
+	display: inline-block;
+}
+
+.uni-table .table-object .content-line{
+	margin:0;
+	padding:0;
+}
+
+.uni-table .table-object .panel{
+	display: inline-block;
+	padding: 5px 5px;
+}
+
+.uni-table.default-theme .table-object .round-indicator,
+.uni-table.default-theme .table-object .small-indicator{
+	height: 16px;
+	width: 16px;
+	border-radius: 10px 10px 10px 10px;
+	border: 1px solid grey;
+	margin: 2px;
+	padding: 2px;
+	background-color: #F0FFFF;
+	text-align:center;	
+	font-weight: bold;
+	font-size: 15px;
+}
+
+
+.uni-table .objects-container .table-object
+{	
+	background-color: white;
+	border-radius: 5px 5px 5px 5px;
+	border: 1px solid black;
+	margin: 2px;
+}
+
+
+.uni-table.default-theme .objects-container .table-object:hover{
+	background-color: #FFE886;
+}			
+
+.uni-table.default-theme .objects-container .table-object.deleted{
+	background-color: #FFA07A;
+}
+
+.uni-table.default-theme .objects-container .table-object.deleted:hover{
+	background-color: Gainsboro;
+}
+
+
+.uni-table .objects-container .table-object .field
+{
+	display: inline-block;
+	margin: 2px;
+	padding: 1px;
+}
+
+.uni-table .objects-container .table-object .field.highlight
+{
+	background-color: rgba(255, 255, 0, 0.4);
+}
+
+
+.uni-table .edit-object-form{	
+	width: auto;
+	background-color: white;
+	border-radius: 5px 5px 5px 5px;
+	border: 1px solid black;
+	margin: 2px;
+}
+
+.uni-table.default-theme .edit-object-form{	
+	background-color: #FFE886;
+}
+
+
+.uni-table .edit-object-form .buttons{
+	text-align:center;
+}
+
+
+
+.uni-table .edit-object-form .input{
+	text-align:center;
+	height:20px;
+	margin: 5px;
+	width: 95%;
+}
+
+.uni-table.default-theme .edit-object-form.input.main{
+	background-color: #D0F18F;
+}
+
+.uni-table.default-theme .edit-object-form.input{
+	
+}
+/*http://kuler.adobe.com/#themeID/2046286*/
+
+
+.uni-table.default-theme .edit-object-form .input.empty{
+	color: #8B8989;	
+	background-color: #FFE886;
+}
+

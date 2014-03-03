@@ -1,0 +1,84 @@
+<style type="text/css"> 
+
+messages{
+    height:90%;
+    overflow:scroll;
+    padding:20px;
+    width:90%;
+    z-index: 120;
+    position: absolute;
+   }
+   
+   messages>*
+   {
+     font-size: 15px;
+     background-color: rgba(255, 255, 255, 0.8);
+     border-bottom: dotted 1px navy;
+     padding: 10px;
+     width: 100%;
+     display: block;
+     color: navy;
+   }
+   
+   messages>error{
+     background-color: red;
+   color: white;
+   }
+   
+   messages>[permanent='true']{
+     background-color: yellow;
+   }
+   
+   messages .attr-info{
+     float: left; margin-right: 10px;
+   }
+  
+   messages .attributes-info{
+     height: 60px;
+   }
+  
+   messages .tag-info{
+     font-weight: bold;
+   }
+  
+   messages>[processed='true'] .tag-info{
+     font-weight: normal;
+   }
+   
+   messages>info{
+     background-color: rgba(50, 120, 255, 0.8);
+     color: white;
+   }
+  
+   messages>ajax{
+    color: #33CCFF;
+   }
+  
+   messages>message.ajax-result{
+    color: #CC66FF;
+   }
+  
+   messages>event{
+    color: #33FF33;
+   }
+  
+   messages>eval{
+    color: #FF6633;
+   }
+    
+  </style>
+
+
+<handler class='jasp-message jasp-handler' id='jasp-debug' order='prev' process='skip' reprocess='[processed="true"]' fullreprocess='true' >
+  if ($$.Current.getAttribute("processed")){
+    var tagName = $$.Current.tagName.toLowerCase();
+    var htmlString = "&lt;div class='tag-info'&gt;" + tagName + "&lt;/div&gt;&lt;div class='attributes-info'&gt;";
+    for (var i = 0; i < $$.Current.attributes.length; i++){
+    var attr = $$.Current.attributes[i];
+    htmlString += "&lt;div class='attr-info'&gt;&lt;span class='name'&gt;" + attr.name + "&lt;/span&gt;&lt;span class='separator'&gt;=&lt;/span&gt;&lt;span class='value'&gt;" + attr.value + "&lt;/span&gt;&lt;/div&gt;";
+    }
+    htmlString += "&lt;/div&gt";
+    $($$.Current).append(htmlString);
+    message.processed = true;
+  }
+</handler>

@@ -1,0 +1,192 @@
+ <!DOCTYPE html>
+<html>
+    <head>
+	<title>Фотогалерея</title>
+	<link type="text/css" href="system.default.css" rel="stylesheet"></link>
+    <script type="text/javascript" src="Utils.js"></script>
+    <script type="text/javascript" src="DOM.js"></script>    
+    <script type="text/javascript" src="Events.js"></script>
+    <script type="text/javascript" src="Url.js"></script>
+    <script type="text/javascript" src="Ajax.js"></script>
+    <script type="text/javascript" src="Jasp.js"></script>
+    
+    <style type="text/css">
+	
+	body {
+	    background:black; padding:0; margin:0;
+	}
+	
+	.gallery
+	    {
+	    margin: 0 auto;
+	    width: 810px;
+	    height: 720px;
+	}
+	
+	.gallery .title .title-text
+	    {
+	    color: blue; 
+	    font-size: 200%; 
+	    font-family: serif; 
+	    position: relative; 
+	    top: 1px;
+	    top:5px; 
+	    left:50%;
+	    z-index:3;
+	}
+	
+	
+	.gallery .thumbnail-control
+	    {
+	    width:100px; 
+	    height:100px; 
+	    background:#444; 
+	    cursor:pointer;
+	}
+	
+	.gallery .left-control
+	    {
+	    float: left;	    
+	}
+	
+	.gallery .right-control
+	    {
+	    float: right;	    
+	}
+	
+	.gallery .bottom-carousel
+	    {
+	    width:100%; 
+	    height: 100px;
+	    padding:0; 
+	    margin:0 auto;
+	    background:grey;
+	    text-align: center;
+	}
+	
+	.gallery .bottom-carousel .thumbnail
+	    {
+	    width:100px; 
+	    height:100px;
+	    background:#444; 
+	    float:left;
+	    cursor:pointer;
+	}
+	
+	.gallery .bottom-carousel .thumbnails-container
+	    {
+	    width: 600px;
+	    height: 100px;
+	    overflow: hidden;
+	}
+	
+	.gallery .bottom-carousel .thumbnails
+	    {
+	    
+	}
+	
+    </style>
+    <script text='text/javascript'>
+	function Init(){
+	    var loc = DOM("body");
+	    //Убивает все в BODY
+	    //loc.innerHTML = "<div></div>";
+	    //Первый элемент класса .gallery
+	    loc = DOM.get(".gallery");
+	    loc = loc.get(".left-control");
+	    loc.onclick = ClickLeft;
+	    loc.set("HELLO, WORLD!!!");
+	    //Задает атрибут
+	    loc.set("@title", "ЛИСТАТЬ ВЛЕВО");
+	    
+	    loc.add(".mycontrol");
+	    loc.add("И еще чуть чуть текста");
+	    loc.add("<span class='text'>ПРИВЕТ!</span>");
+	    loc.del(".mycontrol");
+	    loc.style.backgroundImage = "";
+	    loc.style.margin = "10px";
+	    //Удалит галлерею
+	    //DOM.get(".gallery").del();
+	    
+	    //все элементы .thumbnail
+	    loc = DOM.all(".thumbnail");
+	    for (var i = 0; i < loc.length; i++){
+		var thumb = loc[i];
+		thumb.onclick = ClickThumb;
+		thumb.set("@title", thumb.get("@filename"));
+		var innerDiv = thumb.div(".preview-image.myimage"); // = thumb.add('<div class='preview-image myimage'></div');
+	    }
+	}
+	
+	function ClickLeft(){
+	    var loc = DOM.get(".gallery .thumbnails");
+	    if (loc.currentMargin){
+		loc.currentMargin -= 100;
+		loc.style.marginLeft = loc.currentMargin + "px";
+	    }
+	    else{
+		loc.currentMargin = 100;
+		loc.style.marginLeft = "-100px";
+	    }
+	}
+	
+	function ClickRight(){
+
+	}
+	
+	function ClickThumb(event){
+	    
+	}
+    </script>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+</head>
+    
+    <body onload="Init();">
+	<div class="gallery" id='photoGallery118'>
+	    <div class='title'>
+		<span class='title-text'>Фотогалерея</span>
+		<span class='photo-title'></span>
+	    </div>
+	    <div class='preview'>
+		<img class="preview-image" title='' src="/Images/people.jpg">
+	    </div>
+	    <div class="bottom-carousel">
+		<div class="left-control thumbnail-control"></div>	    
+		<div class="right-control thumbnail-control"></div>
+		<div class='thumbnails-container'>
+		    <div class='thumbnails'>
+			<div class="thumbnail" title="Фотография №1" filename='people.jpg' style="background: url('/images/people.jpg')"></div>
+			<div class="thumbnail" title="Фотография №1" style="background: url('/images/baboon.png')"></div>
+			<div class="thumbnail" title="Фотография №1" style="background: url('/images/background.png')"></div>
+			<div class="thumbnail" title="Фотография №1" style="background: url('/images/txt.png')"></div>
+			<div class="thumbnail" title="Фотография №1" style="background: url('/images/Upload.png')"></div>
+			<div class="thumbnail" title="Фотография №1" style="background: url('/images/tools.png')"></div>
+			<div class="thumbnail" title="Фотография №1" style="background: url('/images/murakami_summer-hp.png')"></div>
+			<div class="thumbnail" title="Фотография №1" style="background: url('/images/people.jpg')"></div>
+			<div class="thumbnail" title="Фотография №1" style="background: url('/images/baboon.png')"></div>
+			<div class="thumbnail" title="Фотография №1" style="background: url('/images/background.png')"></div>
+			<div class="thumbnail" title="Фотография №1" style="background: url('/images/txt.png')"></div>
+			<div class="thumbnail" title="Фотография №1" style="background: url('/images/Upload.png')"></div>
+			<div class="thumbnail" title="Фотография №1" style="background: url('/images/tools.png')"></div>
+			<div class="thumbnail" title="Фотография №1" style="background: url('/images/murakami_summer-hp.png')"></div>
+			<div class="thumbnail" title="Фотография №1" style="background: url('/images/people.jpg')"></div>
+			<div class="thumbnail" title="Фотография №1" style="background: url('/images/baboon.png')"></div>
+			<div class="thumbnail" title="Фотография №1" style="background: url('/images/background.png')"></div>
+			<div class="thumbnail" title="Фотография №1" style="background: url('/images/txt.png')"></div>
+			<div class="thumbnail" title="Фотография №1" style="background: url('/images/Upload.png')"></div>
+			<div class="thumbnail" title="Фотография №1" style="background: url('/images/tools.png')"></div>
+			<div class="thumbnail" title="Фотография №1" style="background: url('/images/murakami_summer-hp.png')"></div>
+			<div class="thumbnail" title="Фотография №1" style="background: url('/images/people.jpg')"></div>
+			<div class="thumbnail" title="Фотография №1" style="background: url('/images/baboon.png')"></div>
+			<div class="thumbnail" title="Фотография №1" style="background: url('/images/background.png')"></div>
+			<div class="thumbnail" title="Фотография №1" style="background: url('/images/txt.png')"></div>
+			<div class="thumbnail" title="Фотография №1" style="background: url('/images/Upload.png')"></div>
+			<div class="thumbnail" title="Фотография №1" style="background: url('/images/tools.png')"></div>
+			<div class="thumbnail" title="Фотография №1" style="background: url('/images/murakami_summer-hp.png')"></div>
+		    </div>
+		</div>
+	    </div>
+	</div>
+    </body>
+</html>
+
