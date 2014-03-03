@@ -1,7 +1,0 @@
-
-
-
-
-
-
-<div class="line"><div class="element"></div></div><div class="line"><div class="element"></div></div><div class="line"><div class="element for" state="for">for</div></div><div class="line"><div class="element for" state="for">for</div></div><div class="line"><div class="element for" state="for">for</div></div><div class="line"><div class="element for" state="for">for</div></div><div class="line current"><div class="element active">function</div></div><div class="line"><div class="element"></div></div><div class="line"><div class="element for" state="for">for</div></div>    <input type="text" style="width: 2px; border: none; opacity: 0.1; position: absolute; background-color: red; top: 214px; left: 101px; " onfocus="this.style.backgroundColor=&quot;red&quot;;" class="current">

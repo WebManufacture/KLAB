@@ -1,5 +1,0 @@
-{
-	"compileSettings" : {},
-	"cncList" : [ "pcbcnc1", "pcbcnc2" ],
-	"defaultCnc" : "pcbcnc1"
-}

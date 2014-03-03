@@ -1,8 +1,0 @@
-[{
-	"type": "pies",
-"pies": 9
-}, 
-{
-	"type":"money",
-	"count":"100"
-}]

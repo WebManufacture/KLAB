@@ -3,8 +3,8 @@ var Url = require('url');
 var fs = require('fs');
 var Path = require('path');
 
-require(Path.resolve("./Modules/Node/Utils.js"));
-var Files = require(Path.resolve("./Modules/Node/Files.js"));
+require(Path.resolve("./ILAB/Modules/Utils.js"));
+var Files = require(Path.resolve("./ILAB/Modules/Files.js"));
 
 KLabServer = function(config, router){
 	this.Config = config;
@@ -13,7 +13,7 @@ KLabServer = function(config, router){
 		   GET : function(context){
 				if (context.query["action"] == "edit" || context.query["action"] == "create"){
 				   context.res.setHeader("Content-Type", "text/html; charset=utf-8");
-				   fs.readFile("./Klab/TextEditor.htm", "utf8", function(err, result){   
+				   fs.readFile(Path.resolve("./Klab/TextEditor.htm"), "utf8", function(err, result){   
 					   if (err){
 						   context.finish(500, "Not found files view page " + err);
 						   return;
@@ -37,7 +37,7 @@ KLabServer = function(config, router){
 				   }
 				   if (stat.isDirectory()){
 					   context.res.setHeader("Content-Type", "text/html; charset=utf-8");
-					   fs.readFile("./Klab/files.htm", "utf8", function(err, result){   
+					   fs.readFile(Path.resolve("./Klab/files.htm"), "utf8", function(err, result){   
 						   if (err){
 							   context.finish(500, "Not found files view page " + err);
 							   return;
