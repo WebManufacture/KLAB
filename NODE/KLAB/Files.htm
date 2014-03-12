@@ -2,20 +2,24 @@
 <head>
 	
 	<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
-	<script type="text/javascript" src="http://services.web-manufacture.net/Base/v1.3/Utils.js"></script>
-	<script type="text/javascript" src="http://services.web-manufacture.net/Base/v1.3/DOM.js"></script>
-	<script type="text/javascript" src="http://services.web-manufacture.net/Base/v1.3/Url.js"></script>
-	<script type="text/javascript" src="http://services.web-manufacture.net/Base/v1.3/Events.js"></script>
-	<script type="text/javascript" src="http://services.web-manufacture.net/Base/v1.3/Log.js"></script>
-	<script type="text/javascript" src="http://services.web-manufacture.net/Base/v1.3/Net.js"></script>
-	<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Jasp.js"></script>
-	<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/Modules.js"></script>
-	<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.3/ui.js"></script>
+	<script type="text/javascript" src="http://services.web-manufacture.net/Base/v1.4/Utils.js"></script>
+	<script type="text/javascript" src="http://services.web-manufacture.net/Base/v1.4/DOM.js"></script>
+	<script type="text/javascript" src="http://services.web-manufacture.net/Base/v1.4/Url.js"></script>
+	<script type="text/javascript" src="http://services.web-manufacture.net/Base/v1.4/Events.js"></script>
+	<script type="text/javascript" src="http://services.web-manufacture.net/Base/v1.4/Log.js"></script>
+	<script type="text/javascript" src="http://services.web-manufacture.net/Base/v1.4/Net.js"></script>
+	<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.4/Jasp.js"></script>
+	<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.4/Modules.js"></script>
+	<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.4/ui.js"></script>
 	
 	<link href="http://services.web-manufacture.net/Styles/System.default.css" rel="stylesheet">
 	<title>Server Files</title>
 	
 	<script type="text/javascript">
+		M.ServicesUrl = "http://services.web-manufacture.net";
+		M.ModulesUrl = "http://modules.web-manufacture.net";
+		M.SystemUrl = "http://system.web-mnanufacture.net";
+		
 		Notify = {};
 		
 		Notify.Show = Notify.info = Notify.Info = function (message) {
@@ -72,6 +76,13 @@
 			FS.server = Net.GetTunnel();
 			FS.CurrentDir = window.location.pathname.replace(/\/\//g, "/");
 			FS.ReloadSystem();
+			
+			Events.on("onmoduleregistered", "http://services.web-manufacture.net/ui/toolbars.htm", function(module){
+				var sb = DOM(".spien-bar");
+				if (sb){
+					sb.del();
+				}
+			});
 		};
 		
 		FS.ReloadSystem = function() {
@@ -125,7 +136,7 @@
 		FS.InitFileElement = function(elem) {
 			var fileName = elem.fileName;// = elem.innerHTML;
 			elem.add(".file");			
-			elem.div(".name", fileName);
+			var nameDiv = elem.div(".name", fileName);
 			var splt = fileName.split(".");
 			if (splt.length < 2){
 				splt.push("unknown");	
@@ -242,8 +253,8 @@
 				if (FS.CurrentDir == "/") FS.CurrentDir = "";
 				FS.CurrentDir += "/" + this.name;				
 			}	
-			//history.pushState(null, FS.CurrentDir, FS.CurrentDir);
-			location.pathname = FS.CurrentDir;
+			history.pushState(null, FS.CurrentDir, FS.CurrentDir);
+			//location.pathname = FS.CurrentDir;
 			FS.ReloadSystem();
 		};
 		
@@ -487,7 +498,7 @@
 			padding-left: 5px;
 			padding-right: 100px;
 			box-sizing: border-box;
-			max-width: 800px;
+			max-width: 600px;
 			-moz-box-sizing: border-box;
 		}
 		
@@ -615,7 +626,7 @@
 </head>
 <body>
 	<include url='http://services.web-manufacture.net/UI/toolbars.htm'></include>
-	<div class='header toolbar'>
+	<div class='toolbar fixed'>
 		<div class='menuitem file-manager-button' id='create-file-button' icon="http://system.web-manufacture.net/images/document-small.png" onclick="FS.CreateNewDoc()">
 			Создать
 		</div>
@@ -631,7 +642,7 @@
 		<div contenteditable="true" class="search-elem"></div>
 	</div> 
 	
-	<div id="Notify">
+	<div id="Notify" class='invisible'>
 	</div>
 	<div id="files-block" class="files-block" title="File System">
 		
