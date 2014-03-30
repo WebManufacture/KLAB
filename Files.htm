@@ -87,7 +87,6 @@
 		
 		FS.ReloadSystem = function() {
 			FS.Loaded = false;
-			FS.Tree.clear();
 			FS.server.browse(FS.CurrentDir, FS.LoadTreeComplete);
 		};
 		
@@ -100,6 +99,7 @@
 				if (typeof files == 'string'){
 					files = JSON.parse(files);
 				}
+				FS.Tree.clear();
 				if (FS.CurrentDir != "/"){
 					var fname = "..";
 					var file = FS.Tree.div();
