@@ -336,19 +336,24 @@
 		
 		FS.CreateNewDoc = function() {
 			var fileName = FS.InputField.innerHTML;
-			if(FS.InputField.innerHTML.length > 0){
-				var file = FS.Tree.div('.File');
-				file.div(".name", fileName);
-				file.fileName = fileName;
+			var cpath = location.href;
+			if (!cpath.ends('/')) cpath += "/" 
+			if(fileName.length > 0){
 				if (fileName.lastIndexOf(".") > 0){
+					var file = FS.Tree.div('.File');
+					//file.div(".name", fileName);
+					file.fileName = fileName;
 					file.attr("ext",fileName.substr(fileName.lastIndexOf(".") + 1));
+					FS.InitFileElement(file);
+					Notify.Show(file.fileName + " file created");
+					window.open(cpath + fileName + "?action=create");
 				}
-				FS.InitFileElement(file);
-				Notify.Show(file.fileName + " file created");
-				var url = new Url();
-				url.repath("TextEditor.htm");
-				url.addParam("url", encodeURIComponent(file.fileName));
-				window.open(url);
+				else{
+					Net.get(cpath + fileName + "?action=dir", "", function(){
+						location.href = cpath + fileName;						
+					})
+
+				}
 			};
 			
 			//var dialog = W.get(".edit-name-dialog");
