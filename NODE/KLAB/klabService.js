@@ -8,22 +8,24 @@ useModule("Channels.js");
 var Files = useModule("Files.js");
 var Logger = useModule('Logger.js');
 useModule('Async.js');
-var StaticFilesService = useService('StaticService');
 
 function KLabService(parentNode){
-	
+	KLabService.super_.apply(this, arguments);
 };
 
-Inherit(KLabService, StaticFilesService, {
-	loading: function(node){
-		
+Inherit(KLabService, FilesServiceNode, {
+	load: function(node){
+		var result = true;
+		if (KLabService.base.load){
+			result = KLabService.base.load.apply(this, arguments);
+		}
 		var fpath = this.FormatPath(this.basepath);
 		fs.readFile(fpath, 'utf8', function(err, result){
 			if (!err){
 				serv.defaultTemplate = result;
 			}
 		});
-	
+	  
 		router.for("Main","/>", {
 			   GET : function(context){
 					if (context.query["action"] == "edit" || context.query["action"] == "create"){
@@ -123,19 +125,8 @@ Inherit(KLabService, StaticFilesService, {
 			   }*/
 		   });
 		router.for("Main","/<", filesRouter);
+		return result;
 	},
-	
-	starting : function(node){
-		
-	},
-
-	stopping : function(node){
-		
-	},
-	
-	unloading : function(node){
-		
-	}
 });
 
 	
