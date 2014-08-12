@@ -2,15 +2,7 @@
 <head>
 	
 	<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
-	<script type="text/javascript" src="http://services.web-manufacture.net/Base/v1.4/Utils.js"></script>
-	<script type="text/javascript" src="http://services.web-manufacture.net/Base/v1.4/DOM.js"></script>
-	<script type="text/javascript" src="http://services.web-manufacture.net/Base/v1.4/Url.js"></script>
-	<script type="text/javascript" src="http://services.web-manufacture.net/Base/v1.4/Events.js"></script>
-	<script type="text/javascript" src="http://services.web-manufacture.net/Base/v1.4/Log.js"></script>
-	<script type="text/javascript" src="http://services.web-manufacture.net/Base/v1.4/Net.js"></script>
-	<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.4/Jasp.js"></script>
-	<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.4/Modules.js"></script>
-	<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.4/ui.js"></script>
+	<script type="text/javascript" src="http://services.web-manufacture.net/Base/v1.5?join=true"></script>
 	
 	<link href="http://services.web-manufacture.net/Styles/System.default.css" rel="stylesheet">
 	<title>Server Files</title>
@@ -87,7 +79,7 @@
 		
 		FS.ReloadSystem = function() {
 			FS.Loaded = false;
-			FS.server.browse(FS.CurrentDir, FS.LoadTreeComplete);
+			FS.server.browse(new Url(".." + FS.CurrentDir) + "", FS.LoadTreeComplete);
 		};
 		
 		FS.GetActiveFiles = function() {
@@ -631,6 +623,7 @@
 </head>
 <body>
 	<include url='http://services.web-manufacture.net/UI/toolbars.htm'></include>
+	<include url='http://services.web-manufacture.net/Authentication/Authentication.htm'></include>
 	<div class='toolbar fixed'>
 		<div class='menuitem file-manager-button' id='create-file-button' icon="http://system.web-manufacture.net/images/document-small.png" onclick="FS.CreateNewDoc()">
 			Создать
