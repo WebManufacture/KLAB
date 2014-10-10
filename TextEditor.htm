@@ -354,6 +354,7 @@
 
 			Editor.SaveError = function() {
 				Notify.Error("Ошибка сохранения!");
+				alert("Ошибка сохранения!!!!");
 				DOM.get(".menuitem.save").del(".disabled");
 				Editor.SaveInProgress = false;
 			};
