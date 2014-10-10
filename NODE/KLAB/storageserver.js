@@ -69,7 +69,7 @@ StorageServer.prototype = {
 					finish(200, JSON.stringify(obj));
 				}
 				else{
-					finish(404, "null", "text/json");
+					finish(404, "Storage action returns empty object", "text/plain");
 				}
 				return;
 			}
