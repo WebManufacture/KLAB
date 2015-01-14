@@ -526,6 +526,7 @@
 			});
 
 			WS.DOMload(Editor.Init);
+			
 
 		</script>
 
@@ -748,9 +749,6 @@
 			</div>
 			<div class="separator">
 			</div>
-			<div class="menuitem" tooltip="RUN" icon="http://system.web-manufacture.net/Images/exec.png"
-				 onclick="window.open('system.index.htm?url=' + encodeURIComponent(Editor.GetFileUrl()));">
-			</div>
 			<div class="menuitem" tooltip="Запустить" icon="http://system.web-manufacture.net/Images/emblem-system.png"
 				 onclick="Editor.RunFile();" style="background-image: url(http://system.web-manufacture.net/Images/emblem-system.png);
 													background-position: 50% 50%; background-repeat: no-repeat no-repeat;">
@@ -765,22 +763,25 @@
 <div class="menuitem" tooltip="Stop on Server" icon="http://cdn1.iconfinder.com/data/icons/CrystalClear/32x32/actions/exit.png" onclick="Editor.ServerStop();">
 </div>
 -->
-			<div class="menuitem" tooltip="Open log Window" icon="http://cdn1.iconfinder.com/data/icons/CrystalClear/32x32/apps/xconsole.png"
+			<div class="menuitem invisible" tooltip="RUN" icon="http://system.web-manufacture.net/Images/exec.png"
+				 onclick="window.open('system.index.htm?url=' + encodeURIComponent(Editor.GetFileUrl()));">
+			</div>
+			<div class="menuitem invisible" tooltip="Open log Window" icon="http://cdn1.iconfinder.com/data/icons/CrystalClear/32x32/apps/xconsole.png"
 				 onclick="Editor.OpenLogWindow();">
 			</div>
-			<div class="menuitem" id='ServerToolBtn' class='server-tool' tooltip="ServerTool"
+			<div class="menuitem invisible" id='ServerToolBtn' class='server-tool' tooltip="ServerTool"
 				 icon='http://cdn2.iconfinder.com/data/icons/stilllife/48x48/apps/gnome-server-config.png'>
 			</div>
 			<div class="separator">
 			</div>
-			<input id='urlBar' type='text' />
-			<div class='menuitem' tooltip='Go URL' icon='http://cdn1.iconfinder.com/data/icons/snowish/48x48/actions/forward.png'
+			<input id='urlBar' type='text' class='invisible' />
+			<div class='menuitem  invisible' tooltip='Go URL' icon='http://cdn1.iconfinder.com/data/icons/snowish/48x48/actions/forward.png'
 				 onclick='Editor.GoUrl(DOM("#urlBar").value, event.ctrlKey);'>
 			</div>
-			<div class='menuitem' tooltip='Go URL ALL' icon='http://cdn1.iconfinder.com/data/icons/snowish/48x48/actions/finish.png'
+			<div class='menuitem  invisible' tooltip='Go URL ALL' icon='http://cdn1.iconfinder.com/data/icons/snowish/48x48/actions/finish.png'
 				 onclick='Editor.GoUrlAll(DOM("#urlBar").value, event.ctrlKey);'>
 			</div>
-			<div class='menuitem' tooltip='Go URL in new window' icon='http://cdn3.iconfinder.com/data/icons/snowish/48x48/actions/document-new.png'
+			<div class='menuitem  invisible' tooltip='Go URL in new window' icon='http://cdn3.iconfinder.com/data/icons/snowish/48x48/actions/document-new.png'
 				 onclick='Editor.GoUrl(DOM("#urlBar").value, true);'>
 			</div>
 			<div class="status">
