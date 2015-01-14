@@ -12,6 +12,36 @@
 		M.ModulesUrl = "http://modules.web-manufacture.net";
 		M.SystemUrl = "http://system.web-mnanufacture.net";
 		
+		
+		WS.DOMload(function(){
+			WS.Body.ondragover = function(event) {
+				var types = event.dataTransfer.types;
+				if (types[2] && types[2] == "Files"){ event.preventDefault(); return true; }
+				return false;
+			};	
+			
+			function upload(file){
+				Notify.Show("Uploading " + file.name + "");
+				var xhr = new XMLHttpRequest();
+				xhr.open('POST',  window.location + "/" + file.name, true);
+				xhr.onload = function(e) { Notify.Show("file " + file.name + " uploaded!"); };
+				xhr.send(file);
+			}
+			
+			WS.Body.ondrop = function(event) {
+				var types = event.dataTransfer.types;
+				var files = event.dataTransfer.files;
+				if (types[2] && types[2] == "Files" && files && files.length > 0){ 
+					event.preventDefault(); 
+					for (var i = 0; i < files.length; i++){
+						upload(files[i]);
+					}
+					return true; 
+				}
+				return false;
+			};
+		})
+		
 		Notify = {};
 		
 		Notify.Show = Notify.info = Notify.Info = function (message) {
@@ -62,7 +92,7 @@
 		FS.Init = function() {
 			FS.Loaded = false;
 			FS.Tree = DOM.get(".files-block .tree-container");
-			FS.InputField = DOM.get('.search-elem');
+			FS.InputField = DOM("#FilterInput");
 			FS.InputField.onkeyup = FS.SearchFile;
 			//Drag.NoBodyDrop = true;
 			FS.server = Net.GetTunnel();
@@ -79,11 +109,12 @@
 		
 		FS.ReloadSystem = function() {
 			FS.Loaded = false;
-			FS.server.browse(new Url(".." + FS.CurrentDir) + "", FS.LoadTreeComplete);
+			LoadingMask.show();
+			FS.server.browse(new Url(".." + FS.CurrentDir) + "", FS.LoadTreeComplete);			
 		};
 		
 		FS.GetActiveFiles = function() {
-			return FS.Tree.all(".File.selected");
+			return FS.Tree.all(".file.selected");
 		};
 		
 		FS.LoadTreeComplete = function(files, status) {
@@ -119,6 +150,7 @@
 					}
 				}
 				FS.Loaded = true;
+				LoadingMask.hide();
 			}
 			else{
 				Notify.Error("Browse aborted");
@@ -156,11 +188,13 @@
 					elem.add(".back");		
 				}
 				elem.ondblclick = FS.DirActivate;
+				
 			}
 			else{
 				elem.add(".dir");	
 				elem.onclick = FS.DirClick;
 				elem.ondblclick = FS.DirActivate;
+				elem.touchmove = FS.DirActivate;
 			}
 			elem.add('@name', fileName.toLowerCase());
 			//Drag.MakeDraggable(elem);
@@ -179,6 +213,7 @@
 		};
 		
 		FS.ClearTagFilter = function(){
+			FS.InputField.value='';
 			FS.Tree.all('.file').show();
 		};
 		
@@ -283,28 +318,34 @@
 			window.open(url);
 		};
 		
-		FS.DeleteDoc = function() {
+		FS.DeleteDocs = function() {
 			var elements = FS.GetActiveFiles();
 			
 			if (!elements.length) {
 				alert('Нет выбранных файлов');
 				return;
 			};
+			
 			var confirmString = ' файлов';
 			if(elements.length == 1) confirmString = ' файл';
 			if(elements.length > 1 && elements.length < 5) confirmString =  'файла';
 			
 			if(confirm('Вы действительно хотите удалить ' + (elements.length) + confirmString + '?')){
-				for (var i = 0; i < elements.length; i++) {
-					//AX.Action("delete", elements[i].fileName);
-					elements[i].del();
-				};	   
-			};
-			
+				for(var i = 0; i < elements.length; i++){
+					FS.DeleteDoc(elements[i]);
+				}
+			};			
+		};
+		
+		FS.DeleteDoc = function(element) {
+			Net.Del(window.location.href + "/" + element.fileName, function(message){
+				Notify.info(message);
+				element.del();
+			});			
 		};
 		
 		FS.SearchFile = function(){
-			var text = FS.InputField.innerHTML;
+			var text = FS.InputField.value;
 			text = text.trim("\n");
 			text = text.trim(" ");
 			text = text.replace("<br/>", "");
@@ -318,7 +359,7 @@
 			else{
 				var files = FS.Tree.all(".file");
 				files.show();
-				FS.InputField.innerHTML = "";
+				FS.InputField.value = "";
 			};
 		};
 		
@@ -327,7 +368,7 @@
 		};
 		
 		FS.CreateNewDoc = function() {
-			var fileName = FS.InputField.innerHTML;
+			var fileName = FS.InputField.value;
 			var cpath = location.href;
 			if (!cpath.ends('/')) cpath += "/" 
 			if(fileName.length > 0){
@@ -431,20 +472,19 @@
 		#Notify{
 			background-color: white;
 			border: 1px solid navy;
-			border-radius: 10px 10px 10px 10px;
+			border-radius: 10px;
 			cursor: default;
-			font-size: 16px;
-			height: 300px;
-			text-align: left;
-			width: 8%;
-			opacity: 0.5;
-			position: fixed;
-			top: 1%;
-			right: 1%;
-			z-index: 20;
-			padding: 7px;
 			font-size: 12px;
+			height: 86%;
+			opacity: 0.5;
 			overflow: hidden;
+			padding: 7px;
+			position: fixed;
+			right: 1%;
+			text-align: left;
+			top: 10%;
+			width: 8%;
+			z-index: 20;
 		}
 		
 		#Notify .event{
@@ -457,6 +497,43 @@
 		
 		#Notify .event.error{
 			color: red;
+		}
+		
+		#LoadingMask{
+			position: fixed;
+			z-index: 1000;
+			width: 100%;
+			height: 100%;
+			background-color: rgba(80,80,80,0.3);
+		}
+		
+		#LoadingMask .loading-text{
+			background-color: white;
+			border: 1px solid black;
+			border-radius: 5px;
+			color: navy;
+			font-family: verdana;
+			font-size: 20px;
+			left: 45%;
+			padding: 30px 0;
+			position: absolute;
+			text-align: center;
+			top: 33%;
+			width: 170px;
+		}
+		
+		#FilterBlock{
+			width: 250px;
+			float: left;
+			margin-left: 10px;
+		}
+		
+		#FilterBlock #FilterInput{
+			
+		}
+		
+		#HeaderBar.toolbar{
+			text-align: left;
 		}
 		
 		.search-elem {
@@ -624,11 +701,15 @@
 <body>
 	<include url='http://services.web-manufacture.net/UI/toolbars.htm'></include>
 	<include url='http://services.web-manufacture.net/Authentication/Authentication.htm'></include>
-	<div class='toolbar fixed'>
+	<div class='toolbar' id='HeaderBar'>
+		<div id='FilterBlock'>
+			<div class='title'>Фильтр и поиск:</div>
+			<input id="FilterInput" type='text'/>
+		</div>
 		<div class='menuitem file-manager-button' id='create-file-button' icon="http://system.web-manufacture.net/images/document-small.png" onclick="FS.CreateNewDoc()">
 			Создать
 		</div>
-		<div class='menuitem file-manager-button' id='delete-file' icon="http://system.web-manufacture.net/images/delete-mini.png" onclick="FS.DeleteDoc()">
+		<div class='menuitem file-manager-button' id='delete-file' icon="http://system.web-manufacture.net/images/delete-mini.png" onclick="FS.DeleteDocs()">
 			Удалить
 		</div>
 		<div class="menuitem round" icon="http://system.web-manufacture.net/images/ButtonUSSR.png" onclick="FS.ClearTagFilter();">
@@ -637,13 +718,16 @@
 		<div class="menuitem round" icon="" onclick="FS.ClearSelect();">
 			Убрать выделение
 		</div>
-		<div contenteditable="true" class="search-elem"></div>
+		
 	</div> 
 	
-	<div id="Notify" class='invisible'>
+	<div id="Notify" class=''>
+		<div class="event info">Вы можете перетащить сюда файлы для загрузки в данную папку.</div>
 	</div>
 	<div id="files-block" class="files-block" title="File System">
-		
+		<div id='LoadingMask'>
+			<div class='loading-text'>Loading...</div>
+		</div>
 		<div class="tree-container">
 			
 		</div>  

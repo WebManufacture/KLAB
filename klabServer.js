@@ -8,6 +8,7 @@ var Files = require(Path.resolve("./ILAB/Modules/Files.js"));
 
 KLabServer = function(config, router){
 	this.Config = config;
+	this.noCollectData = true;
 	var filesRouter = Files(config, this);
 	router.for("Main","/>", {
 		   GET : function(context){
@@ -79,7 +80,8 @@ KLabServer = function(config, router){
 			   });
 			   return false;
 		   },
-			/*POST : function(context){
+		   POST : function(context){
+			   if (context.completed) return true;
 			   var path = context.pathName;
 			   if (config.basepath){
 					 path = config.basepath + context.pathName;
@@ -88,24 +90,47 @@ KLabServer = function(config, router){
 					path = "." + path;   
 			   }
 			   path = Path.resolve(path);
-			   fs.stat(path, function(err, stat){
-				   if (err){
-					   //create file || dir
-					   context.continue();   
-					   return;
-				   }
-				   if (stat.isDirectory()){
-					   context.res.setHeader("Content-Type", "text/html; charset=utf-8");
-					   //put files heres
-					   return;
-				   }
-				   if (stat.isFile()){
-						//replace file content
-				   }
-				   context.continue();
+			   var writeable = fs.createWriteStream(Path.resolve(path),{'flags': 'w', 'encoding': 'binary'});
+			   if (context.data) console.error("DATA DETECTED!");
+			   context.req.on("data", function(data){
+				   writeable.write(data);
+			   });
+			   context.req.on("end", function(){
+				   context.finish(200);
+				   context.continue();					   
 			   });
 			   return false;
-		   }*/
+		   },
+			DELETE : function(context){
+				if (context.completed) return true;
+				var path = context.pathName;
+				if (config.basepath){
+					path = config.basepath + context.pathName;
+				}
+				if (path.indexOf(".") != 0){
+					path = "." + path;   
+				}
+				path = Path.resolve(path);
+				fs.exists(path, function(exists){
+					if (!exists){
+						context.finish(404, "file " + path + " not found");
+						return;
+					}
+					info("Deleting " + path);
+					fs.unlink(path, function(err, result){
+						if (err){
+							Channels.emit("/file-system/action.delete.error", path,err);
+							context.finish(500, "Delete error " + path + " " + err);	
+							context.continue();
+							return;
+						}			
+						Channels.emit("/file-system/action.delete", path);
+						context.finish(200, "Deleted " + path);			
+						context.continue();
+					});
+				});
+				return false;
+			}
 	   });
 	router.for("Main","/<", filesRouter);
 };
