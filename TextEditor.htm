@@ -284,6 +284,15 @@
 					}
 				}
 			};
+			
+			Editor.GetStorageKey = function(datetime){
+				var domain = Request.Params.UserDomain;
+				if (!domain) domain = location.host;
+				var path = Request.Params.SystemPath;
+				if (!path) path = location.pathname.replace('/' + Editor.fileName, '');
+				var key2 = (datetime + '_' + domain + "/" + path + "/" + Editor.fileName);
+				return key2;
+			}
 
 			Editor.SaveFile = function() {
 				if (Editor.SaveInProgress && Editor.SaveRequest) {
@@ -295,27 +304,27 @@
 				var content = Editor.TextEditor.getValue();
 
 				//код local storage
-				/*var keyArray = [];
-            var key1 = Editor.HistoryKey;
-            var str = window.localStorage.getItem(key1);
-            var i = 0;
-            // if (str != null){
-            if (str) {
-                keyArray = str.split(",");
-                i = keyArray.length;
-            }
+				var keyArray = [];
+				var key1 = Editor.HistoryKey;
+				var str = window.localStorage.getItem(key1);
+				var i = 0;
+				// if (str != null){
+				if (str) {
+					keyArray = str.split(",");
+					i = keyArray.length;
+				}
 
-            if (i >= 20) { keyArray.shift(); i--; }
+				if (i >= 20) { keyArray.shift(); i--; }
 
-            var now = new Date();
-            now = now.valueOf();
+				var now = new Date();
+				now = now.valueOf();
 
-            keyArray[i] = now;
-            var str = keyArray.join(",");
-            window.localStorage.setItem(key1, str); //должна быть строка
-            var key2 = (now + '_' + Request.Params.UserDomain + "/" + Request.Params.SystemPath + "/" + Editor.fileName);
-            window.localStorage.setItem(key2, content);
-			*/
+				keyArray[i] = now;
+				var str = keyArray.join(",");
+				window.localStorage.setItem(key1, str); //должна быть строка
+				var key2 = (Editor.GetStorageKey(now));
+				window.localStorage.setItem(key2, content);
+
 				var req = XH();
 				var url = "";
 
@@ -350,6 +359,11 @@
 				req.onerror = Editor.SaveError;
 				req.send(content);
 				Editor.SaveRequest = req;
+				setTimeout(function(){
+					if (Editor.SaveInProgress){
+						Editor.SaveError();
+					}
+				}, 20000);
 			};
 
 			Editor.SaveError = function() {
@@ -362,8 +376,8 @@
 			Editor.ShowHistory = function() {
 				//--------------------------------
 				var vh = DOM.get("#VersionHistory"); //ссылка на див со списком сохранений
-				vh.del(".invisible");
-				vh.clear(); //.innerHTML = "";
+				vh.show();
+				vh.all(".saveTime").del(); //.innerHTML = "";
 				var keyArray = [];
 				var str = window.localStorage.getItem(Editor.HistoryKey);
 				if (str) {
@@ -373,8 +387,8 @@
 				for (var j = 0; j < keyArray.length; j++) {
 					var saveDate = new Date(parseInt(keyArray[j]));
 					if (isNaN(saveDate)) continue;
-					var key2 = (keyArray[j] + '_' + Request.Params.UserDomain + "/" + Request.Params.SystemPath + "/" + Editor.fileName);
-					var divST = vh.div(".saveTime.keyAr", saveDate.formatDateRus(".") + " " + saveDate.formatTime(".") + "    " + key2);
+					var key2 = (Editor.GetStorageKey(keyArray[j]));
+					var divST = vh.div(".saveTime.keyAr", saveDate.formatDateRus(".") + " " + saveDate.formatTime(".") + "    " + Editor.fileName);
 					divST.Key2 = key2;
 					divST.onclick = Editor.LoadHistory;
 					//var h=keyArray[j].getHours();
@@ -396,8 +410,6 @@
 
 			Editor.LoadHistory = function() {
 				//this.saveDate;
-
-
 				//var dte = new Date("129123934123");
 				var content = window.localStorage.getItem(this.Key2);
 				Editor.TextEditor.setValue(content);
@@ -537,15 +549,11 @@
 			}
 			#VersionHistory
 			{
-				z-index: 11111;
-				position: fixed;
 				left: 40%;
 				top: 40%;
-				background-color: white;
 				border: solid 1px red;
-				width: 200px;
-				height: 200px;
-				opacity: 1;
+				width: 400px;
+				height: 300px;
 			}
 			#VersionHistory .keyAr
 			{
@@ -728,6 +736,7 @@
 		</div>
 		<include url='http://services.web-manufacture.net/ui/Toolbars.htm'></include>
 		<include url='http://services.web-manufacture.net/ui/FrameWin.htm'></include>
+		<include url='http://services.web-manufacture.net/ui/Win.htm'></include>
 		<div id='Toolbar' class="header toolbar">
 			<div class="menuitem save" tooltip="Сохранить" icon="http://system.web-manufacture.net/Images/save-mini.png"
 				 onclick="Editor.SaveFile();" style="background-image: url(http://system.web-manufacture.net/Images/save-mini.png);
@@ -787,7 +796,7 @@
 			<div class="status">
 			</div>
 		</div>
-		<div id='VersionHistory' class='invisible' onclick="this.hide();">
+		<div id='VersionHistory' class='invisible window smallwindow' title='История' onclick='this.hide();'>
 		</div>
 	</body>
 </html>
