@@ -6,7 +6,7 @@ var Path = require('path');
 require(Path.resolve("./ILAB/Modules/Utils.js"));
 var Files = require(Path.resolve("./ILAB/Modules/Files.js"));
 
-KLabServer = function(config, router){
+KLabServer = function(config, router, logger){
 	this.Config = config;
 	this.noCollectData = true;
 	var filesRouter = Files(config, this);
@@ -47,7 +47,6 @@ KLabServer = function(config, router){
 						   fs.writeFile(path, null, null, function(err, result){ 
 							   context.res.setHeader("Content-Type", "text/plain; charset=utf-8");
 							   context.finish(200, result);
-							   context.continue();
 						   });
 						   return;
 					   }
@@ -55,7 +54,6 @@ KLabServer = function(config, router){
 						   fs.mkdir(path, null, function(err, result){ 
 							   context.res.setHeader("Content-Type", "text/plain; charset=utf-8");
 							   context.finish(200, result);
-							   context.continue();
 						   });
 						   return;
 					   }
@@ -90,14 +88,14 @@ KLabServer = function(config, router){
 					path = "." + path;   
 			   }
 			   path = Path.resolve(path);
+			   logger.log("Writing " + path);
 			   var writeable = fs.createWriteStream(Path.resolve(path),{'flags': 'w', 'encoding': 'binary'});
 			   if (context.data) console.error("DATA DETECTED!");
 			   context.req.on("data", function(data){
 				   writeable.write(data);
 			   });
 			   context.req.on("end", function(){
-				   context.finish(200);
-				   context.continue();					   
+				   context.finish(200);				   
 			   });
 			   return false;
 		   },
@@ -121,12 +119,10 @@ KLabServer = function(config, router){
 						if (err){
 							Channels.emit("/file-system/action.delete.error", path,err);
 							context.finish(500, "Delete error " + path + " " + err);	
-							context.continue();
 							return;
 						}			
 						Channels.emit("/file-system/action.delete", path);
 						context.finish(200, "Deleted " + path);			
-						context.continue();
 					});
 				});
 				return false;
@@ -135,7 +131,7 @@ KLabServer = function(config, router){
 	router.for("Main","/<", filesRouter);
 };
 	
-module.exports = function(config, router){
-	return new KLabServer(config, router);
+module.exports = function(config, router, r2, logger){
+	return new KLabServer(config, router, logger);
 }
 
