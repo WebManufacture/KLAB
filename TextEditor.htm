@@ -78,7 +78,8 @@
 			Editor.Init = function() {
 				var url = null;
 				Editor.fileName = null;
-				var req = XH();
+				var req = XH();				
+				//window.localStorage.clear();
 				if (Request.Params.url) {
 					Editor.fileName = Request.Params.url;
 					url = Request.GetUrl(Editor.fileName);
