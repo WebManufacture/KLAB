@@ -31,7 +31,7 @@
 			WS.Body.ondrop = function(event) {
 				var types = event.dataTransfer.types;
 				var files = event.dataTransfer.files;
-				if (types[2] && types[2] == "Files" && files && files.length > 0){ 
+				if (types && types.length && (types[0] == "Files" || types[0]== "application/x-moz-file") && files && files.length > 0){ 
 					event.preventDefault(); 
 					for (var i = 0; i < files.length; i++){
 						upload(files[i]);
@@ -701,7 +701,7 @@
 <body>
 	<include url='http://services.web-manufacture.net/UI/toolbars.htm'></include>
 	<include url='http://services.web-manufacture.net/Authentication/Authentication.htm'></include>
-	<div class='toolbar' id='HeaderBar'>
+	<div class='toolbar header fixed' id='HeaderBar'>
 		<div id='FilterBlock'>
 			<div class='title'>Фильтр и поиск:</div>
 			<input id="FilterInput" type='text'/>
