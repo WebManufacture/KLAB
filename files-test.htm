@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<head>
+	
+	<meta content="text/html; charset=utf-8" http-equiv="Content-Type">
+	<script type="text/javascript" src="http://services.web-manufacture.net/Base/v1.5?join=true"></script>
+	
+	<link href="http://services.web-manufacture.net/Styles/System.default.css" rel="stylesheet">
+	<title>Server Files</title>
+	
+	<script type="text/javascript" src="http://klab.web-manufacture.net/KLAB/files-widget.js">
+	</script>
+	
+	<style type="text/css">
+				.tree-container
+		{
+			position: relative;
+			margin-top: 10px;
+			padding-left: 5px;
+			padding-right: 100px;
+			box-sizing: border-box;
+			max-width: 600px;
+			-moz-box-sizing: border-box;
+		}
+		
+		
+		.filter
+		{
+			color: #9900FF;
+			margin: 5px 10px 10px 5px;
+			display: block;
+			float: left;
+		}
+		
+		.filter.active
+		{
+			background-color: #CCFF33;
+		}
+		
+		.tree-container .file, .dir, .link
+		{
+			color: gray;
+			display: block;
+			clear: both;
+			padding-left: 50px;
+			padding-top: 5px;
+			padding-bottom: 5px;
+			cursor: pointer;
+		}
+		
+		.link.back{
+			background-image: url("http://cdn1.iconfinder.com/data/icons/customicondesignoffice5/24/go-back.png");
+    		background-position: 20px center;
+    		background-repeat: no-repeat;
+		}
+		
+		.dir{
+			background-image: url("http://cdn1.iconfinder.com/data/icons/momenticons-basic/16x16/folderopen1.png");
+    		background-position: 20px center;
+    		background-repeat: no-repeat;
+			
+		}
+		
+		.tree-container .tag
+		{
+			color: #3366AA;
+			display: inline;
+			float: right;
+		}
+		
+		.tree-container .file.htm, .tree-container .file.html
+		{
+			color: navy;
+		}
+		
+		.tree-container .file.css
+		{
+			color: #FF00CC;
+		}
+		
+		.tree-container .file.js
+		{
+			color: #007766;
+		}
+		
+		.tree-container .file.ERROR
+		{
+			background-color: #FF7766;
+		}
+		
+		.files-block
+		{
+			display: block;
+		}
+		
+		.tree-container .file.selected, .dir.selected
+		{
+			background-color: #EEE;
+		}
+		
+		
+		.tree-container .file.drop-ready
+		{
+			border: dotted 1px gray;
+			border-radius : 4px;
+			-moz-border-radius : 4px;
+		}
+		
+		.tree-container .file.drop-selected
+		{
+			border: solid 1px gray;
+			background-color: #CCFFFF;
+		}  
+		
+		.tree-container .file:hover, .dir:hover, .link:hover
+		{
+			text-shadow: 1px 1px 1px #ccc;
+			border-bottom: dotted 1px gray;
+			color: red; 
+		}
+		
+		
+		.tree-container .file .name, .dir .name, .link .name
+		{
+			display: inline;
+			color: inherit;
+			text-decoration: none;
+		}
+		
+		.tree-container .file .tags, .dir .tags{
+			float: right;
+		}
+		
+		.upload-frame
+		{
+			border: none;
+			height: 40px;
+			width: 300px;
+		}
+		
+	</style>
+</head>
+<body>
+		
+	<include url="http://services.web-manufacture.net/UI/win.htm"></include>
+		<div id="Tree" class='small-window window'>
+			<div id='LoadingMask'>
+    			<div class='loading-text'>Loading...</div>
+    		</div>
+		</div> 
+	<script>
+	    FilesWidget(Tree, "sandbox.web-manufacture.net/azzoo");
+	</script>
+</body>
