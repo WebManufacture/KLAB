@@ -6,6 +6,7 @@
 				return false;
 			};	
 			
+			
 			function upload(file){
 				Notify.Show("Uploading " + file.name + "");
 				var xhr = new XMLHttpRequest();
@@ -26,52 +27,7 @@
 				}
 				return false;
 			};
-		})
-		
-		Notify = {};
-		
-		Notify.Show = Notify.info = Notify.Info = function (message) {
-			var nf = DOM("#Notify");
-			var ev = nf.div(".event.first", (new Date()).formatTime() + " " + message);
-			nf.show();
-			nf.ins(ev);
-			Notify.setTimeout();
-		};
-		
-		Notify.Error = function (error) {
-			var nf = DOM("#Notify");
-			var ev = nf.div(".event.error.first", (new Date()).formatTime() + " " + error);
-			nf.show();
-			nf.ins(ev);
-			Notify.setTimeout();
-		};
-		
-		Notify.setTimeout = function () {
-			if (Notify.timeout) {
-				window.clearTimeout(Notify.timeout);
-			}
-			Notify.timeout = window.setTimeout(Notify.clearFirst, 3000);
-		};
-		
-		Notify.clearFirst = function () {
-			DOM.all("#Notify .event.first").del(".first");
-		};
-		
-		Dialog = {};
-		
-		Dialog.Apply = function(elem){
-			var dialog = elem.findParent(".dialog");
-			dialog.hide();
-			var value = dialog.get(".dialog-value");
-			if (Check(dialog.onapply)){
-				dialog.onapply(value.value);
-			}
-		};
-		
-		Dialog.Close = function(elem){
-			var dialog = elem.findParent(".dialog");
-			dialog.hide();
-		};
+		});
 		
 		FS = {};
 		

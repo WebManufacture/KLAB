@@ -9,6 +9,8 @@ var Files = require(Path.resolve("./ILAB/Modules/Files.js"));
 KLabServer = function(config, router, logger){
 	this.Config = config;
 	this.noCollectData = true;
+	this.instanceId = (Math.random() + "").replace("0.", "");
+	var server = this;
 	var filesRouter = Files(config, this);
 	router.for("Main","/>", {
 		   GET : function(context){
@@ -82,19 +84,23 @@ KLabServer = function(config, router, logger){
 			   if (context.completed) return true;
 			   var path = context.pathName;
 			   if (config.basepath){
-					 path = config.basepath + context.pathName;
+			         path = config.basepath + context.pathName;
 			   }
+			   var relPath = path.toLowerCase();
 			   if (path.indexOf(".") != 0){
 					path = "." + path;   
 			   }
-			   path = Path.resolve(path);
-			   logger.log("Writing " + path);
+			   else{
+			      relPath = relPath.replace("./", "/"); 
+			   }
+			   console.log("Writing " + Path.resolve(path));
 			   var writeable = fs.createWriteStream(Path.resolve(path),{'flags': 'w', 'encoding': 'binary'});
 			   if (context.data) console.error("DATA DETECTED!");
 			   context.req.on("data", function(data){
 				   writeable.write(data);
 			   });
 			   context.req.on("end", function(){
+				   Channels.emit("/file-system#"+ server.instanceId + ".klab.write" + relPath, path);
 				   context.finish(200);				   
 			   });
 			   return false;
@@ -105,9 +111,13 @@ KLabServer = function(config, router, logger){
 				if (config.basepath){
 					path = config.basepath + context.pathName;
 				}
+			    var relPath = path.toLowerCase();
 				if (path.indexOf(".") != 0){
 					path = "." + path;   
 				}
+			    else{
+			       relPath = relPath.replace("./", "/"); 
+			    }
 				path = Path.resolve(path);
 				fs.exists(path, function(exists){
 					if (!exists){
@@ -117,12 +127,12 @@ KLabServer = function(config, router, logger){
 					info("Deleting " + path);
 					fs.unlink(path, function(err, result){
 						if (err){
-							Channels.emit("/file-system/action.delete.error", path,err);
+							Channels.emit("/file-system#"+ server.instanceId + ".klab.delete.error" + relPath, path,err);
 							context.finish(500, "Delete error " + path + " " + err);	
 							return;
 						}			
-						Channels.emit("/file-system/action.delete", path);
-						context.finish(200, "Deleted " + path);			
+						Channels.emit("/file-system#"+ server.instanceId + ".klab.delete" + relPath, path);
+						context.finish(200, "Deleted " +  Path.resolve(path));			
 					});
 				});
 				return false;

@@ -4,9 +4,7 @@
 		<meta content="text/html; charset=utf-8" http-equiv="Content-Type" />
 		<link type='text/css' rel='stylesheet' href="http://Services.web-manufacture.net/Styles/System.default.css" />
 		<script type="text/javascript" src="http://Services.web-manufacture.net/Base/v1.5/?join=true"></script>
-		<script src="http://services.web-manufacture.net/External/ace_17_01_16/src/ace.js" type="text/javascript" charset="utf-8"></script>
-		<script src="http://services.web-manufacture.net/External/ace_17_01_16/src/ext-language_tools.js"></script>
-		
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.2.2/ace.js" type="text/javascript" charset="utf-8"></script>
 		<script type="text/javascript" key="TextEditor">
 
 			Notify = {};
@@ -46,15 +44,7 @@
 
 			Editor = {};
 
-			Editor.ChangeTheme = function(theme){
-				Editor.TextEditor.setTheme(theme);
-				window.localStorage.setItem("klab_ace_theme", theme);
-			};
-			
 			Editor.Init = function() {
-				
-				ace.require("ace/ext/language_tools");
-    		
 				var url = null;
 				Editor.fileName = null;
 				var req = XH();				
@@ -92,9 +82,12 @@
 					DOM("#urlBar").value = Request.GetUrl(Editor.fileName);
 				};
 				Editor.HistoryKey = 'dateArray_' + url;
-				window.onkeydown = Editor.KeyHandler;
+				window.onkeypress = Editor.KeyHandler;
 
 				Editor.Reload();
+				CodeMirror.commands.autocomplete = function(cm) {
+					CodeMirror.simpleHint(cm, CodeMirror.javascriptHint);
+				}
 			};
 
 			Editor.GoUrl = function(url, key) {
@@ -132,7 +125,7 @@
 			Editor.LoadFileComplete = function(result) {
 				result = this.responseText;
 				var parsers = "";
-				
+				DOM(".menuitem.reload").del(".disabled");
 				var header = this.getResponseHeader("Content-Type");
 				var server = Editor.Server = {};
 				server.ServerUrl = this.getResponseHeader("ServerUrl");
@@ -141,49 +134,48 @@
 				server.NodeId = this.getResponseHeader("NodeId");
 				if (header != null) {
 					if (header.Contains(["text/html", "text/htm"])) {
-						parsers = "html";
+						parsers = "text/html";
 					}
 					if (header.Contains(["text/javascript", "application/javascript", "application/x-javascript", "text/js"])) {
-						parsers = "javascript";
+						parsers = "application/javascript";
 					}
 					if (header.Contains(["text/json", "application/json"])) {
-						parsers = "json";
+						parsers = "application/json";
 					}				
 					if (header.Contains("text/css")) {
-						parsers = "css";
+						parsers = "text/css";
 					}
 					if (header.Contains("text/xml")) {
 						parsers = "xml";
 					}
 					if (header.Contains("text/plain")) {
-						parsers = "csharp";
+						parsers = "text/x-csharp";
 					}
 				}
-				
-				EditorArea.textContent = this.responseText;
-				
-				var editor = Editor.TextEditor = ace.edit("EditorArea");
-				var theme = window.localStorage.getItem("klab_ace_theme");
-				if (!theme) theme = "ace/theme/ambiance";
-				EditorThemeSelector.value = theme;
-				editor.setTheme(theme);
-				editor.session.setMode("ace/mode/" + parsers);
-				editor.setOptions({
-					enableBasicAutocompletion: true,
-					enableSnippets: true,
-					enableLiveAutocompletion: true
+
+
+				Editor.TextEditor = CodeMirror(WS.Body, {
+					mode: parsers,
+					indentUnit: 4,
+					wordWrap: true,
+					indentWithTabs: true,
+					smartIndent: true,
+					lineNumbers: true,
+					matchBrackets: true,
+					matchTags: true,
+					autoCloseBrackets : true,
+					highlightSelectionMatches: true,
+					autoCloseTags: true,
+					electricChars: true
 				});
-				
+
 				/*Editor.TextEditor.on("cursorActivity", function() {
             Editor.TextEditor.matchHighlight("CodeMirror-matchhighlight");
             });*/
 
+				Editor.TextEditor.setValue(this.responseText);
 				var title = WS.Header.add("<title>" + Editor.fileName + "</title>");
 			};
-			
-			Editor.ContReload = function() {
-				setInterval(Editor.Reload, 1000);
-			}
 
 			Editor.Reload = function() {
 				var url = null;
@@ -219,7 +211,7 @@
 					var paths = Url.Resolve(url);
 					Editor.fileName = paths.path[paths.path.length - 1];
 				}
-				//DOM(".menuitem.reload").add(".disabled");
+				DOM(".menuitem.reload").add(".disabled");
 				req.open("GET", url, true);
 				if (Editor.TextEditor) {
 					req.onload = Editor.ReloadEnd;
@@ -238,7 +230,7 @@
 				else {
 					Notify.Error("Нет связи: " + this.status);
 				}
-				//DOM(".menuitem.reload").del(".disabled");
+				DOM(".menuitem.reload").del(".disabled");
 			};
 
 			Editor.GetFileUrl = function() {
@@ -417,18 +409,9 @@
 					}
 					window.open(url);
 				}
-				var url = new Url(window.location + "");
+				var url = new Url(window.location);
 				url.search = "";
 				window.open(url);
-			};
-			
-			Editor.RunOnServer = function() {
-				var content = Editor.TextEditor.getValue();
-				Net.POST("http://ilab.web-manufacture.net", content, function(data){
-				   console.log("RUN ON SERVER");
-				   console.log(data);
-				   Notify.Show(data);
-				});
 			};
 
 			Editor.OpenLogWindow = function() {
@@ -445,18 +428,15 @@
 
 			Editor.KeyHandler = function(event) {
 				// Ctrl + S event;
-				if (event.ctrlKey && event.keyCode > 0){
-				    console.log(event.keyCode);
-				    if (event.ctrlKey && event.keyCode == 83) {
-    					Editor.SaveFile();
-    					event.stopPropagation();
-    					event.preventDefault();
-    					return false;
-    				}
-    				if (event.ctrlKey && event.charCode == 104) {
-    					DOM("#hkHint").show();
-    					return false;
-    				}
+				if (event.ctrlKey && event.charCode == 115) {
+					Editor.SaveFile();
+					event.stopPropagation();
+					event.preventDefault();
+					return false;
+				}
+				if (event.ctrlKey && event.charCode == 104) {
+					DOM("#hkHint").show();
+					return false;
 				}
 				return true;
 			};
@@ -554,16 +534,72 @@
 			{
 				font-weight: bold;
 			}
-			
-			#EditorArea
+			.CodeMirror
 			{
-				width: 100%;
 				line-height: 1.2em;
 				font-size: 14px;
 				font-family: monospace;
 				height: 100%;
 			}
+			.CodeMirror-scroll
+			{
+			}
+			.CodeMirror-lines
+			{
+				padding: .4em;
+			}
+			.CodeMirror-dialog
+			{
+				position: fixed;
+				top: 100px;
+				background: white;
+				border: solid 1px black;
+				opacity: 1;
+				padding: 110px10px;}
+			.CodeMirror-selected
+			{
+				background-color: #afe !important;
+			}
+			span.CodeMirror-matchingbracket
+			{
+				background: #ff5;
+			}
+			.cm-matchhighlight
+			{
+				background-color: #af5;
+			}
 			
+			.CodeMirror-matchingtag{
+				background-color: #ff7;
+			}
+			
+			#hkHint
+			{
+				position: absolute;
+				top: 0;
+				right: 0;
+				background: rgba(255, 255, 255, 0.6);
+				z-index: 100;
+				border: solid 1px #ccc;
+				border-radius: 10px;
+				padding: 10px;
+				width: 20%;
+			}
+			#hkHint h2
+			{
+				font-size: 20px;
+				margin: 2px;
+			}
+			#hkHint .hot-key
+			{
+				margin-bottom: 5px;
+			}
+			#hkHint .key-combination
+			{
+				font-weight: bold;
+				display: block;
+				padding-bottom: 2px;
+			}
 			.header.toolbar .menuitem.disabled
 			{
 				background-color: red;
@@ -624,7 +660,6 @@
 	<body>
 		<div id='Notify'>
 		</div>
-		<div id='EditorArea'></div>
 		<div id='hkHint' class='invisible' onclick="this.hide();">
 			<h2>
 				Список новых фишек</h2>
@@ -681,8 +716,8 @@
 				 onclick="Editor.ShowHistory();" style="background-image: url(http://cdn1.iconfinder.com/data/icons/softwaredemo/PNG/32x32/Hourglass.png);
 														background-position: 50% 50%; background-repeat: no-repeat no-repeat;">
 			</div>
-			<div class="menuitem cont_reload" tooltip="Отображать файл" icon="http://cdn1.iconfinder.com/data/icons/humility-icons-MERGE/24x24/stock/gtk-refresh.png"
-				 onclick="Editor.ContReload();" style="background-image: url(http://cdn1.iconfinder.com/data/icons/humility-icons-MERGE/24x24/stock/gtk-refresh.png);
+			<div class="menuitem reload" tooltip="Перегрузить файл" icon="http://cdn1.iconfinder.com/data/icons/humility-icons-MERGE/24x24/stock/gtk-refresh.png"
+				 onclick="Editor.Reload();" style="background-image: url(http://cdn1.iconfinder.com/data/icons/humility-icons-MERGE/24x24/stock/gtk-refresh.png);
 												   background-position: 50% 50%; background-repeat: no-repeat no-repeat;">
 			</div>
 			<div class="separator">
@@ -690,18 +725,8 @@
 			<div class="menuitem color" style="background-size: 48px; background-image: url(http://system.web-manufacture.net/Images/color.png);
 											   background-position: 50% 50%; background-repeat: no-repeat no-repeat;" tooltip="Палитра"
 				 icon="http://system.web-manufacture.net/Images/color.png" onclick="if (window.CPalette) CPalette.Show(); else M.LoadModule('http://system.web-manufacture.net/ColorPalette.htm');">
-			</div>			
-			
-			<div class="menuitem reformat" tooltip="Переформатировать" icon="http://cdn1.iconfinder.com/data/icons/humility-icons-MERGE/24x24/stock/gtk-refresh.png"
-				 onclick="var code = ace.getSession().getValue();ace.getSession().setValue(code);" style="background-image: url(http://cdn1.iconfinder.com/data/icons/humility-icons-MERGE/24x24/stock/gtk-refresh.png);
-												   background-position: 50% 50%; background-repeat: no-repeat no-repeat;">
 			</div>
 			<div class="separator">
-			</div>
-			<div class="menuitem" id='ServerRunBtn' tooltip="RunServer"
-				 icon='http://cdn2.iconfinder.com/data/icons/stilllife/48x48/apps/gnome-server-config.png'
-				 onclick='Editor.RunOnServer();'
-				 >
 			</div>
 			<div class="menuitem" tooltip="Запустить" icon="http://system.web-manufacture.net/Images/emblem-system.png"
 				 onclick="Editor.RunFile();" style="background-image: url(http://system.web-manufacture.net/Images/emblem-system.png);
@@ -709,12 +734,6 @@
 			</div>
 			<div class="separator">
 			</div>
-			
-			<select id="EditorThemeSelector" size="1" onchange="Editor.ChangeTheme(this.value);">
-<optgroup label="Bright"><option value="ace/theme/chrome">Chrome</option><option value="ace/theme/clouds">Clouds</option><option value="ace/theme/crimson_editor">Crimson Editor</option><option value="ace/theme/dawn">Dawn</option><option value="ace/theme/dreamweaver">Dreamweaver</option><option value="ace/theme/eclipse">Eclipse</option><option value="ace/theme/github">GitHub</option><option value="ace/theme/iplastic">IPlastic</option><option value="ace/theme/solarized_light">Solarized Light</option><option value="ace/theme/textmate">TextMate</option><option value="ace/theme/tomorrow">Tomorrow</option><option value="ace/theme/xcode">XCode</option><option value="ace/theme/kuroir">Kuroir</option><option value="ace/theme/katzenmilch">KatzenMilch</option><option value="ace/theme/sqlserver">SQL Server</option></optgroup><optgroup label="Dark"><option value="ace/theme/ambiance">Ambiance</option><option value="ace/theme/chaos">Chaos</option><option value="ace/theme/clouds_midnight">Clouds Midnight</option><option value="ace/theme/cobalt">Cobalt</option><option value="ace/theme/idle_fingers">idle Fingers</option><option value="ace/theme/kr_theme">krTheme</option><option value="ace/theme/merbivore">Merbivore</option><option value="ace/theme/merbivore_soft">Merbivore Soft</option><option value="ace/theme/mono_industrial">Mono Industrial</option><option value="ace/theme/monokai">Monokai</option><option value="ace/theme/pastel_on_dark">Pastel on dark</option><option value="ace/theme/solarized_dark">Solarized Dark</option><option value="ace/theme/terminal">Terminal</option><option value="ace/theme/tomorrow_night">Tomorrow Night</option><option value="ace/theme/tomorrow_night_blue">Tomorrow Night Blue</option><option value="ace/theme/tomorrow_night_bright">Tomorrow Night Bright</option><option value="ace/theme/tomorrow_night_eighties">Tomorrow Night 80s</option><option value="ace/theme/twilight">Twilight</option><option value="ace/theme/vibrant_ink">Vibrant Ink</option></optgroup></select>
-			<div class="separator">
-			</div>
-			
 			<!--
 <div class="menuitem" tooltip="Restart on Server" icon="http://cdn1.iconfinder.com/data/icons/UltimateGnome/32x32/apps/gnome-session-reboot.png" onclick="Editor.ServerRestart();">
 </div>	

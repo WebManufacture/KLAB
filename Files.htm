@@ -24,7 +24,10 @@
 				Notify.Show("Uploading " + file.name + "");
 				var xhr = new XMLHttpRequest();
 				xhr.open('POST',  window.location + "/" + file.name, true);
-				xhr.onload = function(e) { Notify.Show("file " + file.name + " uploaded!"); };
+				xhr.onload = function(e) { 
+				    Notify.Show("file " + file.name + " uploaded!"); 
+				    FS.ReloadSystem();
+				};
 				xhr.send(file);
 			}
 			
@@ -98,13 +101,6 @@
 			FS.server = Net.GetTunnel();
 			FS.CurrentDir = window.location.pathname.replace(/\/\//g, "/");
 			FS.ReloadSystem();
-			
-			Events.on("onmoduleregistered", "http://services.web-manufacture.net/ui/toolbars.htm", function(module){
-				var sb = DOM(".spien-bar");
-				if (sb){
-					sb.del();
-				}
-			});
 		};
 		
 		FS.ReloadSystem = function() {
@@ -355,10 +351,13 @@
 				files.hide();
 				files = FS.Tree.all(".file[name*='" + text.toLowerCase() + "']");
 				files.show();
+				
 			}
 			else{
-				var files = FS.Tree.all(".file");
-				files.show();
+				//var files = FS.Tree.all(".file");
+				var folder = FS.Tree.all(".dir")
+				//files.show();
+				folder.show();
 				FS.InputField.value = "";
 			};
 		};
@@ -699,8 +698,11 @@
 	</style>
 </head>
 <body>
+	
+	<!--include url='http://services.web-manufacture.net/SysUtils/Log.htm'></include-->
 	<include url='http://services.web-manufacture.net/UI/toolbars.htm'></include>
-	<include url='http://services.web-manufacture.net/Authentication/Authentication.htm'></include>
+	
+	<!--include url='http://services.web-manufacture.net/Authentication/Authentication.htm'></include-->
 	<div class='toolbar header fixed' id='HeaderBar'>
 		<div id='FilterBlock'>
 			<div class='title'>Фильтр и поиск:</div>
@@ -725,9 +727,11 @@
 		<div class="event info">
 		<div class="event info">Вы можете перетащить сюда файлы для загрузки в данную папку.</div>
 		<br>
-		<div class="event info">Для того чтобы добавить файл, введите его имя в поле в верхнем левом углу и нажмите "Создать"</div>
+		<div class="event info">Для того чтобы добавить файл или папку, введите его имя в поле в верхнем левом углу и нажмите "Создать"</div>
 		<br>
 		<div class="event info">Чтобы открыть файл, дважды кликните по нему</div>
+		<br>	
+		<div class="event info">Чтобы править файл, кликните по нему с нажатой кнопкой Ctrl</div>
 		<br>
 		<div class="event info">Скомпилировать проект, можно кнопочкой "Собрать", вверху</div>
 	.</div>
